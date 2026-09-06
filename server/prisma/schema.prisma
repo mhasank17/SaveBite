@@ -1,0 +1,246 @@
+// SaveBite Database Schema
+// Database: Supabase PostgreSQL
+// Currency: INR (₹) everywhere
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  PARTNER
+  ADMIN
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  RE_INSPECT
+  REJECTED
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  SOLD_OUT
+  EXPIRED
+}
+
+enum FulfillmentType {
+  SELF_PICKUP
+  ECO_COURIER
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  READY_FOR_PICKUP
+  ARRIVING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum PayoutStatus {
+  SCHEDULED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id           String       @id @default(uuid())
+  firebaseUid  String       @unique @map("firebase_uid")
+  email        String       @unique
+  fullName     String       @map("full_name")
+  phone        String?
+  role         UserRole     @default(CUSTOMER)
+  avatarUrl    String?      @map("avatar_url")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  restaurants  Restaurant[]
+  orders       Order[]
+  reviews      Review[]
+  disputes     Dispute[]
+
+  @@map("users")
+}
+
+model Restaurant {
+  id                 String       @id @default(uuid())
+  ownerUserId        String       @map("owner_user_id")
+  name               String       // e.g. "Le Paris Bakery"
+  branchName         String       @map("branch_name") // e.g. "Downtown Flagship"
+  address            String
+  city               String       @default("Downtown")
+  latitude           Decimal      @db.Decimal(10, 7)
+  longitude          Decimal      @db.Decimal(10, 7)
+  phone              String?
+  hygieneGrade       String       @default("Grade A") @map("hygiene_grade")
+  licenseNumber      String       @map("license_number")
+  licenseDocumentUrl String?      @map("license_document_url")
+  kycStatus          KycStatus    @default(PENDING) @map("kyc_status")
+  isStoreLive        Boolean      @default(true) @map("is_store_live")
+  rating             Decimal      @default(5.0) @db.Decimal(2, 1)
+  reviewCount        Int          @default(0) @map("review_count")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  owner              User         @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  listings           Listing[]
+  orders             Order[]
+  reviews            Review[]
+  payouts            Payout[]
+
+  @@map("restaurants")
+}
+
+model FoodCategory {
+  id        String    @id @default(uuid())
+  slug      String    @unique // 'bakery', 'meals', 'produce', 'buffet'
+  name      String
+  iconName  String    @map("icon_name")
+  listings  Listing[]
+
+  @@map("food_categories")
+}
+
+model Listing {
+  id               String         @id @default(uuid())
+  restaurantId     String         @map("restaurant_id")
+  categoryId       String         @map("category_id")
+  title            String         // e.g. "Evening Mystery Patisserie Bag"
+  description      String
+  imageUrl         String         @map("image_url")
+  originalPriceInr Decimal        @map("original_price_inr") @db.Decimal(10, 2)
+  surplusPriceInr  Decimal        @map("surplus_price_inr") @db.Decimal(10, 2) // User sees "Deal Price (₹)"
+  totalQuantity    Int            @map("total_quantity")
+  availableQuantity Int           @map("available_quantity")
+  reservedQuantity Int            @default(0) @map("reserved_quantity")
+  pickupDate       DateTime       @map("pickup_date") @db.Date
+  pickupStartTime  String         @map("pickup_start_time") // e.g. "20:00"
+  pickupEndTime    String         @map("pickup_end_time")   // e.g. "21:00"
+  dietaryTags      String[]       @map("dietary_tags")
+  allergenNotice   String?        @map("allergen_notice")
+  co2eSavingsKg    Decimal        @default(1.5) @map("co2e_savings_kg") @db.Decimal(5, 2)
+  status           ListingStatus  @default(ACTIVE)
+  isMysteryBox     Boolean        @default(true) @map("is_mystery_box")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  restaurant       Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  category         FoodCategory   @relation(fields: [categoryId], references: [id])
+  orders           Order[]
+
+  @@map("listings")
+}
+
+model Order {
+  id               String          @id @default(uuid())
+  orderNumber      String          @unique @map("order_number") // e.g. "#8492"
+  customerId       String          @map("customer_id")
+  restaurantId     String          @map("restaurant_id")
+  listingId        String          @map("listing_id")
+  quantity         Int             @default(1)
+  unitPriceInr     Decimal         @map("unit_price_inr") @db.Decimal(10, 2)
+  deliveryFeeInr   Decimal         @default(0.00) @map("delivery_fee_inr") @db.Decimal(10, 2)
+  totalPriceInr    Decimal         @map("total_price_inr") @db.Decimal(10, 2)
+  fulfillmentType  FulfillmentType @default(SELF_PICKUP) @map("fulfillment_type")
+  orderStatus      OrderStatus     @default(PENDING_PAYMENT) @map("order_status")
+  razorpayOrderId  String?         @map("razorpay_order_id")
+  razorpayPaymentId String?        @map("razorpay_payment_id")
+  paymentStatus    PaymentStatus   @default(INITIATED) @map("payment_status")
+  pickupOtp        String          @map("pickup_otp") // e.g. "8492"
+  qrSecretToken    String          @unique @map("qr_secret_token")
+  etaMinutes       Int?            @map("eta_minutes")
+  expiresAt        DateTime        @map("expires_at")
+  completedAt      DateTime?       @map("completed_at")
+  createdAt        DateTime        @default(now()) @map("created_at")
+
+  customer         User            @relation(fields: [customerId], references: [id])
+  restaurant       Restaurant      @relation(fields: [restaurantId], references: [id])
+  listing          Listing         @relation(fields: [listingId], references: [id])
+  review           Review?
+  disputes         Dispute[]
+
+  @@map("orders")
+}
+
+model Dispute {
+  id              String        @id @default(uuid())
+  orderId         String        @map("order_id")
+  raisedByUserId  String        @map("raised_by_user_id")
+  reason          String
+  status          DisputeStatus @default(OPEN)
+  refundAmountInr Decimal?      @map("refund_amount_inr") @db.Decimal(10, 2)
+  adminNotes      String?       @map("admin_notes")
+  resolvedAt      DateTime?     @map("resolved_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  order           Order         @relation(fields: [orderId], references: [id])
+  user            User          @relation(fields: [raisedByUserId], references: [id])
+
+  @@map("disputes")
+}
+
+model Review {
+  id               String     @id @default(uuid())
+  orderId          String     @unique @map("order_id")
+  customerId       String     @map("customer_id")
+  restaurantId     String     @map("restaurant_id")
+  rating           Int        // 1 to 5
+  comment          String?
+  isVerifiedRescue Boolean    @default(true) @map("is_verified_rescue")
+  createdAt        DateTime   @default(now()) @map("created_at")
+
+  order            Order      @relation(fields: [orderId], references: [id])
+  customer         User       @relation(fields: [customerId], references: [id])
+  restaurant       Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@map("reviews")
+}
+
+model Payout {
+  id               String       @id @default(uuid())
+  restaurantId     String       @map("restaurant_id")
+  amountInr        Decimal      @map("amount_inr") @db.Decimal(10, 2)
+  status           PayoutStatus @default(SCHEDULED)
+  bankReferenceId  String?      @map("bank_reference_id")
+  payoutDate       DateTime     @map("payout_date") @db.Date
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  restaurant       Restaurant   @relation(fields: [restaurantId], references: [id])
+
+  @@map("payouts")
+}
+
+model SystemAuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?  @map("actor_id")
+  action     String   // e.g. "KYC_APPROVED", "PAYOUT_PROCESSED"
+  details    Json
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("system_audit_logs")
+}

@@ -1,0 +1,25 @@
+{
+  "name": "savebite-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SaveBite - Affordable Food Deals & Meal Rescue Platform",
+  "scripts": {
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "build:client": "npm run build --workspace=client",
+    "build:server": "npm run build --workspace=server",
+    "start": "npm run start --workspace=server"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "keywords": [
+    "savebite",
+    "food-deals",
+    "marketplace",
+    "inr"
+  ],
+  "author": "SaveBite Team",
+  "license": "MIT"
+}
