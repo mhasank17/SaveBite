@@ -8,7 +8,6 @@ export type UserRole = 'CUSTOMER' | 'PARTNER' | 'ADMIN';
 
 export interface UserProfile {
   id: string;
-  firebaseUid: string;
   email: string;
   fullName: string;
   phone?: string;

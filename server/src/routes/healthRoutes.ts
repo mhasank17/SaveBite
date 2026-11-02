@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import { isFirebaseAuthReady } from '../config/firebaseAdmin';
 import { isSupabaseStorageReady } from '../config/supabase';
 
 const router = Router();
@@ -13,7 +12,7 @@ router.get('/health', (_req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     currency: 'INR (₹)',
     integrations: {
-      firebaseAuth: isFirebaseAuthReady() ? 'ready' : 'awaiting_credentials',
+      auth: 'ready',
       supabaseStorage: isSupabaseStorageReady() ? 'ready' : 'awaiting_credentials',
       database: 'configured_via_prisma',
     },
