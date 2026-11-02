@@ -5,11 +5,31 @@ import path from 'path';
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+function sanitizeEnvValue(val?: string): string {
+  if (!val) return '';
+  let str = val.trim();
+  if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith("'") && str.endsWith("'"))) {
+    str = str.slice(1, -1).trim();
+  }
+  if (str.startsWith('DATABASE_URL=')) {
+    str = str.slice('DATABASE_URL='.length).trim();
+    if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith("'") && str.endsWith("'"))) {
+      str = str.slice(1, -1).trim();
+    }
+  }
+  return str;
+}
+
+// Clean surrounding quotes in process.env so Prisma engine receives valid protocol
+if (process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = sanitizeEnvValue(process.env.DATABASE_URL);
+}
+
 export const ENV = {
   PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : 5000,
   NODE_ENV: process.env.NODE_ENV || 'development',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
-  DATABASE_URL: process.env.DATABASE_URL || '',
+  DATABASE_URL: sanitizeEnvValue(process.env.DATABASE_URL),
   SUPABASE_URL: process.env.SUPABASE_URL || '',
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET || 'savebite-assets',
