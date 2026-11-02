@@ -36,7 +36,7 @@ const PartnerLoginSchema = z.object({
 });
 
 const AdminLoginSchema = z.object({
-  email: z.string().trim().email('Please enter a valid email address'),
+  email: z.string().trim().min(1, 'Please enter your administrator username or email address'),
   password: z.string().trim().min(1, 'Password is required'),
 });
 
@@ -257,7 +257,8 @@ export class AuthController {
   public async loginAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const parsed = AdminLoginSchema.parse(req.body);
-      const result = await authService.loginAdmin(parsed);
+      const email = parsed.email.trim().toLowerCase() === 'admin' ? 'admin@savebite.in' : parsed.email.trim();
+      const result = await authService.loginAdmin({ email, password: parsed.password });
 
       res.status(200).json({
         success: true,
