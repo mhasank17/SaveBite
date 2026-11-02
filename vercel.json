@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npx prisma generate --schema=server/prisma/schema.prisma && npm run build:client",
+  "buildCommand": "prisma generate --schema=server/prisma/schema.prisma && npm run build:client",
   "outputDirectory": "client/dist",
   "rewrites": [
     {
