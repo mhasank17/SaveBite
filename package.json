@@ -4,10 +4,13 @@
   "private": true,
   "description": "SaveBite - Affordable Food Deals & Meal Rescue Platform",
   "scripts": {
+    "dev": "concurrently -k -n \"server,client\" -c \"cyan,green\" \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "npm run dev --workspace=client",
     "dev:server": "npm run dev --workspace=server",
     "build:client": "npm run build --workspace=client",
     "build:server": "npm run build --workspace=server",
+    "test:server": "npm test --workspace=server",
+    "test:smtp": "npm run test:smtp --workspace=server",
     "start": "npm run start --workspace=server"
   },
   "workspaces": [
@@ -21,5 +24,8 @@
     "inr"
   ],
   "author": "SaveBite Team",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
 }

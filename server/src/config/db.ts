@@ -16,4 +16,8 @@ if (ENV.NODE_ENV !== 'production') {
   global.prismaGlobal = prisma;
 }
 
+export const isDatabaseConfigured = (): boolean => {
+  return Boolean(ENV.DATABASE_URL) && !ENV.DATABASE_URL.includes('your-supabase-project');
+};
+
 export default prisma;

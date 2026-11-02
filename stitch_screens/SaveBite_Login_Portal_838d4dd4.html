@@ -1,0 +1,457 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>SaveBite - Food Deals &amp; Surplus Rescue</title>
+<!-- Tailwind CSS CDN with forms plugin -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              primary: '#15803d',
+              accent: '#ea580c',
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  /* Entrance and Micro-interaction Keyframes */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes popIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.65) translateY(-8px);
+    }
+    70% {
+      transform: scale(1.08) translateY(0);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes floatSlow1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(30px, -24px) scale(1.08); }
+  }
+
+  @keyframes floatSlow2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-35px, 20px) scale(1.12); }
+  }
+
+  @keyframes floatSlow3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(20px, 30px) scale(0.95); }
+  }
+
+  @keyframes shimmerSweep {
+    0% { transform: translateX(-150%) skewX(-20deg); }
+    100% { transform: translateX(250%) skewX(-20deg); }
+  }
+
+  @keyframes pulseSuccess {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45); }
+    70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  }
+
+  /* Entrance Stagger helper classes */
+  .anim-fade-up {
+    opacity: 0;
+    animation: fadeInUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .anim-pop {
+    opacity: 0;
+    animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .delay-50  { animation-delay: 50ms; }
+  .delay-100 { animation-delay: 100ms; }
+  .delay-150 { animation-delay: 150ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-250 { animation-delay: 250ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-350 { animation-delay: 350ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+
+  /* Background Ambient Blobs */
+  .ambient-blob-1 { animation: floatSlow1 16s ease-in-out infinite; }
+  .ambient-blob-2 { animation: floatSlow2 20s ease-in-out infinite; }
+  .ambient-blob-3 { animation: floatSlow3 18s ease-in-out infinite; }
+
+  /* Shimmer button highlight */
+  .btn-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  .btn-shimmer:hover::after {
+    animation: shimmerSweep 1.1s ease-in-out;
+  }
+
+  /* Input Fill Highlight Pulse */
+  .input-flash {
+    animation: pulseSuccess 0.85s ease-out;
+  }
+
+  /* Accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body class="relative min-h-screen bg-gradient-to-br from-emerald-950 via-[#064e3b] to-[#022c22] text-stone-800 antialiased flex flex-col justify-between p-4 sm:p-6 lg:p-8 font-sans selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+<!-- Subtle Ambient Animated Background Blobs -->
+<div aria-hidden="true" class="fixed inset-0 pointer-events-none overflow-hidden z-0"><div class="ambient-blob-1 absolute -top-32 -left-20 w-[32rem] h-[32rem] rounded-full bg-emerald-500/20 blur-[100px]"></div><div class="ambient-blob-2 absolute top-1/4 -right-20 w-[36rem] h-[36rem] rounded-full bg-teal-400/15 blur-[120px]"></div><div class="ambient-blob-3 absolute -bottom-24 left-1/3 w-[34rem] h-[34rem] rounded-full bg-emerald-400/20 blur-[110px]"></div><div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-400/10 via-transparent to-transparent pointer-events-none"></div></div>
+<!-- Top simplified minimal bar -->
+<header class="relative z-10 w-full max-w-md mx-auto pt-3 pb-2 flex items-center justify-between text-xs text-stone-500 anim-fade-up delay-50"><div class="flex items-center gap-2 font-medium text-emerald-100 bg-emerald-900/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-emerald-500/20 shadow-xs"><span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span></span><span class="tracking-tight text-emerald-100/90 text-xs font-semibold">12,000+ meals rescued daily</span></div><a class="text-emerald-200/80 hover:text-white transition-colors duration-200 hover:underline text-xs font-medium py-1 px-2 rounded-lg hover:bg-white/10" href="#">Help &amp; Support</a></header>
+<!-- BEGIN: Centered Login Card -->
+<main class="relative z-10 w-full max-w-md mx-auto my-auto bg-white/95 backdrop-blur-md rounded-2xl border border-emerald-500/20 shadow-[0_20px_50px_rgba(0,0,0,0.35)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.42)] transition-shadow duration-300 p-6 sm:p-8 anim-fade-up delay-100 ring-1 ring-white/60">
+<!-- Logo & Brand Header -->
+<div class="text-center mb-6">
+<div class="anim-pop delay-150 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 mb-3 shadow-xs hover:scale-105 transition-transform duration-200">
+<svg class="w-6 h-6 fill-current transition-transform duration-300 group-hover:rotate-6" viewBox="0 0 24 24">
+<path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 7 12 8 12s8-6.75 8-12c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"></path>
+</svg>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-stone-900 flex items-center justify-center gap-1 anim-fade-up delay-200">
+        Save<span class="text-emerald-700">Bite</span>
+</h1>
+<p class="text-xs text-stone-500 mt-0.5 anim-fade-up delay-200">Surplus Food Rescue &amp; Local Deals</p>
+</div>
+<!-- Role Switcher Toggle (Smooth Pill Indicator Container) -->
+<div class="relative bg-stone-100 p-1 rounded-xl flex items-center mb-6 border border-stone-200/60 anim-fade-up delay-250 overflow-hidden" role="tablist">
+<!-- Sliding Indicator Pill -->
+<div class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-xs border border-stone-200/70 transition-transform duration-300 ease-out pointer-events-none" id="tab-slider"></div>
+<button aria-selected="true" class="relative z-10 flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-1.5 text-emerald-800" id="tab-customer" onclick="switchPortal('customer')" role="tab" type="button">
+<svg class="w-4 h-4 text-emerald-700 transition-colors duration-200" fill="none" id="tab-customer-icon" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="">Customer</span>
+</button>
+<button aria-selected="false" class="relative z-10 flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900" id="tab-partner" onclick="switchPortal('partner')" role="tab" type="button">
+<svg class="w-4 h-4 text-stone-500 transition-colors duration-200" fill="none" id="tab-partner-icon" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="">Restaurant Partner</span>
+</button>
+</div>
+<!-- Title & Subtitle with smooth text cross-fade wrapper -->
+<div class="mb-5 text-center anim-fade-up delay-250">
+<h2 class="text-xl font-bold text-stone-900 tracking-tight transition-opacity duration-200" id="portal-title">
+        Welcome back
+</h2>
+<p class="text-xs sm:text-sm text-stone-500 mt-1 min-h-[1.75rem] transition-opacity duration-200" id="portal-subtitle">
+        Sign in to explore fresh deals and save meals near you.
+</p>
+</div>
+<!-- BEGIN: Simple LoginForm -->
+<form class="space-y-4" id="login-form" onsubmit="handleFormSubmit(event)">
+<!-- Email Input Field -->
+<div class="anim-fade-up delay-300">
+<label class="block text-xs font-semibold text-stone-700 mb-1.5 uppercase tracking-wider transition-colors duration-200" for="email-input" id="email-label">
+          Email address
+</label>
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-emerald-700 transition-colors duration-200">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-stone-50/50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-700/15 focus:border-emerald-700 focus:bg-white transition-all duration-300 shadow-2xs" id="email-input" name="email" placeholder="name@example.com" required="" type="email">
+</div>
+</div>
+<!-- Password Input Field -->
+<div class="anim-fade-up delay-350">
+<div class="flex items-center justify-between mb-1.5">
+<label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider transition-colors duration-200" for="password-input">
+            Password
+</label>
+<a class="text-xs font-medium text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-150" href="#">
+            Forgot password?
+</a>
+</div>
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 group-focus-within:text-emerald-700 transition-colors duration-200">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+<input class="w-full pl-10 pr-10 py-2.5 bg-stone-50/50 border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-700/15 focus:border-emerald-700 focus:bg-white transition-all duration-300 shadow-2xs" id="password-input" name="password" placeholder="••••••••" required="" type="password">
+<button aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 focus:outline-none transition-transform duration-150 hover:scale-110 active:scale-95" onclick="togglePasswordVisibility()" type="button">
+<svg class="w-4 h-4 transition-all duration-200" fill="none" id="eye-icon" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Primary Submit Button -->
+<div class="pt-1 anim-fade-up delay-400">
+<button class="relative overflow-hidden w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-xs hover:shadow-md cursor-pointer btn-shimmer" id="submit-button" type="submit">
+<span class="inline-flex items-center gap-2" id="submit-content">
+<span class="">Sign In</span>
+</span>
+</button>
+</div>
+<!-- Demo Quick-fill button -->
+<div class="anim-fade-up delay-400">
+<button class="w-full py-2 px-3 bg-stone-100 hover:bg-stone-200/80 active:scale-[0.98] border border-stone-200 text-stone-700 font-medium text-xs rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 shadow-2xs group" id="demo-button" onclick="fillDemoData()" type="button">
+<svg class="w-3.5 h-3.5 text-stone-500 group-hover:text-amber-500 transition-colors duration-200 group-hover:scale-110" fill="currentColor" viewBox="0 0 20 20">
+<path clip-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" fill-rule="evenodd"></path>
+</svg>
+<span class="transition-opacity duration-150" id="demo-text">Quick-fill Demo Customer (Sarah M.)</span>
+</button>
+</div>
+<!-- Sign Up link -->
+<div class="text-center pt-2 text-xs text-stone-600 anim-fade-up delay-500" id="account-signup-container">
+<span class="">Don't have an account?</span>
+<a class="font-semibold text-emerald-700 hover:text-emerald-900 hover:underline transition-colors duration-150" href="#">Sign up</a>
+</div>
+</form>
+<!-- END: LoginForm -->
+<!-- Card bottom divider & quick switcher link -->
+<div class="mt-6 pt-5 border-t border-stone-100 text-center space-y-1.5 anim-fade-up delay-500">
+<p class="text-xs text-stone-500" id="bottom-role-link">
+        Restaurant owner? 
+        <button class="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-150" onclick="switchPortal('partner')" type="button">
+          Partner login →
+        </button>
+</p>
+<p class="text-[11px] text-stone-400">
+        Admin access? 
+        <a class="hover:text-stone-600 underline transition-colors duration-150" href="#">
+          SuperAdmin
+        </a>
+</p>
+</div>
+</main>
+<!-- END: Centered Login Card -->
+<!-- Simple Footer -->
+<footer class="relative z-10 w-full max-w-md mx-auto py-3 text-center text-xs text-stone-400 flex items-center justify-between anim-fade-up delay-500"><span class="text-emerald-200/70 font-medium">© 2025 SaveBite Technologies</span><div class="flex gap-4"><a class="text-emerald-200/70 hover:text-white transition-colors duration-150 hover:underline" href="#">Privacy</a><a class="text-emerald-200/70 hover:text-white transition-colors duration-150 hover:underline" href="#">Terms</a></div></footer>
+<!-- Interactive Micro-Interactions Script -->
+<script>
+    let currentPortal = 'customer';
+    let isTyping = false;
+
+    function switchPortal(portal) {
+      if (currentPortal === portal && !isTyping) return;
+      currentPortal = portal;
+
+      const tabCustomer = document.getElementById('tab-customer');
+      const tabPartner = document.getElementById('tab-partner');
+      const tabCustomerIcon = document.getElementById('tab-customer-icon');
+      const tabPartnerIcon = document.getElementById('tab-partner-icon');
+      const slider = document.getElementById('tab-slider');
+      
+      const title = document.getElementById('portal-title');
+      const subtitle = document.getElementById('portal-subtitle');
+      const emailLabel = document.getElementById('email-label');
+      const emailInput = document.getElementById('email-input');
+      const submitContent = document.getElementById('submit-content');
+      const demoText = document.getElementById('demo-text');
+      const signupContainer = document.getElementById('account-signup-container');
+      const bottomRoleLink = document.getElementById('bottom-role-link');
+
+      // Smooth text transition: fade out slightly, swap text, fade in
+      title.style.opacity = '0';
+      subtitle.style.opacity = '0';
+      demoText.style.opacity = '0';
+
+      setTimeout(() => {
+        if (portal === 'customer') {
+          // Slide active pill indicator to left
+          slider.style.transform = 'translateX(0%)';
+
+          tabCustomer.className = 'relative z-10 flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-1.5 text-emerald-800';
+          tabCustomer.setAttribute('aria-selected', 'true');
+          tabCustomerIcon.className = 'w-4 h-4 text-emerald-700 transition-colors duration-200';
+
+          tabPartner.className = 'relative z-10 flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900';
+          tabPartner.setAttribute('aria-selected', 'false');
+          tabPartnerIcon.className = 'w-4 h-4 text-stone-500 transition-colors duration-200';
+
+          title.innerText = 'Welcome back';
+          subtitle.innerText = 'Sign in to explore fresh deals and save meals near you.';
+          emailLabel.innerText = 'Email address';
+          emailInput.placeholder = 'name@example.com';
+          submitContent.innerHTML = '<span>Sign In</span>';
+          demoText.innerText = '⚡ Quick-fill Demo Customer (Sarah M.)';
+          signupContainer.innerHTML = '<span>Don\'t have an account?</span> <a href="#" class="font-semibold text-emerald-700 hover:text-emerald-900 hover:underline transition-colors duration-150">Sign up</a>';
+          bottomRoleLink.innerHTML = 'Restaurant owner? <button type="button" onclick="switchPortal(\'partner\')" class="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-150">Partner login &rarr;</button>';
+        } else {
+          // Slide active pill indicator to right
+          slider.style.transform = 'translateX(100%)';
+
+          tabPartner.className = 'relative z-10 flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-1.5 text-emerald-800';
+          tabPartner.setAttribute('aria-selected', 'true');
+          tabPartnerIcon.className = 'w-4 h-4 text-emerald-700 transition-colors duration-200';
+
+          tabCustomer.className = 'relative z-10 flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900';
+          tabCustomer.setAttribute('aria-selected', 'false');
+          tabCustomerIcon.className = 'w-4 h-4 text-stone-500 transition-colors duration-200';
+
+          title.innerText = 'Partner Portal';
+          subtitle.innerText = 'Sign in to manage surplus inventory and incoming orders.';
+          emailLabel.innerText = 'Partner email';
+          emailInput.placeholder = 'owner@restaurant.in';
+          submitContent.innerHTML = '<span>Sign In to Partner Portal</span>';
+          demoText.innerText = '⚡ Quick-fill Demo Baker (Vikram Joshi)';
+          signupContainer.innerHTML = '<span>Want to partner with SaveBite?</span> <a href="#" class="font-semibold text-emerald-700 hover:text-emerald-900 hover:underline transition-colors duration-150">Register restaurant</a>';
+          bottomRoleLink.innerHTML = 'Looking for food deals? <button type="button" onclick="switchPortal(\'customer\')" class="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline transition-colors duration-150">Customer login &rarr;</button>';
+        }
+
+        // Fade in
+        title.style.opacity = '1';
+        subtitle.style.opacity = '1';
+        demoText.style.opacity = '1';
+      }, 150);
+    }
+
+    // Smooth typing simulator for demo quick-fill
+    function fillDemoData() {
+      if (isTyping) return;
+      isTyping = true;
+
+      const emailInput = document.getElementById('email-input');
+      const passwordInput = document.getElementById('password-input');
+      const demoBtn = document.getElementById('demo-button');
+
+      const targetEmail = currentPortal === 'customer' ? 'sarah.m@example.com' : 'vikram@artisanbakery.in';
+      const targetPass = currentPortal === 'customer' ? 'SaveBite2025!' : 'BakerSecret@2025';
+
+      emailInput.value = '';
+      passwordInput.value = '';
+      emailInput.focus();
+
+      let i = 0;
+      const typeSpeed = 22; // ms per char
+
+      function typeChar() {
+        if (i < targetEmail.length) {
+          emailInput.value += targetEmail[i];
+          i++;
+          setTimeout(typeChar, typeSpeed);
+        } else {
+          passwordInput.value = targetPass;
+          
+          // Celebratory pulse micro-interaction on inputs
+          emailInput.classList.remove('input-flash');
+          passwordInput.classList.remove('input-flash');
+          void emailInput.offsetWidth; // trigger reflow
+          emailInput.classList.add('input-flash');
+          passwordInput.classList.add('input-flash');
+
+          // Subtle feedback on button
+          const originalText = demoBtn.querySelector('span').innerText;
+          demoBtn.querySelector('span').innerText = '✓ Credentials Loaded!';
+          setTimeout(() => {
+            demoBtn.querySelector('span').innerText = originalText;
+            isTyping = false;
+          }, 1200);
+        }
+      }
+
+      typeChar();
+    }
+
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('password-input');
+      const eyeIcon = document.getElementById('eye-icon');
+      
+      eyeIcon.style.transform = 'scale(0.8)';
+      setTimeout(() => {
+        if (pwd.type === 'password') {
+          pwd.type = 'text';
+          eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+          `;
+        } else {
+          pwd.type = 'password';
+          eyeIcon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          `;
+        }
+        eyeIcon.style.transform = 'scale(1)';
+      }, 100);
+    }
+
+    // Micro-interaction on Submit: shows loading state then success animation
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submit-button');
+      const submitContent = document.getElementById('submit-content');
+      
+      submitBtn.disabled = true;
+      submitContent.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Authenticating...</span>
+      `;
+
+      setTimeout(() => {
+        submitContent.innerHTML = `
+          <svg class="w-4 h-4 text-emerald-200 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span>Welcome Back!</span>
+        `;
+        submitBtn.classList.add('bg-emerald-600');
+
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('bg-emerald-600');
+          if (currentPortal === 'customer') {
+            submitContent.innerHTML = '<span>Sign In</span>';
+          } else {
+            submitContent.innerHTML = '<span>Sign In to Partner Portal</span>';
+          }
+        }, 1500);
+      }, 900);
+    }
+</script>
+
+
+</body></html>

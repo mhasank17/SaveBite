@@ -17,7 +17,7 @@ export interface UserProfile {
   createdAt: string;
 }
 
-export type FoodCategorySlug = 'bakery' | 'meals' | 'produce' | 'buffet';
+export type FoodCategorySlug = 'all' | 'meal' | 'bakery' | 'pantry' | 'meals' | 'buffet' | 'produce';
 
 export interface FoodCategory {
   id: string;
@@ -41,7 +41,7 @@ export interface FoodDeal {
   description: string;
   imageUrl: string;
   originalPriceInr: number; // e.g. 550
-  dealPriceInr: number; // e.g. 149 (In database: surplus_price_inr)
+  dealPriceInr: number; // e.g. 149 (Discounted deal price in INR)
   discountPercent: number; // e.g. 73%
   savingsInr: number; // e.g. 401
   totalQuantity: number;
@@ -56,7 +56,12 @@ export interface FoodDeal {
   };
   dietaryTags: string[]; // e.g. ["Vegetarian Friendly", "Contains Gluten", "Contains Dairy"]
   allergenNotice?: string;
-  co2eSavingsKg: number; // e.g. 1.8
+  co2eSavingsKg?: number; // e.g. 1.8
+  restaurantAddress?: string;
+  restaurantRating?: number;
+  restaurantReviewCount?: number;
+  deliveryAvailable?: boolean;
+  deliveryFeeInr?: number;
   status: FoodDealStatus;
   isMysteryBox: boolean;
 }
@@ -72,24 +77,35 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'REFUNDED';
 
+export type PaymentMethod = 'RAZORPAY_SANDBOX' | 'UPI' | 'CARD' | 'NETBANKING';
+export type PaymentStatus = 'INITIATED' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
+
 export interface Order {
   id: string;
   orderNumber: string; // e.g. "#8492"
   customerId: string;
   restaurantId: string;
   restaurantName: string;
+  restaurantAddress?: string;
   dealId: string;
   dealTitle: string;
+  imageUrl?: string;
   quantity: number;
   dealPriceInr: number;
   deliveryFeeInr: number;
   totalPriceInr: number;
   fulfillmentType: FulfillmentType;
+  deliveryAddress?: string;
   orderStatus: OrderStatus;
+  paymentMethod?: PaymentMethod;
+  paymentStatus?: PaymentStatus;
   pickupOtp: string; // 4-6 digit counter code
   qrSecretToken: string;
+  pickupWindowText?: string;
+  co2eSavingsKg?: number;
   expiresAt: string;
   createdAt: string;
+  completedAt?: string;
 }
 
 export interface EcoImpactSummary {

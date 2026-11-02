@@ -76,6 +76,7 @@ model User {
   phone        String?
   role         UserRole     @default(CUSTOMER)
   avatarUrl    String?      @map("avatar_url")
+  isDemo       Boolean      @default(false) @map("is_demo")
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
 
@@ -83,6 +84,7 @@ model User {
   orders       Order[]
   reviews      Review[]
   disputes     Dispute[]
+  addresses    Address[]
 
   @@map("users")
 }
@@ -102,6 +104,7 @@ model Restaurant {
   licenseDocumentUrl String?      @map("license_document_url")
   kycStatus          KycStatus    @default(PENDING) @map("kyc_status")
   isStoreLive        Boolean      @default(true) @map("is_store_live")
+  isDemo             Boolean      @default(false) @map("is_demo")
   rating             Decimal      @default(5.0) @db.Decimal(2, 1)
   reviewCount        Int          @default(0) @map("review_count")
   createdAt          DateTime     @default(now()) @map("created_at")
@@ -113,6 +116,7 @@ model Restaurant {
   reviews            Review[]
   payouts            Payout[]
 
+  @@index([isDemo])
   @@map("restaurants")
 }
 
@@ -121,6 +125,7 @@ model FoodCategory {
   slug      String    @unique // 'bakery', 'meals', 'produce', 'buffet'
   name      String
   iconName  String    @map("icon_name")
+  isDemo    Boolean   @default(false) @map("is_demo")
   listings  Listing[]
 
   @@map("food_categories")
@@ -146,6 +151,7 @@ model Listing {
   co2eSavingsKg    Decimal        @default(1.5) @map("co2e_savings_kg") @db.Decimal(5, 2)
   status           ListingStatus  @default(ACTIVE)
   isMysteryBox     Boolean        @default(true) @map("is_mystery_box")
+  isDemo           Boolean        @default(false) @map("is_demo")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
 
@@ -153,6 +159,8 @@ model Listing {
   category         FoodCategory   @relation(fields: [categoryId], references: [id])
   orders           Order[]
 
+  @@index([isDemo])
+  @@index([status, isDemo])
   @@map("listings")
 }
 
@@ -164,19 +172,24 @@ model Order {
   listingId        String          @map("listing_id")
   quantity         Int             @default(1)
   unitPriceInr     Decimal         @map("unit_price_inr") @db.Decimal(10, 2)
+  subtotalInr      Decimal         @default(0.00) @map("subtotal_inr") @db.Decimal(10, 2)
   deliveryFeeInr   Decimal         @default(0.00) @map("delivery_fee_inr") @db.Decimal(10, 2)
   totalPriceInr    Decimal         @map("total_price_inr") @db.Decimal(10, 2)
   fulfillmentType  FulfillmentType @default(SELF_PICKUP) @map("fulfillment_type")
+  deliveryAddress  String?         @map("delivery_address")
   orderStatus      OrderStatus     @default(PENDING_PAYMENT) @map("order_status")
   razorpayOrderId  String?         @map("razorpay_order_id")
   razorpayPaymentId String?        @map("razorpay_payment_id")
+  razorpaySignature String?        @map("razorpay_signature")
   paymentStatus    PaymentStatus   @default(INITIATED) @map("payment_status")
+  isDemo           Boolean         @default(false) @map("is_demo")
   pickupOtp        String          @map("pickup_otp") // e.g. "8492"
   qrSecretToken    String          @unique @map("qr_secret_token")
   etaMinutes       Int?            @map("eta_minutes")
   expiresAt        DateTime        @map("expires_at")
   completedAt      DateTime?       @map("completed_at")
   createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at")
 
   customer         User            @relation(fields: [customerId], references: [id])
   restaurant       Restaurant      @relation(fields: [restaurantId], references: [id])
@@ -184,6 +197,10 @@ model Order {
   review           Review?
   disputes         Dispute[]
 
+  @@index([customerId])
+  @@index([listingId])
+  @@index([razorpayOrderId])
+  @@index([isDemo])
   @@map("orders")
 }
 
@@ -243,4 +260,30 @@ model SystemAuditLog {
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@map("system_audit_logs")
+}
+
+model Address {
+  id                   String   @id @default(uuid())
+  userId               String   @map("user_id")
+  fullName             String   @map("full_name")
+  phoneNumber          String   @map("phone_number")
+  houseFlatBuilding    String   @map("house_flat_building")
+  streetArea           String   @map("street_area")
+  landmark             String?
+  postalCode           String   @map("postal_code")
+  city                 String
+  state                String
+  addressType          String   @default("Home") @map("address_type") // 'Home' | 'Hostel' | 'Work' | 'Other'
+  isDefault            Boolean  @default(false) @map("is_default")
+  deliveryInstructions String?  @map("delivery_instructions")
+  latitude             Decimal? @db.Decimal(10, 7)
+  longitude            Decimal? @db.Decimal(10, 7)
+  isServiceable        Boolean  @default(true) @map("is_serviceable")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
 }

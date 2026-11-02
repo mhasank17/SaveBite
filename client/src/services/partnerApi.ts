@@ -1,0 +1,573 @@
+export interface PartnerRestaurant {
+  id: string;
+  name: string;
+  branchName: string;
+  address: string;
+  city: string;
+  phone?: string;
+  hygieneGrade: string;
+  licenseNumber: string;
+  licenseDocumentUrl?: string;
+  kycStatus: string;
+  isStoreLive: boolean;
+  isDemo: boolean;
+  rating: number;
+  reviewCount: number;
+  metrics: {
+    activeListingsCount: number;
+    todayOrdersCount: number;
+    pendingPickupsCount: number;
+    totalMealsRescued: number;
+    totalRevenueInr: number;
+    co2eSavedKg: number;
+  };
+}
+
+export interface CreateListingData {
+  title: string;
+  description: string;
+  categoryId: string;
+  imageUrl?: string;
+  originalPriceInr: number;
+  surplusPriceInr: number;
+  totalQuantity: number;
+  pickupStartTime: string;
+  pickupEndTime: string;
+  dietaryTags?: string[];
+  allergenNotice?: string;
+  isMysteryBox?: boolean;
+  co2eSavingsKg?: number;
+}
+
+export interface FoodSaleItem {
+  listingId: string;
+  foodItemName: string;
+  categoryName: string;
+  quantitySold: number;
+  ordersCount: number;
+  grossSalesInr: number;
+  commissionInr: number;
+  partnerEarningsInr: number;
+  paymentStatus: 'SETTLED' | 'SCHEDULED' | 'PENDING';
+  orderDates?: string[];
+  firstOrderDate?: string;
+  lastOrderDate?: string;
+}
+
+export interface PartnerEarnings {
+  restaurantId: string;
+  grossRevenueInr: number;
+  commissionPercent: number;
+  commissionDeductedInr: number;
+  netPayoutInr: number;
+  pendingPayoutInr: number;
+  totalItemsSold?: number;
+  totalOrdersCount?: number;
+  salesBreakdown?: FoodSaleItem[];
+  bankAccount: {
+    bankName: string;
+    accountNumberEnding: string;
+    ifscCode: string;
+    status: string;
+  };
+  payoutSchedule: string;
+  recentPayouts: Array<{
+    id: string;
+    amountInr: number;
+    status: string;
+    payoutDate: string;
+    bankReferenceId: string;
+  }>;
+}
+
+const getPartnerAuthHeader = (): string => {
+  const token = localStorage.getItem('savebite_token') || 'test-partner-baker';
+  return `Bearer ${token}`;
+};
+
+export const partnerApi = {
+  /**
+   * Fetch partner restaurant details & metrics
+   */
+  async getRestaurant(): Promise<PartnerRestaurant> {
+    try {
+      const res = await fetch('/api/v1/partner/restaurant', {
+        headers: { Authorization: getPartnerAuthHeader() },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          return json.data;
+        }
+      }
+    } catch {
+      // Fallback
+    }
+
+    return {
+      id: 'demo-rest-daily-dough',
+      name: '[Demo] The Daily Dough Bakery (Sample Partner)',
+      branchName: 'Sandbox Outlet - Bandra West',
+      address: '100 Demo Street, Sandbox Sector 1',
+      city: 'Mumbai',
+      phone: '+910000000001',
+      hygieneGrade: 'Grade A',
+      licenseNumber: 'DEMO-FSSAI-00000000000001-SAMPLE',
+      kycStatus: 'APPROVED',
+      isStoreLive: true,
+      isDemo: true,
+      rating: 4.8,
+      reviewCount: 42,
+      metrics: {
+        activeListingsCount: 2,
+        todayOrdersCount: 4,
+        pendingPickupsCount: 2,
+        totalMealsRescued: 38,
+        totalRevenueInr: 5662,
+        co2eSavedKg: 68.4,
+      },
+    };
+  },
+
+  /**
+   * Toggle store live status
+   */
+  async toggleStoreStatus(isStoreLive: boolean): Promise<{ isStoreLive: boolean }> {
+    try {
+      const res = await fetch('/api/v1/partner/restaurant/status', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: getPartnerAuthHeader(),
+        },
+        body: JSON.stringify({ isStoreLive }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        return json.data;
+      }
+    } catch {
+      // Fallback
+    }
+    return { isStoreLive };
+  },
+
+  /**
+   * Get all partner listings
+   */
+  async getListings(): Promise<any[]> {
+    try {
+      const res = await fetch('/api/v1/partner/listings', {
+        headers: { Authorization: getPartnerAuthHeader() },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          return json.data;
+        }
+      }
+    } catch {
+      // Fallback
+    }
+    return [];
+  },
+
+  /**
+   * Create a new Food Deal / Mystery Box
+   */
+  async createListing(data: CreateListingData): Promise<any> {
+    const res = await fetch('/api/v1/partner/listings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify(data),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to create listing');
+    }
+    return json.data;
+  },
+
+  /**
+   * Upload custom deal image to Supabase Storage (with fallback)
+   */
+  async uploadDealImage(file: File): Promise<string> {
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      throw new Error('Please select a JPG, JPEG, PNG, or WebP image.');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('Image file size must be less than 5 MB.');
+    }
+
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+
+    const res = await fetch('/api/v1/partner/listings/upload-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify({
+        filename: file.name,
+        mimeType: file.type,
+        base64,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to upload image.');
+    }
+    return json.data.imageUrl;
+  },
+
+  /**
+   * Update listing details, pricing, timing, category, portions, or status
+   */
+  async updateListing(
+    listingId: string,
+    updates: Partial<CreateListingData> & {
+      availableQuantity?: number;
+      totalQuantity?: number;
+      status?: string;
+    }
+  ): Promise<any> {
+    const res = await fetch(`/api/v1/partner/listings/${listingId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify(updates),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to update listing');
+    }
+    return json.data;
+  },
+
+  /**
+   * Delete / archive food deal listing for partner restaurant
+   */
+  async deleteListing(listingId: string): Promise<any> {
+    const res = await fetch(`/api/v1/partner/listings/${listingId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: getPartnerAuthHeader(),
+      },
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to delete food deal');
+    }
+    return json.data;
+  },
+
+  /**
+   * Get all orders for the partner restaurant
+   */
+  async getOrders(): Promise<any[]> {
+    try {
+      const res = await fetch('/api/v1/partner/orders', {
+        headers: { Authorization: getPartnerAuthHeader() },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          return json.data;
+        }
+      }
+    } catch {
+      // Fallback
+    }
+    return [];
+  },
+
+  /**
+   * Verify customer Pickup OTP or QR code token at counter
+   */
+  async verifyPickup(
+    param: string | { pickupOtp?: string; qrSecretToken?: string }
+  ): Promise<any> {
+    const payload =
+      typeof param === 'string'
+        ? param.startsWith('SAVEBITE-PASS') || param.length > 4
+          ? { qrSecretToken: param }
+          : { pickupOtp: param }
+        : param;
+
+    const res = await fetch('/api/v1/partner/orders/verify-pickup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Verification failed. Please check the code.');
+    }
+    return json.data;
+  },
+
+  /**
+   * Get partner earnings and payout schedule
+   */
+  async getEarnings(): Promise<PartnerEarnings> {
+    try {
+      const res = await fetch('/api/v1/partner/earnings', {
+        headers: { Authorization: getPartnerAuthHeader() },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          return json.data;
+        }
+      }
+    } catch {
+      // Fallback
+    }
+
+    return {
+      restaurantId: 'demo-rest-daily-dough',
+      grossRevenueInr: 20741,
+      commissionPercent: 15,
+      commissionDeductedInr: 3111,
+      netPayoutInr: 17630,
+      pendingPayoutInr: 17630,
+      totalItemsSold: 192,
+      totalOrdersCount: 189,
+      salesBreakdown: [
+        {
+          listingId: 'demo-deal-bakery-surprise',
+          foodItemName: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          categoryName: 'Bakery',
+          quantitySold: 189,
+          ordersCount: 186,
+          grossSalesInr: 20381,
+          commissionInr: 3057,
+          partnerEarningsInr: 17324,
+          paymentStatus: 'SETTLED',
+          orderDates: [new Date().toISOString()],
+        },
+        {
+          listingId: 'demo-deal-sourdough-loaves',
+          foodItemName: '[Demo] Fresh Afternoon Sourdough Loaves',
+          categoryName: 'Bakery',
+          quantitySold: 3,
+          ordersCount: 3,
+          grossSalesInr: 360,
+          commissionInr: 54,
+          partnerEarningsInr: 306,
+          paymentStatus: 'PENDING',
+          orderDates: [new Date().toISOString()],
+        },
+      ],
+      bankAccount: {
+        bankName: 'HDFC Bank (Sandbox Test)',
+        accountNumberEnding: '4921',
+        ifscCode: 'HDFC0000001',
+        status: 'VERIFIED_SANDBOX',
+      },
+      payoutSchedule: 'Weekly every Monday at 09:00 IST',
+      recentPayouts: [
+        {
+          id: 'pay-001',
+          amountInr: 16870,
+          status: 'COMPLETED',
+          payoutDate: '2026-10-24',
+          bankReferenceId: 'UTR-DEMO-20261024-001',
+        },
+        {
+          id: 'pay-002',
+          amountInr: 760,
+          status: 'COMPLETED',
+          payoutDate: '2026-10-31',
+          bankReferenceId: 'UTR-DEMO-20261031-002',
+        },
+      ],
+    };
+  },
+
+  /**
+   * Fetch partner user profile & restaurant details
+   */
+  async getProfile(): Promise<{
+    user: {
+      id: string;
+      fullName: string;
+      email: string;
+      phone?: string;
+      role: string;
+      avatarUrl?: string | null;
+      createdAt?: string;
+    };
+    restaurant: PartnerRestaurant;
+  }> {
+    const res = await fetch('/api/v1/partner/profile', {
+      headers: { Authorization: getPartnerAuthHeader() },
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to fetch partner profile.');
+    }
+    return json.data;
+  },
+
+  /**
+   * Update partner's permitted profile information (Name, Phone, Branch, Address)
+   */
+  async updateProfile(data: {
+    fullName?: string;
+    phone?: string;
+    branchName?: string;
+    address?: string;
+  }): Promise<{
+    user: any;
+    restaurant: any;
+  }> {
+    const res = await fetch('/api/v1/partner/profile', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to update partner profile.');
+    }
+    return json.data;
+  },
+
+  /**
+   * Update partner account password
+   */
+  async changePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<{ message: string }> {
+    const res = await fetch('/api/v1/partner/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to update password.');
+    }
+    return json;
+  },
+
+  /**
+   * Request 6-digit OTP for email verification
+   */
+  async requestEmailOtp(newEmail: string): Promise<{ message: string }> {
+    const res = await fetch('/api/v1/partner/email/request-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify({ newEmail }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to request email verification code.');
+    }
+    return json;
+  },
+
+  /**
+   * Verify 6-digit OTP and commit email change
+   */
+  async verifyEmailOtp(newEmail: string, otp: string): Promise<{ message: string; user: any; token: string }> {
+    const res = await fetch('/api/v1/partner/email/verify-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify({ newEmail, otp }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to verify OTP.');
+    }
+    return json;
+  },
+
+  /**
+   * Upload custom profile photo (< 5MB JPG, JPEG, PNG, WebP)
+   */
+  async uploadAvatar(file: File): Promise<string> {
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      throw new Error('Please select a JPG, JPEG, PNG, or WebP photo.');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('Photo size must be less than 5 MB.');
+    }
+
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+
+    const res = await fetch('/api/v1/partner/avatar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: getPartnerAuthHeader(),
+      },
+      body: JSON.stringify({
+        filename: file.name,
+        mimeType: file.type,
+        base64,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to upload photo.');
+    }
+    return json.data.avatarUrl;
+  },
+
+  /**
+   * Remove profile photo (reverts to default green silhouette)
+   */
+  async removeAvatar(): Promise<void> {
+    const res = await fetch('/api/v1/partner/avatar', {
+      method: 'DELETE',
+      headers: { Authorization: getPartnerAuthHeader() },
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to remove photo.');
+    }
+  },
+};
+
+export default partnerApi;
