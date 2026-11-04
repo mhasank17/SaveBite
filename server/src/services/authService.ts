@@ -528,7 +528,7 @@ export class AuthService {
       id: restaurantId,
       ownerUserId: userId,
       name: input.restaurant.name.trim(),
-      branchName: input.restaurant.branchName.trim() || 'Campus Delivery Hub',
+      branchName: input.restaurant.branchName.trim() || 'Main Branch',
       address: input.restaurant.address.trim(),
       city: input.restaurant.city.trim() || 'University Area',
       phone: input.restaurant.phone.trim(),
@@ -766,13 +766,11 @@ export class AuthService {
       try {
         const dbAdmin = await prisma.user.findFirst({
           where: {
-            OR: [
-              { email: emailNorm },
-              { role: UserRole.ADMIN }
-            ],
+            email: emailNorm,
+            role: UserRole.ADMIN,
           },
         });
-        if (dbAdmin && dbAdmin.role === UserRole.ADMIN) {
+        if (dbAdmin && dbAdmin.role === UserRole.ADMIN && dbAdmin.email.toLowerCase() === emailNorm) {
           user = {
             id: dbAdmin.id,
             email: dbAdmin.email,

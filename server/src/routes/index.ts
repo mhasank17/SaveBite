@@ -5,7 +5,6 @@ import listingRoutes from './listingRoutes';
 import partnerRoutes from './partnerRoutes';
 import adminRoutes from './adminRoutes';
 import authRoutes from './authRoutes';
-import addressRoutes from './addressRoutes';
 
 const router = Router();
 
@@ -17,9 +16,6 @@ router.use('/auth', authRoutes);
 
 // Customer Food Deal Listings
 router.use('/listings', listingRoutes);
-
-// Customer Delivery Addresses Management
-router.use('/addresses', addressRoutes);
 
 // Customer Orders, Inventory & Payment Integration (Phase 4)
 router.use('/orders', orderRoutes);

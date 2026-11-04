@@ -84,27 +84,44 @@ describe('Phase 4: Ordering, Inventory & Payment Integration', () => {
   });
 
   // 4. Server-side price calculation
-  it('4. should calculate all totals on the server and ignore client-supplied prices', async () => {
+  it('4. should calculate all totals on the server and ignore client-supplied prices (Counter Pickup only)', async () => {
     const res = await request(app)
       .post('/api/v1/orders')
       .set('Authorization', 'Bearer cust-sarah')
       .send({
         listingId: 'deal-1', // surplusPriceInr is 149
         quantity: 2,
-        fulfillmentType: 'ECO_COURIER', // +40 INR delivery fee
+        fulfillmentType: 'SELF_PICKUP',
         totalPriceInr: 1, // Malicious client attempt to forge total
         unitPriceInr: 1,
       });
 
     assert.equal(res.status, 201);
     const order = res.body.data.order;
-    // Server calculates: (149 * 2) + 40 = 338 INR
+    // Server calculates: (149 * 2) = 298 INR (Zero delivery fee for Counter Pickup)
     assert.equal(order.unitPriceInr, 149);
     assert.equal(order.subtotalInr, 298);
-    assert.equal(order.deliveryFeeInr, 40);
-    assert.equal(order.totalPriceInr, 338);
-    // Razorpay amount in integer paise: 33800
-    assert.equal(res.body.data.razorpay.amount, 33800);
+    assert.equal(order.deliveryFeeInr, 0);
+    assert.equal(order.totalPriceInr, 298);
+    assert.equal(order.fulfillmentType, 'SELF_PICKUP');
+    // Razorpay amount in integer paise: 29800
+    assert.equal(res.body.data.razorpay.amount, 29800);
+  });
+
+  // 4b. Rejection of delivery option
+  it('4b. should reject delivery (ECO_COURIER) requests because Counter Pickup is the only supported fulfillment method', async () => {
+    const res = await request(app)
+      .post('/api/v1/orders')
+      .set('Authorization', 'Bearer cust-sarah')
+      .send({
+        listingId: 'deal-1',
+        quantity: 1,
+        fulfillmentType: 'ECO_COURIER',
+      });
+
+    assert.equal(res.status, 400);
+    assert.equal(res.body.success, false);
+    assert.match(res.body.message, /SaveBite supports Counter Pickup only/i);
   });
 
   // 5. Inventory concurrency protection

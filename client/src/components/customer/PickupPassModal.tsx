@@ -11,18 +11,17 @@ export interface PickupPassModalProps {
   onClose: () => void;
   order?: Order | null;
   pass?: {
+    orderNumber: string;
     restaurantName: string;
     dealTitle: string;
     pickupWindow: string;
-    orderNumber: string;
-    quantity?: number;
+    quantity: number;
+    pickupOtp: string;
+    qrSecretToken?: string;
+    totalPriceInr?: number;
     orderStatus?: string;
     paymentStatus?: string;
-    totalPriceInr?: number;
-    pickupOtp?: string;
-    qrSecretToken?: string;
-    completedAt?: string;
-  };
+  } | null;
 }
 
 export const PickupPassModal: React.FC<PickupPassModalProps> = ({
@@ -31,7 +30,6 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
   order,
   pass,
 }) => {
-  const isDelivery = order?.fulfillmentType === 'ECO_COURIER';
   const displayOrderNumber = order ? order.orderNumber : pass?.orderNumber || '#8492';
   const displayRestaurant = order ? order.restaurantName : pass?.restaurantName || 'The Daily Dough Bakery';
   const displayDealTitle = order ? order.dealTitle : pass?.dealTitle || 'Evening Mystery Patisserie Bag';
@@ -56,20 +54,12 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
       onClose={onClose}
       title={
         isCompleted
-          ? isDelivery
-            ? 'Delivery Completed'
-            : 'Meal Collected & Verified'
-          : isDelivery
-          ? 'Delivery Digital Pass'
-          : 'Active Meal Pickup Pass'
+          ? 'Meal Collected & Verified'
+          : 'Active Counter Pickup Pass'
       }
       subtitle={
         isCompleted
-          ? isDelivery
-            ? 'This order has been verified and received at your delivery address'
-            : 'This order has already been verified and collected at the counter'
-          : isDelivery
-          ? 'Show this digital PIN or QR to the courier upon delivery'
+          ? 'This order has already been verified and collected at the counter'
           : 'Present this digital pass at the restaurant counter upon arrival'
       }
       variant="center"
@@ -77,7 +67,7 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-1.5 text-on-surface-variant font-label-sm text-[11px]">
             <span className="material-symbols-outlined text-[16px] text-primary">verified</span>
-            <span>Secure Delivery Handover Protected</span>
+            <span>Counter Pickup Protected</span>
           </div>
           <Button variant="primary" size="sm" onClick={onClose}>
             {isCompleted ? 'Close' : 'Done'}
@@ -98,12 +88,8 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
           <div className="flex items-center justify-between z-10">
             <span className="font-label-sm text-[11px] uppercase tracking-wider bg-on-primary/15 px-2.5 py-0.5 rounded-full font-bold">
               {isCompleted
-                ? isDelivery
-                  ? 'Delivered to Campus'
-                  : 'Collected at Counter'
-                : isDelivery
-                ? 'Campus Delivery Active'
-                : 'Pickup Window Active'}
+                ? 'Collected at Counter'
+                : 'Counter Pickup Active'}
             </span>
             <div className="flex items-center gap-1.5">
               <Badge variant={isCompleted ? 'verified' : 'live'} pulseDot={!isCompleted} pulseColor="primary">
@@ -124,18 +110,10 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
             </p>
           </div>
 
-          {/* Delivery Location Tag if delivery */}
-          {isDelivery && order?.deliveryAddress && (
-            <div className="bg-white/15 backdrop-blur-xs p-2 rounded-xl flex items-center gap-2 text-xs text-white z-10">
-              <span className="material-symbols-outlined text-[16px]">domain</span>
-              <span className="truncate font-medium">{order.deliveryAddress}</span>
-            </div>
-          )}
-
           <div className="flex items-center justify-between pt-2 border-t border-on-primary/20 z-10">
             <div className="flex flex-col">
               <span className="font-label-sm text-[10px] text-on-primary/70 uppercase">
-                {isDelivery ? 'Est. Delivery Window' : 'Pickup Window'}
+                Pickup Window
               </span>
               <span className="font-label-md text-label-md font-bold text-on-primary">
                 {displayPickupWindow}
@@ -154,7 +132,7 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
         <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30 flex flex-col items-center text-center gap-3">
           <div className="flex items-center justify-between w-full px-1">
             <span className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">
-              {isDelivery ? 'Delivery Handover Verification' : 'Counter Pickup Verification'}
+              Counter Pickup Verification
             </span>
             <span className="font-label-sm text-[11px] text-primary font-bold">
               Total Paid: {formatINR(displayTotalPrice)}
@@ -168,7 +146,7 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
               <div className="absolute inset-0 bg-surface/90 backdrop-blur-xs rounded-2xl flex flex-col items-center justify-center gap-1 text-secondary font-bold">
                 <span className="material-symbols-outlined text-[48px]">check_circle</span>
                 <span className="text-xs uppercase tracking-wider">
-                  {isDelivery ? 'Delivered' : 'Collected'}
+                  Collected
                 </span>
               </div>
             )}
@@ -177,9 +155,7 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
           {/* 4-Digit OTP Section */}
           <div className="flex flex-col items-center gap-1.5 w-full">
             <span className="text-xs text-on-surface-variant font-medium">
-              {isDelivery
-                ? 'Show this 4-digit PIN to your courier at handover:'
-                : 'Or show this 4-digit code to counter staff:'}
+              Show this 4-digit code to counter staff:
             </span>
             <div className="px-6 py-2 rounded-2xl bg-surface-container-lowest border-2 border-primary/40 shadow-xs flex items-center justify-center">
               <span className="font-mono text-3xl font-extrabold tracking-widest text-primary">
@@ -195,16 +171,14 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
         {/* Safety & Store Instructions */}
         <div className="p-3 bg-primary-fixed/20 rounded-xl border border-primary/20 flex items-start gap-2.5">
           <span className="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">
-            verified_user
+            storefront
           </span>
           <div className="flex flex-col min-w-0">
             <span className="font-label-sm text-label-sm text-primary font-bold">
-              Delivery Protected
+              Counter Pickup
             </span>
             <span className="font-body-sm text-[12px] text-on-surface-variant leading-relaxed">
-              {isDelivery
-                ? 'Your meal is prepared fresh and delivered directly to your selected delivery address. Complete handover by sharing your PIN.'
-                : 'Order confirmed and paid. Ready for counter pickup during the scheduled window.'}
+              Order confirmed and paid. Ready for counter pickup during the scheduled window.
             </span>
           </div>
         </div>

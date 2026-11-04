@@ -134,7 +134,7 @@ export const PartnerSettingsPage: React.FC<PartnerSettingsPageProps> = ({
                 </span>
                 <span className="text-xs text-on-surface-variant">
                   {isStoreLive
-                    ? 'Customers within delivery / pickup radius can discover and reserve your listings.'
+                    ? 'Customers can discover and reserve your listings for counter pickup.'
                     : 'Your listings are hidden from new customer discovery. Existing reserved passes remain valid.'}
                 </span>
               </div>

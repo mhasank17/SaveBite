@@ -85,7 +85,7 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({ onShowToast })
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Platform Orders Stream</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Genuine customer reservations and doorstep delivery orders across all merchants.
+            Genuine customer reservations and counter pickup orders across all merchants.
           </p>
         </div>
 
@@ -124,7 +124,7 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({ onShowToast })
                   <th className="py-3.5 px-4">Customer</th>
                   <th className="py-3.5 px-4">Restaurant</th>
                   <th className="py-3.5 px-4">Meal Deal</th>
-                  <th className="py-3.5 px-4">Delivery Address</th>
+                  <th className="py-3.5 px-4">Fulfillment Mode</th>
                   <th className="py-3.5 px-4 text-right">Amount (₹)</th>
                   <th className="py-3.5 px-4 text-center">Status</th>
                 </tr>
@@ -144,17 +144,10 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({ onShowToast })
                       {o.dealTitle} ({o.quantity}x)
                     </td>
                     <td className="py-3.5 px-4 text-slate-600">
-                      {o.fulfillmentType === 'ECO_COURIER' ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded text-xs">
-                          <span className="material-symbols-outlined text-[14px]">local_shipping</span>
-                          <span className="truncate max-w-[180px]">{o.deliveryAddress || 'Standard Delivery'}</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-xs">
-                          <span className="material-symbols-outlined text-[14px]">storefront</span>
-                          <span>Counter Pickup</span>
-                        </span>
-                      )}
+                      <span className="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-xs font-medium">
+                        <span className="material-symbols-outlined text-[14px]">storefront</span>
+                        <span>Counter Pickup</span>
+                      </span>
                     </td>
                     <td className="py-3.5 px-4 text-right font-bold text-slate-900">
                       ₹{o.totalPriceInr}

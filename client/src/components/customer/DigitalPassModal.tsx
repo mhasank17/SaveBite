@@ -43,7 +43,7 @@ export const DigitalPassModal: React.FC<DigitalPassModalProps> = ({
       subtitle={
         isCompleted
           ? 'This order has been verified and collected'
-          : 'Present this digital pass at the counter or to your courier'
+          : 'Present this digital pass at the restaurant counter'
       }
       variant="center"
       footer={
@@ -63,7 +63,7 @@ export const DigitalPassModal: React.FC<DigitalPassModalProps> = ({
         <div className="w-full p-4 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary shadow-md flex flex-col gap-2.5 text-left relative overflow-hidden">
           <div className="flex items-center justify-between z-10">
             <span className="font-label-sm text-[11px] uppercase tracking-wider bg-on-primary/15 px-2.5 py-0.5 rounded-full font-bold">
-              {order.fulfillmentType === 'ECO_COURIER' ? 'Eco Courier' : 'Self-Pickup Tonight'}
+              Counter Pickup Tonight
             </span>
             <Badge
               variant={isCompleted ? 'verified' : 'live'}

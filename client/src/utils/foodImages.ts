@@ -51,7 +51,7 @@ export const FOOD_CATEGORY_IMAGES = {
   mystery_box: [
     'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80', // Curated mystery surprise meal box
     'https://images.unsplash.com/photo-1607349913338-fca6f7fc42d0?auto=format&fit=crop&w=800&q=80', // Eco-friendly food rescue mystery box
-    'https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&w=800&q=80', // Surprise chef delivery package
+    'https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&w=800&q=80', // Surprise chef meal bag
   ],
   pantry: [
     'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80', // Oats, grains & superfood provisions

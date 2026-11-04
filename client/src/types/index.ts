@@ -65,13 +65,12 @@ export interface FoodDeal {
   isMysteryBox: boolean;
 }
 
-export type FulfillmentType = 'SELF_PICKUP' | 'ECO_COURIER';
+export type FulfillmentType = 'SELF_PICKUP';
 
 export type OrderStatus =
   | 'PENDING_PAYMENT'
   | 'CONFIRMED'
   | 'READY_FOR_PICKUP'
-  | 'ARRIVING'
   | 'COMPLETED'
   | 'CANCELLED'
   | 'REFUNDED';

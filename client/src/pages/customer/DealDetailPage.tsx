@@ -7,8 +7,8 @@ import { getFoodFallbackImageUrl, handleImageError } from '../../utils/foodImage
 export interface DealDetailPageProps {
   deal: FoodDeal;
   onBack: () => void;
-  onReserveSuccess: (deal: FoodDeal, quantity: number, fulfillment: 'pickup' | 'delivery') => void;
-  onOpenCheckout?: (deal: FoodDeal, quantity: number, fulfillment: 'pickup' | 'delivery') => void;
+  onReserveSuccess: (deal: FoodDeal, quantity: number, fulfillment?: 'pickup') => void;
+  onOpenCheckout?: (deal: FoodDeal, quantity: number, fulfillment?: 'pickup') => void;
   onShowToast: (type: 'success' | 'warning' | 'error' | 'info', message: string, title?: string) => void;
   currentUser?: AuthUser | null;
   onRequireLogin?: () => void;
@@ -199,7 +199,7 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
             </div>
           </div>
 
-          {/* 2. RIGHT COLUMN: Title, Pricing, Delivery, Portions, Purchase Card
+          {/* 2. RIGHT COLUMN: Title, Pricing, Counter Pickup, Portions, Purchase Card
                On mobile: order-2 (directly after photo).
                On desktop: col 8..12, row 1..2, sticky top-24. */}
           <div className="order-2 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2 flex flex-col gap-4 lg:sticky lg:top-24">
@@ -240,18 +240,18 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
               </div>
             </div>
 
-            {/* Delivery Status Strip */}
+            {/* Counter Pickup Status Strip */}
             <div className="py-3 px-4 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl flex items-center justify-between text-xs text-emerald-950 shadow-xs">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#006030] text-[20px]">
-                  electric_moped
+                  storefront
                 </span>
                 <span className="font-semibold">
-                  Estimated Delivery Time: 30–45 mins to your address
+                  Counter Pickup: Collect during pickup window
                 </span>
               </div>
               <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full shrink-0 ml-1">
-                {deal.deliveryFeeInr && deal.deliveryFeeInr > 0 ? `+${formatINR(deal.deliveryFeeInr)} fee` : 'Free Delivery'}
+                Counter Pickup Only
               </span>
             </div>
 
@@ -473,7 +473,7 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
                     {deal.restaurantAddress || `${cleanRestaurantName}, ${deal.restaurantBranch}`}
                   </span>
                   <span className="text-[11px] text-slate-500 font-medium">
-                    Kitchen ~{deal.distanceKm.toFixed(1)} km away • Doorstep delivery available
+                    Kitchen ~{deal.distanceKm.toFixed(1)} km away • Counter pickup only
                   </span>
                 </div>
               </div>
@@ -485,12 +485,12 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
             {/* Secure Handover Protocol Card */}
             <div className="bg-white rounded-3xl p-4 border border-slate-100 shadow-xs flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#006030] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[22px]">verified_user</span>
+                <span className="material-symbols-outlined text-[22px]">storefront</span>
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold text-slate-900">Secure Handover Protocol</span>
+                <span className="text-xs font-bold text-slate-900">Secure Counter Handover Protocol</span>
                 <span className="text-xs text-slate-500 mt-0.5">
-                  Show your 4-digit PIN or digital pass to the courier upon delivery or at the counter to receive your order.
+                  Show your 4-digit OTP or digital QR pass at the store counter to collect your order.
                 </span>
               </div>
             </div>
@@ -506,7 +506,7 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
                     Sample Sandbox Listing • Pending KYC
                   </span>
                   <span className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-                    Development test record for reservation and delivery handover testing.
+                    Development test record for reservation and counter pickup verification testing.
                   </span>
                 </div>
               </div>

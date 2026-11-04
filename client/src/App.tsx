@@ -86,7 +86,7 @@ export const App: React.FC = () => {
   const [checkoutDeal, setCheckoutDeal] = useState<{
     deal: FoodDeal;
     quantity: number;
-    fulfillment: 'pickup' | 'delivery';
+    fulfillment?: 'pickup';
   } | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -158,30 +158,16 @@ export const App: React.FC = () => {
     }
   }, [currentPath, currentUser]);
 
-  // Sync selected delivery address on mount / user change
+  // Restore selected pickup location on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedId = localStorage.getItem('savebite_selected_address_id');
-      import('./services/addressApi').then(({ default: addressApi }) => {
-        addressApi.getAddresses().then((addresses) => {
-          if (addresses && addresses.length > 0) {
-            const matched = storedId ? addresses.find((a) => a.id === storedId) : null;
-            const target = matched || addresses.find((a) => a.isDefault) || addresses[0];
-            if (target) {
-              setCurrentLocation({
-                id: target.id,
-                name: `${target.houseFlatBuilding}, ${target.streetArea}`,
-                district: target.city,
-                distanceKm: target.serviceableZone === 'campus' ? 1.5 : 4.0,
-                isApproved: target.isServiceable,
-                type: target.addressType.toLowerCase(),
-              });
-            }
-          }
-        }).catch(() => {});
-      });
+      const storedLocationId = localStorage.getItem('savebite_selected_location_id');
+      if (storedLocationId) {
+        const found = MOCK_LOCATIONS.find((l) => l.id === storedLocationId);
+        if (found) setCurrentLocation(found);
+      }
     }
-  }, [currentUser]);
+  }, []);
 
   const handleOrderHistoryCleared = async () => {
     try {
@@ -654,7 +640,7 @@ export const App: React.FC = () => {
       }}
       onLocationClick={() => setIsLocationModalOpen(true)}
       ordersBadgeCount={customerUser ? orders.filter((o) => o.orderStatus === 'CONFIRMED').length : 0}
-      subtitle={`Deliver to: ${currentLocation.name}`}
+      subtitle={`Pickup near: ${currentLocation.name}`}
       onLogout={customerUser ? handleLogout : undefined}
       userAvatarUrl={customerUser?.avatarUrl}
       userName={customerUser?.fullName}
@@ -675,12 +661,12 @@ export const App: React.FC = () => {
           currentUser={customerUser}
           onBack={() => setSelectedDeal(null)}
           onRequireLogin={() => navigate('/customer/login')}
-          onReserveSuccess={(deal, quantity, fulfillment) => {
-            setCheckoutDeal({ deal, quantity, fulfillment });
+          onReserveSuccess={(deal, quantity) => {
+            setCheckoutDeal({ deal, quantity, fulfillment: 'pickup' });
             setIsCheckoutOpen(true);
           }}
-          onOpenCheckout={(deal, quantity, fulfillment) => {
-            setCheckoutDeal({ deal, quantity, fulfillment });
+          onOpenCheckout={(deal, quantity) => {
+            setCheckoutDeal({ deal, quantity, fulfillment: 'pickup' });
             setIsCheckoutOpen(true);
           }}
           onShowToast={addToast}
@@ -741,14 +727,14 @@ export const App: React.FC = () => {
         onSelectLocation={(loc, radiusKm) => {
           setCurrentLocation(loc);
           if (radiusKm) setMaxDistanceKm(radiusKm);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('savebite_selected_location_id', loc.id);
+          }
           addToast(
             'success',
-            `Delivery address set to ${loc.name}.`,
-            'Delivery Address Updated'
+            `Pickup location set to ${loc.name}.`,
+            'Location Updated'
           );
-        }}
-        onSelectAddress={(addr) => {
-          localStorage.setItem('savebite_selected_address_id', addr.id);
         }}
         onShowToast={addToast}
       />

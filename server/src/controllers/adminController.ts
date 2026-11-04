@@ -425,7 +425,7 @@ export class AdminController {
     try {
       const { isApproved } = req.body;
       const updated = adminService.toggleCampusLocation(req.params.id, Boolean(isApproved));
-      res.status(200).json({ success: true, data: updated, message: 'Campus delivery location updated.' });
+      res.status(200).json({ success: true, data: updated, message: 'Campus pickup location updated.' });
     } catch (error) {
       next(error);
     }
@@ -442,7 +442,7 @@ export class AdminController {
         return;
       }
       const added = adminService.addCampusLocation({ name, zone, type, description });
-      res.status(201).json({ success: true, data: added, message: 'Approved campus delivery location created.' });
+      res.status(201).json({ success: true, data: added, message: 'Approved campus pickup location created.' });
     } catch (error) {
       next(error);
     }

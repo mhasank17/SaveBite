@@ -40,6 +40,10 @@ prisma/*.db-journal
 # Firebase
 .firebase
 *-firebase-adminsdk-*.json
+# Uploads
+server/public/uploads/
+uploads/
+
 # SaveBite sensitive files
 server/.admin-credentials.json
 .env

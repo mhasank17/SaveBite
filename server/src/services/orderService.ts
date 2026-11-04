@@ -3,9 +3,7 @@ import prisma, { isDatabaseConfigured } from '../config/db';
 import { CreateOrderInput, VerifyPaymentInput, OrderItemDetails, RazorpayCheckoutDetails } from '../types/order';
 import inventoryService from './inventoryService';
 import razorpayService from './razorpayService';
-import { isApprovedCampusDeliveryAddress, DEFAULT_CAMPUS_DELIVERY_LOCATION } from '../config/campusLocations';
-import addressService from './addressService';
-import serviceabilityService from './serviceabilityService';
+
 
 export class OrderService {
   // In-memory store fallback when PostgreSQL is offline
@@ -79,50 +77,11 @@ export class OrderService {
       throw new Error(`Quantity must be a positive integer, received: ${quantity}`);
     }
 
-    // Enforce delivery location & serviceability rules
-    let verifiedDeliveryAddress: string | undefined = undefined;
+    // Counter Pickup only: delivery options are discontinued
     if (fulfillmentType === 'ECO_COURIER') {
-      if (deliveryAddressId) {
-        // Resolve saved customer address
-        const savedAddr = await addressService.getAddressById(resolvedCustomerId, deliveryAddressId);
-        if (!savedAddr) {
-          const err: any = new Error('Selected delivery address was not found in your saved addresses.');
-          err.statusCode = 404;
-          throw err;
-        }
-
-        if (!savedAddr.isServiceable) {
-          const err: any = new Error(
-            `Delivery address (${savedAddr.postalCode}) is outside our active delivery zone.`
-          );
-          err.statusCode = 400;
-          throw err;
-        }
-
-        // Store immutable address snapshot so future address edits don't alter past orders
-        verifiedDeliveryAddress = addressService.formatAddressSnapshot(savedAddr);
-      } else if (deliveryAddress && deliveryAddress.trim()) {
-        const addrText = deliveryAddress.trim();
-        const pinMatch = addrText.match(/\b([1-9][0-9]{5})\b/);
-        const pin = pinMatch ? pinMatch[1] : undefined;
-
-        const isCampus = isApprovedCampusDeliveryAddress(addrText);
-        const serviceability = pin ? serviceabilityService.evaluateServiceability(pin, undefined, addrText) : null;
-
-        // Reject if PIN is explicitly out of zone
-        if (!isCampus && serviceability && !serviceability.isServiceable) {
-          const err: any = new Error(
-            'Delivery address is outside our serviceable delivery zone. Courier deliveries are supported across designated campus, residential, commercial, and metro areas.'
-          );
-          err.statusCode = 400;
-          throw err;
-        }
-
-        verifiedDeliveryAddress = addrText;
-      } else {
-        // Fallback default delivery location
-        verifiedDeliveryAddress = DEFAULT_CAMPUS_DELIVERY_LOCATION.name;
-      }
+      const err: any = new Error('Delivery functionality is discontinued. SaveBite supports Counter Pickup only.');
+      err.statusCode = 400;
+      throw err;
     }
 
     // 1. Fetch listing details
@@ -181,10 +140,10 @@ export class OrderService {
       quantity,
       unitPriceInr: pricing.unitPriceInr,
       subtotalInr: pricing.subtotalInr,
-      deliveryFeeInr: pricing.deliveryFeeInr,
+      deliveryFeeInr: 0,
       totalPriceInr: pricing.totalPriceInr,
-      fulfillmentType,
-      deliveryAddress: verifiedDeliveryAddress,
+      fulfillmentType: 'SELF_PICKUP',
+      deliveryAddress: undefined,
       orderStatus: 'PENDING_PAYMENT',
       paymentStatus: 'INITIATED',
       paymentMethod: 'RAZORPAY_SANDBOX',

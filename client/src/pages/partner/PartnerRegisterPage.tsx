@@ -31,7 +31,7 @@ export const PartnerRegisterPage: React.FC<PartnerRegisterPageProps> = ({
   const [licenseNumber, setLicenseNumber] = useState('');
   const [hygieneGrade, setHygieneGrade] = useState('Grade A');
   const [licenseDocumentUrl, setLicenseDocumentUrl] = useState('');
-  const [agreedToCampusDelivery, setAgreedToCampusDelivery] = useState(false);
+  const [agreedToPickupTerms, setAgreedToPickupTerms] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,8 +40,8 @@ export const PartnerRegisterPage: React.FC<PartnerRegisterPageProps> = ({
     e.preventDefault();
     setError(null);
 
-    if (!agreedToCampusDelivery) {
-      setError('You must agree to fulfill orders to approved university campus locations.');
+    if (!agreedToPickupTerms) {
+      setError('You must agree to fulfill orders for counter pickup during designated windows.');
       return;
     }
 
@@ -104,18 +104,18 @@ export const PartnerRegisterPage: React.FC<PartnerRegisterPageProps> = ({
             Register Your Restaurant
           </h1>
           <p className="text-sm text-slate-500 mt-1 max-w-lg mx-auto">
-            Sell surplus food, reduce kitchen waste, and reach thousands of customers across our serviceable delivery areas.
+            Sell surplus food, reduce kitchen waste, and reach thousands of customers through direct counter pickup.
           </p>
         </div>
 
-        {/* Service Area & Delivery Guidelines */}
+        {/* Counter Pickup Guidelines */}
         <div className="mb-8 p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-3">
           <span className="material-symbols-outlined text-amber-700 shrink-0 text-[22px]">
-            local_shipping
+            storefront
           </span>
           <div>
-            <div className="font-bold text-sm mb-0.5">Service Area & Delivery Guidelines</div>
-            Partner restaurants prepare orders for customer pickup or fulfill deliveries directly to customers within configured serviceable zones. New partner applications remain in <strong>PENDING</strong> review until verified by SuperAdmin.
+            <div className="font-bold text-sm mb-0.5">Counter Pickup Guidelines</div>
+            Partner restaurants prepare surplus meals for direct counter pickup during configured pickup windows. Customers verify their order at your counter using a secure 4-digit OTP. New partner applications remain in <strong>PENDING</strong> review until verified by SuperAdmin.
           </div>
         </div>
 
@@ -333,12 +333,12 @@ export const PartnerRegisterPage: React.FC<PartnerRegisterPageProps> = ({
               <input
                 type="checkbox"
                 required
-                checked={agreedToCampusDelivery}
-                onChange={(e) => setAgreedToCampusDelivery(e.target.checked)}
+                checked={agreedToPickupTerms}
+                onChange={(e) => setAgreedToPickupTerms(e.target.checked)}
                 className="mt-1 w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500"
               />
               <span className="text-xs text-slate-700 leading-relaxed">
-                <strong>Mandatory Agreement:</strong> I certify that the food safety details and FSSAI number provided are genuine. I agree that our restaurant will fulfill meal orders for counter pickup and to designated delivery addresses within our serviceable zones. I understand that the restaurant application will remain in <strong>Pending Review</strong> until approved by SuperAdmin.
+                <strong>Mandatory Agreement:</strong> I certify that the food safety details and FSSAI number provided are genuine. I agree that our restaurant will fulfill meal orders for counter pickup during designated pickup windows. I understand that the restaurant application will remain in <strong>Pending Review</strong> until approved by SuperAdmin.
               </span>
             </label>
           </div>

@@ -43,7 +43,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 15,
     availableQuantity: 3,
     reservedQuantity: 12,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 1.8,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -67,7 +67,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 25,
     availableQuantity: 4,
     reservedQuantity: 21,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 2.4,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -91,7 +91,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 10,
     availableQuantity: 2,
     reservedQuantity: 8,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 2.1,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -115,7 +115,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 20,
     availableQuantity: 6,
     reservedQuantity: 14,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 1.9,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -139,7 +139,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 10,
     availableQuantity: 4,
     reservedQuantity: 6,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 1.5,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -185,7 +185,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 16,
     availableQuantity: 4,
     reservedQuantity: 12,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 2.2,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -208,7 +208,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 12,
     availableQuantity: 5,
     reservedQuantity: 7,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 1.7,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -231,7 +231,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 14,
     availableQuantity: 4,
     reservedQuantity: 10,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 1.6,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -254,7 +254,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 15,
     availableQuantity: 6,
     reservedQuantity: 9,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 1.4,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -277,7 +277,7 @@ const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     totalQuantity: 10,
     availableQuantity: 3,
     reservedQuantity: 7,
-    deliveryFeeInr: 40,
+    deliveryFeeInr: 0,
     co2eSavingsKg: 2.5,
     status: 'ACTIVE',
     pickupWindowText: '10:00 – 23:30',
@@ -426,7 +426,7 @@ export class InventoryService {
             totalQuantity: dbListing.totalQuantity,
             availableQuantity: dbListing.availableQuantity,
             reservedQuantity: dbListing.reservedQuantity,
-            deliveryFeeInr: 40,
+            deliveryFeeInr: 0,
             co2eSavingsKg: Number(dbListing.co2eSavingsKg),
             status: dbListing.status as any,
             pickupWindowText: `${dbListing.pickupStartTime} - ${dbListing.pickupEndTime}`,
@@ -515,7 +515,7 @@ export class InventoryService {
               totalQuantity: l.totalQuantity,
               availableQuantity: l.availableQuantity,
               reservedQuantity: l.reservedQuantity,
-              deliveryFeeInr: 40,
+              deliveryFeeInr: 0,
               co2eSavingsKg: Number(l.co2eSavingsKg),
               status: l.status as any,
               pickupWindowText: `${l.pickupStartTime} - ${l.pickupEndTime}`,
@@ -545,7 +545,7 @@ export class InventoryService {
   public calculatePrices(
     listing: ListingInventoryRecord,
     quantity: number,
-    fulfillmentType: 'SELF_PICKUP' | 'ECO_COURIER'
+    _fulfillmentType?: string
   ): PriceBreakdown {
     if (!Number.isInteger(quantity) || quantity <= 0) {
       throw new Error(`Quantity must be a positive integer, received: ${quantity}`);
@@ -555,9 +555,9 @@ export class InventoryService {
     const unitPricePaise = Math.round(listing.surplusPriceInr * 100);
     const subtotalPaise = unitPricePaise * quantity;
 
-    // Delivery fee: ₹40 (4000 paise) for ECO_COURIER, 0 for SELF_PICKUP
-    const deliveryFeePaise = fulfillmentType === 'ECO_COURIER' ? 4000 : 0;
-    const totalAmountPaise = subtotalPaise + deliveryFeePaise;
+    // Counter Pickup only: Zero delivery fees
+    const deliveryFeePaise = 0;
+    const totalAmountPaise = subtotalPaise;
 
     return {
       unitPricePaise,
@@ -566,7 +566,7 @@ export class InventoryService {
       totalAmountPaise,
       unitPriceInr: unitPricePaise / 100,
       subtotalInr: subtotalPaise / 100,
-      deliveryFeeInr: deliveryFeePaise / 100,
+      deliveryFeeInr: 0,
       totalPriceInr: totalAmountPaise / 100,
     };
   }
@@ -656,7 +656,7 @@ export class InventoryService {
           totalQuantity: updated.totalQuantity,
           availableQuantity: updated.availableQuantity,
           reservedQuantity: updated.reservedQuantity,
-          deliveryFeeInr: 40,
+          deliveryFeeInr: 0,
           co2eSavingsKg: Number(updated.co2eSavingsKg),
           status: updated.status as any,
           pickupWindowText: `${updated.pickupStartTime} - ${updated.pickupEndTime}`,
@@ -665,14 +665,19 @@ export class InventoryService {
           isDemo,
         };
       } catch (err) {
-        if ((err as Error).message.startsWith('DB_FALLBACK:')) {
+        const errMsg = (err as Error).message || '';
+        if (errMsg.startsWith('DB_FALLBACK:')) {
           // Fall through to in-memory reservation below
         } else if (
-          (err as Error).message.includes('Insufficient inventory') ||
-          (err as Error).message.includes('Listing is no longer available') ||
-          (err as Error).message.includes('not found')
+          errMsg.includes('Insufficient inventory') ||
+          errMsg.includes('Listing is no longer available')
         ) {
           throw err;
+        } else if (errMsg.includes('not found') && !errMsg.includes('Transaction')) {
+          if (!this.inMemoryListings.has(resolvedId) && !this.inMemoryListings.has(listingId)) {
+            throw err;
+          }
+          // If present in memory, fall through
         }
       }
     }

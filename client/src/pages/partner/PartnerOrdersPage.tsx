@@ -16,7 +16,7 @@ export interface PartnerOrderSummary {
   pickupOtp?: string;
   placedAt: string;
   pickupWindow?: string;
-  fulfillmentType?: 'PICKUP' | 'DELIVERY';
+  fulfillmentType?: 'COUNTER_PICKUP' | 'PICKUP';
 }
 
 export interface PartnerOrdersPageProps {
@@ -258,8 +258,8 @@ export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
                           Cancelled
                         </Badge>
                       )}
-                      <span className="text-[11px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full font-medium">
-                        {order.fulfillmentType || 'PICKUP'}
+                      <span className="text-[11px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                        Counter Pickup
                       </span>
                     </div>
 

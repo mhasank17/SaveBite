@@ -17,11 +17,11 @@ export const DealCard: React.FC<DealCardProps> = ({
   className = '',
   horizontal = false,
 }) => {
-  // Compute status pill text (e.g. "Closing in 3 min" if < 30m, else pickup/delivery window)
+  // Compute status pill text (e.g. "Closing in 3 min" if < 30m, else pickup window)
   const remainingSeconds = deal.pickupWindow?.expiresInSeconds ?? 3600;
   const minutesLeft = Math.max(1, Math.floor(remainingSeconds / 60));
   
-  let statusText = 'Doorstep Delivery';
+  let statusText = 'Counter Pickup';
   let isExpiringSoon = false;
 
   if (remainingSeconds < 1800) {
@@ -80,7 +80,7 @@ export const DealCard: React.FC<DealCardProps> = ({
         <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
 
-        {/* Top-Left: Rating Pill (Only if verified data exists) & Delivery/Status Pill */}
+        {/* Top-Left: Rating Pill (Only if verified data exists) & Counter Pickup/Status Pill */}
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10 max-w-[calc(100%-20px)] flex-wrap">
           {hasVerifiedRating ? (
             <div className="bg-black/70 backdrop-blur-md text-white text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
@@ -89,8 +89,8 @@ export const DealCard: React.FC<DealCardProps> = ({
             </div>
           ) : (
             <div className="bg-emerald-900/80 backdrop-blur-md text-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-              <span className="material-symbols-outlined text-[12px]">moped</span>
-              <span>Doorstep Delivery</span>
+              <span className="material-symbols-outlined text-[12px]">storefront</span>
+              <span>Counter Pickup</span>
             </div>
           )}
 
@@ -134,7 +134,7 @@ export const DealCard: React.FC<DealCardProps> = ({
         )}
       </div>
 
-      {/* Restaurant Info & Delivery Details */}
+      {/* Restaurant Info & Pickup Details */}
       <div className="pt-2 px-3.5 pb-3 flex flex-col gap-0.5 flex-1 justify-between">
         <div className="flex flex-col">
           <h4 className="font-bold text-sm text-slate-900 truncate group-hover:text-[#006030] transition-colors">
@@ -142,9 +142,9 @@ export const DealCard: React.FC<DealCardProps> = ({
           </h4>
           <p className="text-xs text-slate-500 truncate mt-0.5 flex items-center gap-1">
             <span className="material-symbols-outlined text-[13px] text-emerald-700">
-              local_shipping
+              storefront
             </span>
-            <span>Estimated Delivery: ~30–45 min</span>
+            <span>Counter Pickup</span>
           </p>
         </div>
 

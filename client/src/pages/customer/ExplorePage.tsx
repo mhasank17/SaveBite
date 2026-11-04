@@ -222,7 +222,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
       <section className="bg-[#006030] text-white rounded-b-[2rem] md:rounded-b-3xl shadow-sm pb-5 pt-3.5 px-4 md:px-8">
         <div className="w-full flex flex-col gap-3.5">
           
-          {/* Row a: Delivery location */}
+          {/* Row a: Pickup location */}
           <div className="flex items-center justify-between">
             <button
               type="button"
@@ -232,7 +232,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
             >
               <span className="text-[11px] text-emerald-200/90 font-medium flex items-center gap-0.5">
                 <span className="material-symbols-outlined text-[13px] text-emerald-300">location_on</span>
-                <span>Current delivery location</span>
+                <span>Current location</span>
                 <span className="material-symbols-outlined text-[14px]">expand_more</span>
               </span>
               <span className="text-sm md:text-base font-bold text-white group-hover:text-emerald-100 transition-colors truncate max-w-[280px] sm:max-w-md md:max-w-xl">
@@ -320,12 +320,12 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
         <div className="py-2.5 px-4 bg-emerald-50/90 border border-emerald-200/60 rounded-xl flex items-center justify-between text-xs text-emerald-900 shadow-xs">
           <div className="flex items-center gap-2 min-w-0">
             <span className="material-symbols-outlined text-[18px] text-[#006030] shrink-0">
-              electric_moped
+              storefront
             </span>
-            <span className="font-medium truncate">Doorstep delivery available • Direct to your saved address</span>
+            <span className="font-medium truncate">Counter Pickup only • Direct from local partner kitchens</span>
           </div>
           <span className="text-[11px] text-emerald-700 font-semibold shrink-0 pl-2">
-            Doorstep Drop
+            Counter Pickup
           </span>
         </div>
       </div>
@@ -428,10 +428,10 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
                 </div>
                 <div className="flex flex-col">
                   <h4 className="font-bold text-base text-slate-900">
-                    No meals available for delivery matching your filters
+                    No meals available matching your filters
                   </h4>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                    Partner restaurants deliver to {currentLocationName}. Try resetting category or dietary filters to view all available offers.
+                    Partner restaurants offer counter pickup near {currentLocationName}. Try resetting category or dietary filters to view all available offers.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 pt-2">
@@ -456,26 +456,26 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
               </div>
             ) : (
               <>
-                {/* Section 1: "DOORSTEP DELIVERY" (Swipeable & Draggable Food Deal Carousel) */}
+                {/* Section 1: "MEALS NEAR YOU" (Swipeable & Draggable Food Deal Carousel) */}
                 <FoodDealCarousel
-                  title="DOORSTEP DELIVERY"
-                  subtitle="Partner kitchens delivering directly to your door"
+                  title="MEALS NEAR YOU"
+                  subtitle="Partner kitchens ready for quick counter pickup"
                   deals={nearYouDeals}
                   onSelectDeal={onSelectDeal}
                   onViewAll={() => setViewAllSection('near_you')}
-                  testId="doorstep-delivery-carousel"
+                  testId="meals-near-you-carousel"
                 />
 
-                {/* Section 2: "DELIVERING TONIGHT" (Swipeable & Draggable Food Deal Carousel) */}
+                {/* Section 2: "PICKUP TONIGHT" (Swipeable & Draggable Food Deal Carousel) */}
                 <FoodDealCarousel
-                  title="DELIVERING TONIGHT"
+                  title="PICKUP TONIGHT"
                   badge="Ending soon"
                   subtitle="Last surplus meals reserved before kitchen closing"
                   deals={pickupNowDeals}
                   onSelectDeal={onSelectDeal}
                   onViewAll={() => setViewAllSection('pickup_now')}
                   className="pt-2"
-                  testId="delivering-tonight-carousel"
+                  testId="pickup-tonight-carousel"
                 />
               </>
             )}

@@ -64,7 +64,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
             SuperAdmin Console
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Platform governance, partner FSSAI verification, delivery zone control & system audits.
+            Platform governance, partner FSSAI verification, order oversight & system audits.
           </p>
         </div>
 

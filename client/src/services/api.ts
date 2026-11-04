@@ -5,9 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 export interface CreateOrderPayload {
   listingId: string;
   quantity: number;
-  fulfillmentType: 'SELF_PICKUP' | 'ECO_COURIER';
-  deliveryAddress?: string;
-  deliveryAddressId?: string;
+  fulfillmentType?: 'SELF_PICKUP';
 }
 
 export interface RazorpayCheckoutInfo {

@@ -81,7 +81,7 @@ export const PartnerPendingApprovalPage: React.FC<PartnerPendingApprovalPageProp
           </div>
 
           <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-500">Service Area Delivery Commitment</span>
+            <span className="text-slate-500">Counter Pickup Commitment</span>
             <span className="font-bold text-emerald-700 flex items-center gap-1">
               <span className="material-symbols-outlined text-[14px]">check_circle</span>
               <span>Enforced</span>

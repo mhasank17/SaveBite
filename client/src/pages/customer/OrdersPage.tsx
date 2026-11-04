@@ -36,8 +36,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
     (o) =>
       o.orderStatus === 'READY_FOR_PICKUP' ||
       o.orderStatus === 'CONFIRMED' ||
-      o.orderStatus === 'PENDING_PAYMENT' ||
-      o.orderStatus === 'ARRIVING'
+      o.orderStatus === 'PENDING_PAYMENT'
   );
   const completedOrders = orders.filter(
     (o) =>
@@ -188,20 +187,14 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
       {displayedOrders.length > 0 ? (
         <section className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
           {displayedOrders.map((order) => {
-            const isDelivery = order.fulfillmentType === 'ECO_COURIER';
             const isActive =
               order.orderStatus === 'READY_FOR_PICKUP' ||
               order.orderStatus === 'CONFIRMED' ||
-              order.orderStatus === 'ARRIVING' ||
               order.orderStatus === 'PENDING_PAYMENT';
 
             const statusBadgeText =
               order.orderStatus === 'COMPLETED'
-                ? isDelivery
-                  ? 'Delivered'
-                  : 'Collected at Counter'
-                : order.orderStatus === 'ARRIVING'
-                ? 'Out for Delivery'
+                ? 'Collected at Counter'
                 : order.orderStatus === 'READY_FOR_PICKUP'
                 ? 'Ready for Pickup'
                 : 'Kitchen Preparing';
@@ -231,7 +224,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
                         </span>
                         <span className="text-outline text-[12px]">•</span>
                         <span className="font-label-sm text-[11px] text-on-surface-variant truncate">
-                          {isDelivery ? 'Doorstep Delivery' : 'Counter Pickup'}
+                          Counter Pickup
                         </span>
                       </div>
                       <span className="font-body-sm text-[12px] text-on-surface-variant truncate">
@@ -267,14 +260,6 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
                       <span>{order.pickupWindowText}</span>
                     </div>
                   )}
-
-                  {/* Campus Drop Destination */}
-                  {isDelivery && order.deliveryAddress && (
-                    <div className="flex items-center gap-1 text-[11px] text-emerald-800 bg-emerald-50 px-2 py-1 rounded-lg mt-0.5 truncate">
-                      <span className="material-symbols-outlined text-[13px] shrink-0">domain</span>
-                      <span className="truncate">Drop: {order.deliveryAddress}</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Actions Row */}
@@ -282,7 +267,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
                   {/* OTP / PIN preview pill */}
                   <div className="flex items-center gap-1 text-[12px]">
                     <span className="text-on-surface-variant">
-                      {isDelivery ? 'Handover PIN:' : 'Counter OTP:'}
+                      Counter OTP:
                     </span>
                     <span className="font-mono font-bold text-primary bg-primary-fixed/30 px-2 py-0.5 rounded-md">
                       {order.pickupOtp}
@@ -296,7 +281,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
                         onClick={() => onRedeemOrder(order.id)}
                         className="h-9 px-3 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-[12px] font-bold transition-all shrink-0 border border-outline-variant/30"
                       >
-                        {isDelivery ? 'Confirm Delivery' : 'Redeem'}
+                        Redeem
                       </button>
                     )}
                     <button
@@ -305,7 +290,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
                       className="h-9 px-3.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-sm text-[12px] font-bold shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0"
                     >
                       <span className="material-symbols-outlined text-[16px]">qr_code</span>
-                      <span>{isDelivery ? 'Delivery Pass' : 'View Pass'}</span>
+                      <span>View Pass</span>
                     </button>
                   </div>
                 </div>

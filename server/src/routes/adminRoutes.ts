@@ -33,7 +33,7 @@ router.post('/settlements/pay', (req, res, next) => adminController.settleRestau
 router.get('/customers', (req, res, next) => adminController.getCustomers(req, res, next));
 router.get('/orders', (req, res, next) => adminController.getOrders(req, res, next));
 
-// 7. Campus Delivery Locations Management
+// 7. Campus Pickup Locations Management
 router.get('/campus-locations', (req, res, next) => adminController.getCampusLocations(req, res, next));
 router.patch('/campus-locations/:id', (req, res, next) => adminController.toggleCampusLocation(req, res, next));
 router.post('/campus-locations', (req, res, next) => adminController.addCampusLocation(req, res, next));

@@ -82,13 +82,13 @@ export const CustomerRegisterPage: React.FC<CustomerRegisterPageProps> = ({
           </p>
         </div>
 
-        {/* Delivery Policy Notice */}
+        {/* Counter Pickup Policy Notice */}
         <div className="mb-6 p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/60 text-emerald-900 text-xs flex items-start gap-2">
           <span className="material-symbols-outlined text-emerald-700 shrink-0 text-[18px]">
-            verified_user
+            storefront
           </span>
           <div>
-            <strong>Doorstep Delivery Available:</strong> Food orders can be delivered directly to your saved address across designated delivery zones or collected in-store.
+            <strong>Counter Pickup Only:</strong> Food orders are prepared fresh by partner restaurants and collected directly at the store counter using your secure 4-digit OTP.
           </div>
         </div>
 
