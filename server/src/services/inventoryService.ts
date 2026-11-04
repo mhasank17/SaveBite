@@ -364,6 +364,14 @@ export class InventoryService {
     };
   }
 
+  public addOrUpdateListing(record: ListingInventoryRecord): void {
+    this.inMemoryListings.set(record.id, { ...record });
+  }
+
+  public removeListing(listingId: string): void {
+    this.inMemoryListings.delete(listingId);
+  }
+
   /**
    * Retrieve listing by ID (Prisma first, falling back to in-memory)
    */

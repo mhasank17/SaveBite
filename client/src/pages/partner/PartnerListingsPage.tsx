@@ -51,66 +51,10 @@ export const PartnerListingsPage: React.FC<PartnerListingsPageProps> = ({
       if (data && data.length > 0) {
         setListings(data);
       } else {
-        // Fallback mock items
-        setListings([
-          {
-            id: 'demo-deal-mystery-bag',
-            title: '[Demo] Evening Mystery Patisserie & Sourdough Bag',
-            description: 'Fresh artisanal sourdough, croissants, and danishes packed for evening pickup.',
-            category: { name: 'Artisan Bakery' },
-            imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
-            originalPriceInr: 550,
-            surplusPriceInr: 149,
-            discountPercent: 73,
-            totalQuantity: 15,
-            availableQuantity: 5,
-            reservedQuantity: 2,
-            claimedQuantity: 8,
-            pickupStartTime: '19:30',
-            pickupEndTime: '21:30',
-            status: 'ACTIVE',
-            isMysteryBox: true,
-          },
-          {
-            id: 'demo-deal-brioche-bundle',
-            title: '[Demo] Artisan Baguette & Brioche Hearth Bundle',
-            description: '2 French baguettes + 2 golden brioches baked in stone hearth oven.',
-            category: { name: 'Artisan Bakery' },
-            imageUrl: 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&w=800&q=80',
-            originalPriceInr: 399,
-            surplusPriceInr: 120,
-            discountPercent: 70,
-            totalQuantity: 10,
-            availableQuantity: 4,
-            reservedQuantity: 0,
-            claimedQuantity: 6,
-            pickupStartTime: '20:00',
-            pickupEndTime: '21:30',
-            status: 'ACTIVE',
-            isMysteryBox: false,
-          },
-          {
-            id: 'demo-deal-pastry-delight',
-            title: '[Demo] Belgian Chocolate Ganache Cake & French Eclairs',
-            description: 'Handcrafted chocolate ganache layer cake slices and classic choux pastry eclairs.',
-            category: { name: 'Artisan Bakery' },
-            imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80',
-            originalPriceInr: 580,
-            surplusPriceInr: 179,
-            discountPercent: 69,
-            totalQuantity: 14,
-            availableQuantity: 4,
-            reservedQuantity: 2,
-            claimedQuantity: 8,
-            pickupStartTime: '19:30',
-            pickupEndTime: '20:30',
-            status: 'ACTIVE',
-            isMysteryBox: false,
-          },
-        ]);
+        setListings([]);
       }
     } catch {
-      onShowToast('error', 'Could not load listings. Showing offline copy.', 'Network Error');
+      setListings([]);
     } finally {
       setLoading(false);
     }

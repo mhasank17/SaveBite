@@ -14,9 +14,9 @@ export const PartnerSettingsPage: React.FC<PartnerSettingsPageProps> = ({
   onShowToast,
   onLogout,
 }) => {
-  const [name, setName] = useState(restaurant?.name || '[Demo] The Daily Dough Bakery (Sample Partner)');
-  const [branch, setBranch] = useState(restaurant?.branchName || 'Sandbox Outlet - Bandra West');
-  const [phone, setPhone] = useState(restaurant?.phone || '+910000000001');
+  const [name, setName] = useState(restaurant?.name || '');
+  const [branch, setBranch] = useState(restaurant?.branchName || '');
+  const [phone, setPhone] = useState(restaurant?.phone || '');
   const [isStoreLive, setIsStoreLive] = useState(restaurant?.isStoreLive ?? true);
   const [pickupLeadMinutes, setPickupLeadMinutes] = useState(30);
   const [saving, setSaving] = useState(false);

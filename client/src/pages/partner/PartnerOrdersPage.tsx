@@ -39,66 +39,11 @@ export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
       if (data && data.length > 0) {
         setOrders(data);
       } else {
-        // Fallback demo orders matching Indian bakery context
-        setOrders([
-          {
-            id: 'demo-order-1',
-            orderNumber: 'SB-20261024-8492',
-            customerName: 'Sarah Jenkins',
-            customerPhone: '+91 98200 11223',
-            dealTitle: '[Demo] Evening Mystery Patisserie & Sourdough Bag',
-            quantity: 1,
-            totalPriceInr: 149,
-            orderStatus: 'CONFIRMED',
-            pickupOtp: '8492',
-            placedAt: '12 mins ago',
-            pickupWindow: 'Tonight, 8:00 PM – 9:00 PM',
-            fulfillmentType: 'PICKUP',
-          },
-          {
-            id: 'demo-order-2',
-            orderNumber: 'SB-20261024-3310',
-            customerName: 'Rahul Sharma',
-            customerPhone: '+91 98190 44556',
-            dealTitle: '[Demo] Evening Mystery Patisserie & Sourdough Bag',
-            quantity: 2,
-            totalPriceInr: 298,
-            orderStatus: 'READY_FOR_PICKUP',
-            pickupOtp: '3310',
-            placedAt: '28 mins ago',
-            pickupWindow: 'Tonight, 8:00 PM – 9:00 PM',
-            fulfillmentType: 'PICKUP',
-          },
-          {
-            id: 'demo-order-3',
-            orderNumber: 'SB-20261024-1102',
-            customerName: 'Priya Mehta',
-            customerPhone: '+91 97690 77889',
-            dealTitle: '[Demo] Artisan Baguette & Brioche Hearth Bundle',
-            quantity: 1,
-            totalPriceInr: 120,
-            orderStatus: 'COMPLETED',
-            placedAt: '1 hr ago',
-            pickupWindow: 'Collected at 18:45 IST',
-            fulfillmentType: 'PICKUP',
-          },
-          {
-            id: 'demo-order-4',
-            orderNumber: 'SB-20261024-0985',
-            customerName: 'Amit Patel',
-            customerPhone: '+91 98210 99001',
-            dealTitle: '[Demo] Evening Mystery Patisserie & Sourdough Bag',
-            quantity: 1,
-            totalPriceInr: 149,
-            orderStatus: 'COMPLETED',
-            placedAt: '2 hrs ago',
-            pickupWindow: 'Collected at 17:30 IST',
-            fulfillmentType: 'PICKUP',
-          },
-        ]);
+        setOrders([]);
       }
     } catch {
-      onShowToast('error', 'Could not load orders. Showing offline copy.', 'Network Error');
+      setOrders([]);
+      onShowToast('error', 'Unable to fetch partner orders.', 'Connection Issue');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { FoodDeal } from '../../types';
-import { MOCK_FOOD_DEALS } from '../../data/mockDeals';
 import DealCard from '../../components/deals/DealCard';
 import FoodDealCarousel from '../../components/deals/FoodDealCarousel';
 import DealCardSkeleton from '../../components/deals/DealCardSkeleton';
@@ -53,16 +52,27 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
     setFilterCriteria((prev) => ({ ...prev, maxDistanceKm }));
   }, [maxDistanceKm]);
 
-  // Load deals from API or fallback to mock
+  // Load deals from API (Original partner data only)
   const fetchDeals = async () => {
     setIsLoading(true);
     setIsError(false);
     try {
-      // Fetch active listings from backend if available
+      // Fetch active listings from backend
       const backendDeals = await api.getActiveListings();
       if (backendDeals && backendDeals.length > 0) {
-        // Map backend deals if needed
-        const mapped: FoodDeal[] = backendDeals.map((d: any) => ({
+        // Strictly filter out any demo items so customers only see original partner listings
+        const originalDeals = backendDeals.filter((d: any) => {
+          const isDemo =
+            Boolean(d.isDemo) ||
+            d.id?.startsWith('demo-') ||
+            d.title?.startsWith('[Demo]') ||
+            d.restaurantName?.startsWith('[Demo]') ||
+            (Array.isArray(d.dietaryTags) && d.dietaryTags.includes('SYSTEM_DEMO_RECORD_V1'));
+          return !isDemo;
+        });
+
+        // Map live partner deals
+        const mapped: FoodDeal[] = originalDeals.map((d: any) => ({
           ...d,
           imageUrl: d.imageUrl || getFoodFallbackImageUrl(d),
           dealPriceInr: d.dealPriceInr ?? d.surplusPriceInr ?? 149,
@@ -93,11 +103,10 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
         }));
         setDeals(mapped);
       } else {
-        setDeals(MOCK_FOOD_DEALS);
+        setDeals([]);
       }
     } catch {
-      // Fallback to pre-seeded mock deals
-      setDeals(MOCK_FOOD_DEALS);
+      setDeals([]);
     } finally {
       setIsLoading(false);
     }
@@ -424,34 +433,51 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
             {filteredDeals.length === 0 ? (
               <div className="p-8 bg-white rounded-3xl border border-slate-100 text-center flex flex-col items-center gap-3 shadow-xs my-4 max-w-xl mx-auto">
                 <div className="w-14 h-14 rounded-full bg-emerald-50 text-[#006030] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[28px]">search_off</span>
+                  <span className="material-symbols-outlined text-[28px]">
+                    {deals.length === 0 ? 'storefront' : 'search_off'}
+                  </span>
                 </div>
                 <div className="flex flex-col">
                   <h4 className="font-bold text-base text-slate-900">
-                    No meals available matching your filters
+                    {deals.length === 0
+                      ? 'No surplus meals listed right now'
+                      : 'No meals available matching your filters'}
                   </h4>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
-                    Partner restaurants offer counter pickup near {currentLocationName}. Try resetting category or dietary filters to view all available offers.
+                    {deals.length === 0
+                      ? `Partner restaurants near ${currentLocationName} post their surplus food as closing hours approach. Check back soon for fresh counter pickup deals!`
+                      : `Partner restaurants offer counter pickup near ${currentLocationName}. Try resetting category or dietary filters to view all available offers.`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('all');
-                      setFilterCriteria({
-                        maxPriceInr: 1000,
-                        dealType: 'all',
-                        maxDistanceKm: 20,
-                        pickupWindowHours: 24,
-                        dietaryTags: [],
-                      });
-                    }}
-                    className="px-4 py-2.5 bg-[#006030] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-emerald-800 transition-colors"
-                  >
-                    Reset All Filters
-                  </button>
+                  {deals.length === 0 ? (
+                    <button
+                      type="button"
+                      onClick={fetchDeals}
+                      className="px-4 py-2.5 bg-[#006030] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-emerald-800 transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">refresh</span>
+                      Refresh Deals
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory('all');
+                        setFilterCriteria({
+                          maxPriceInr: 1000,
+                          dealType: 'all',
+                          maxDistanceKm: 20,
+                          pickupWindowHours: 24,
+                          dietaryTags: [],
+                        });
+                      }}
+                      className="px-4 py-2.5 bg-[#006030] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-emerald-800 transition-colors"
+                    >
+                      Reset All Filters
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (

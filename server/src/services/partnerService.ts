@@ -8,6 +8,7 @@ import emailService from './emailService';
 import { supabase } from '../config/supabase';
 import { ENV } from '../config/env';
 import { getFoodFallbackImageUrl } from '../utils/foodImages';
+import inventoryService from './inventoryService';
 
 export interface PartnerRestaurantRecord {
   id: string;
@@ -351,13 +352,15 @@ export class PartnerService {
    * Create a new Food Deal / Mystery Box listing for the restaurant
    */
   public async createListing(restaurantId: string, input: PartnerListingInput): Promise<any> {
-    const listingId = `demo-deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`;
     const pickupDate = input.pickupDate ? new Date(input.pickupDate) : new Date();
 
     if (isDatabaseConfigured()) {
       try {
         const restaurant = await prisma.restaurant.findUnique({ where: { id: restaurantId } });
-        const isDemo = restaurant?.isDemo ?? true;
+        const isDemo = Boolean(restaurant?.isDemo);
+        const listingId = isDemo
+          ? `demo-deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`
+          : `deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`;
 
         const newListing = await prisma.listing.create({
           data: {
@@ -410,7 +413,12 @@ export class PartnerService {
       }
     }
 
-    return {
+    const isDemo = restaurantId.startsWith('demo-');
+    const listingId = isDemo
+      ? `demo-deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`
+      : `deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`;
+
+    const memoryListing = {
       id: listingId,
       restaurantId,
       categoryId: input.categoryId,
@@ -426,10 +434,35 @@ export class PartnerService {
       availableQuantity: input.totalQuantity,
       reservedQuantity: 0,
       pickupWindowText: `${input.pickupStartTime} – ${input.pickupEndTime}`,
-      status: 'ACTIVE',
+      status: 'ACTIVE' as const,
       isMysteryBox: input.isMysteryBox ?? true,
-      isDemo: true,
+      isDemo,
     };
+
+    inventoryService.addOrUpdateListing({
+      id: memoryListing.id,
+      restaurantId: memoryListing.restaurantId,
+      restaurantName: this.inMemoryRestaurant.name,
+      restaurantAddress: this.inMemoryRestaurant.address,
+      title: memoryListing.title,
+      description: memoryListing.description,
+      imageUrl: memoryListing.imageUrl,
+      categoryName: memoryListing.categoryName,
+      originalPriceInr: memoryListing.originalPriceInr,
+      surplusPriceInr: memoryListing.surplusPriceInr,
+      totalQuantity: memoryListing.totalQuantity,
+      availableQuantity: memoryListing.availableQuantity,
+      reservedQuantity: 0,
+      deliveryFeeInr: 0,
+      co2eSavingsKg: 1.8,
+      status: 'ACTIVE',
+      pickupWindowText: memoryListing.pickupWindowText,
+      kycStatus: 'APPROVED',
+      hygieneGrade: 'Grade A',
+      isDemo,
+    });
+
+    return memoryListing;
   }
 
   /**
@@ -625,6 +658,8 @@ export class PartnerService {
         // System audit log safe fallback
       }
 
+      // In-memory fallback
+      inventoryService.removeListing(listingId);
       return {
         id: updated.id,
         title: updated.title,
@@ -637,6 +672,7 @@ export class PartnerService {
 
     // In-memory fallback
     this.deletedListingIds.add(listingId);
+    inventoryService.removeListing(listingId);
     return {
       id: listingId,
       status: 'EXPIRED',

@@ -7,7 +7,7 @@ import { FoodDeal, Order } from './types';
 import authApi, { AuthUser, PartnerRestaurantInfo } from './services/authApi';
 import api from './services/api';
 import partnerApi, { PartnerRestaurant } from './services/partnerApi';
-import { MOCK_LOCATIONS, LocationOption, MOCK_ORDERS, MOCK_FOOD_DEALS } from './data/mockDeals';
+import { MOCK_LOCATIONS, LocationOption } from './data/mockDeals';
 
 // Customer Pages
 import ExplorePage from './pages/customer/ExplorePage';
@@ -81,8 +81,8 @@ export const App: React.FC = () => {
   const [maxDistanceKm, setMaxDistanceKm] = useState<number>(3);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isPassModalOpen, setIsPassModalOpen] = useState(false);
-  const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
-  const [activePassOrder, setActivePassOrder] = useState<Order | null>(MOCK_ORDERS[0] || null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [activePassOrder, setActivePassOrder] = useState<Order | null>(null);
   const [checkoutDeal, setCheckoutDeal] = useState<{
     deal: FoodDeal;
     quantity: number;
@@ -579,11 +579,8 @@ export const App: React.FC = () => {
             if (pendingStr) {
               try {
                 const pending = JSON.parse(pendingStr);
-                if (!selectedDeal && pending.dealId) {
-                  const restored = MOCK_FOOD_DEALS.find((d) => d.id === pending.dealId);
-                  if (restored) {
-                    setSelectedDeal(restored);
-                  }
+                if (!selectedDeal && pending.deal) {
+                  setSelectedDeal(pending.deal);
                 }
               } catch {}
             }
@@ -610,11 +607,8 @@ export const App: React.FC = () => {
             if (pendingStr) {
               try {
                 const pending = JSON.parse(pendingStr);
-                if (!selectedDeal && pending.dealId) {
-                  const restored = MOCK_FOOD_DEALS.find((d) => d.id === pending.dealId);
-                  if (restored) {
-                    setSelectedDeal(restored);
-                  }
+                if (!selectedDeal && pending.deal) {
+                  setSelectedDeal(pending.deal);
                 }
               } catch {}
             }

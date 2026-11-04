@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import DealCard from '../../components/deals/DealCard';
 import Badge from '../../components/common/Badge';
 import EmptyState from '../../components/common/EmptyState';
 import { FoodDeal } from '../../types';
+import api from '../../services/api';
 import {
-  MOCK_FOOD_DEALS,
   MOCK_ACTIVE_PASS,
   MOCK_COMMUNITY_STATS,
 } from '../../data/mockDeals';
@@ -25,13 +25,33 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   maxDistanceKm,
   onShowPassModal,
 }) => {
+  const [deals, setDeals] = useState<FoodDeal[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [priceCapInr, setPriceCapInr] = useState<number | null>(null);
 
+  useEffect(() => {
+    api.getActiveListings()
+      .then((backendDeals) => {
+        if (backendDeals && backendDeals.length > 0) {
+          const originalDeals = backendDeals.filter(
+            (d: any) =>
+              !d.isDemo &&
+              !d.id?.startsWith('demo-') &&
+              !d.title?.startsWith('[Demo]') &&
+              !d.restaurantName?.startsWith('[Demo]')
+          );
+          setDeals(originalDeals);
+        } else {
+          setDeals([]);
+        }
+      })
+      .catch(() => setDeals([]));
+  }, []);
+
   // Dynamic filtering of deals for the dashboard
   const filteredDeals = useMemo(() => {
-    return MOCK_FOOD_DEALS.filter((deal) => {
+    return deals.filter((deal) => {
       if (deal.distanceKm > maxDistanceKm) return false;
       if (priceCapInr !== null && deal.dealPriceInr > priceCapInr) return false;
 
