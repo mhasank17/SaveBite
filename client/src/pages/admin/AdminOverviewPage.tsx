@@ -227,7 +227,14 @@ export const AdminOverviewPage: React.FC<AdminOverviewPageProps> = ({
           </div>
 
           <div className="divide-y divide-outline-variant/20">
-            {(metrics.recentActivity || []).map((act) => (
+            {(!metrics.recentActivity || metrics.recentActivity.length === 0) ? (
+              <div className="py-8 text-center text-on-surface-variant text-sm flex flex-col items-center justify-center gap-2">
+                <span className="material-symbols-outlined text-[28px] text-outline">history</span>
+                <span className="font-medium">No recent activity yet</span>
+                <span className="text-xs text-on-surface-variant/80">Platform governance events and audit logs will appear here.</span>
+              </div>
+            ) : (
+              metrics.recentActivity.map((act) => (
               <div key={act.id} className="py-3.5 flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary shrink-0 mt-0.5">
                   <span className="material-symbols-outlined text-[18px]">
@@ -250,7 +257,8 @@ export const AdminOverviewPage: React.FC<AdminOverviewPageProps> = ({
                   </p>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

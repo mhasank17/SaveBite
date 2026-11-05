@@ -230,36 +230,17 @@ export const adminApi = {
     }
 
     return {
-      grossRevenueInr: 124850,
-      commissionCollectedInr: 18727,
-      totalMealsRescued: 842,
-      co2eSavedKg: 1263.0,
-      totalCo2eSavedKg: 1263.0,
-      totalRestaurantsCount: 14,
-      pendingKycCount: 3,
-      openDisputesCount: 2,
-      totalOrdersCount: 42,
+      grossRevenueInr: 0,
+      commissionCollectedInr: 0,
+      totalMealsRescued: 0,
+      co2eSavedKg: 0,
+      totalCo2eSavedKg: 0,
+      totalRestaurantsCount: 0,
+      pendingKycCount: 0,
+      openDisputesCount: 0,
+      totalOrdersCount: 0,
       systemHealth: 'OPERATIONAL',
-      recentActivity: [
-        {
-          id: 'act-1',
-          type: 'KYC_SUBMISSION',
-          description: 'The Daily Dough Bakery submitted FSSAI license for verification',
-          timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-        },
-        {
-          id: 'act-2',
-          type: 'ORDER_DISPUTE',
-          description: 'Quality dispute #DISP-001 opened for Order #SB-8492 (Late pickup closure)',
-          timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-        },
-        {
-          id: 'act-3',
-          type: 'PAYOUT_SCHEDULED',
-          description: 'Weekly settlement batch generated: ₹12,450 for 4 merchant partners',
-          timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-        },
-      ],
+      recentActivity: [],
     };
   },
 
@@ -398,58 +379,7 @@ export const adminApi = {
       // Fallback
     }
 
-    return [
-      {
-        id: 'demo-deal-bakery-surprise',
-        restaurantId: 'demo-rest-daily-dough',
-        categoryId: 'cat-bakery',
-        title: 'Fresh Evening Bakery Surprise Box',
-        description: 'Assortment of sourdough loaves, croissants, and fruit danishes.',
-        originalPriceInr: 550,
-        surplusPriceInr: 149,
-        totalQuantity: 10,
-        availableQuantity: 4,
-        reservedQuantity: 6,
-        pickupDate: 'Today',
-        pickupStartTime: '20:30',
-        pickupEndTime: '21:30',
-        status: 'ACTIVE',
-        isMysteryBox: true,
-        isDemo: true,
-        co2eSavingsKg: 1.8,
-        createdAt: '2026-10-24T00:00:00.000Z',
-        restaurant: {
-          id: 'demo-rest-daily-dough',
-          name: '[Demo] The Daily Dough Bakery',
-          branchName: 'Sandbox Outlet - Bandra West',
-        },
-      },
-      {
-        id: 'demo-deal-curry-combo',
-        restaurantId: 'demo-rest-spice-symphony',
-        categoryId: 'cat-curry',
-        title: 'Gourmet Indian Buffet Surprise Meal Box',
-        description: 'Fresh Paneer Tikka Masala, Dal Makhani, 2 Butter Naan & Jeera Rice.',
-        originalPriceInr: 450,
-        surplusPriceInr: 129,
-        totalQuantity: 15,
-        availableQuantity: 9,
-        reservedQuantity: 6,
-        pickupDate: 'Today',
-        pickupStartTime: '21:30',
-        pickupEndTime: '22:30',
-        status: 'ACTIVE',
-        isMysteryBox: true,
-        isDemo: true,
-        co2eSavingsKg: 2.1,
-        createdAt: '2026-10-24T00:00:00.000Z',
-        restaurant: {
-          id: 'demo-rest-spice-symphony',
-          name: '[Demo] Spice Symphony Buffet',
-          branchName: 'Andheri East IT Park',
-        },
-      },
-    ];
+    return [];
   },
 
   /**
@@ -497,50 +427,7 @@ export const adminApi = {
       // Fallback
     }
 
-    return [
-      {
-        id: 'disp-001',
-        orderId: 'demo-order-sarah-1',
-        reason: 'Outlet was shuttered 10 minutes before the end of the pickup window.',
-        status: 'OPEN',
-        refundAmountInr: 149,
-        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-        order: {
-          id: 'demo-order-sarah-1',
-          orderNumber: '#8492',
-          totalPriceInr: 149,
-          customer: {
-            fullName: 'Sarah Jenkins',
-            email: 'sarah.j@example.com',
-          },
-          restaurant: {
-            name: '[Demo] The Daily Dough Bakery',
-            branchName: 'Sandbox Outlet - Bandra West',
-          },
-        },
-      },
-      {
-        id: 'disp-002',
-        orderId: 'demo-order-rahul-2',
-        reason: 'Item temperature was cold upon pickup, violated packaging standard.',
-        status: 'UNDER_REVIEW',
-        refundAmountInr: 129,
-        createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
-        order: {
-          id: 'demo-order-rahul-2',
-          orderNumber: '#8493',
-          totalPriceInr: 129,
-          customer: {
-            fullName: 'Rahul Sharma',
-            email: 'rahul.s@example.com',
-          },
-          restaurant: {
-            name: '[Demo] Spice Symphony Buffet',
-            branchName: 'Andheri East IT Park',
-          },
-        },
-      },
-    ];
+    return [];
   },
 
   /**
@@ -594,45 +481,7 @@ export const adminApi = {
       // Fallback
     }
 
-    return [
-      {
-        id: 'pay-20261027-001',
-        restaurantId: 'demo-rest-daily-dough',
-        amountInr: 4812,
-        status: 'SCHEDULED',
-        payoutDate: '2026-10-27',
-        createdAt: '2026-10-24T10:00:00.000Z',
-        restaurant: {
-          name: '[Demo] The Daily Dough Bakery',
-          branchName: 'Sandbox Outlet - Bandra West',
-        },
-      },
-      {
-        id: 'pay-20261027-002',
-        restaurantId: 'demo-rest-spice-symphony',
-        amountInr: 6140,
-        status: 'SCHEDULED',
-        payoutDate: '2026-10-27',
-        createdAt: '2026-10-24T10:00:00.000Z',
-        restaurant: {
-          name: '[Demo] Spice Symphony Buffet',
-          branchName: 'Andheri East IT Park',
-        },
-      },
-      {
-        id: 'pay-20261020-001',
-        restaurantId: 'demo-rest-daily-dough',
-        amountInr: 3950,
-        status: 'COMPLETED',
-        bankReferenceId: 'UTR-SB-992837190',
-        payoutDate: '2026-10-20',
-        createdAt: '2026-10-20T10:00:00.000Z',
-        restaurant: {
-          name: '[Demo] The Daily Dough Bakery',
-          branchName: 'Sandbox Outlet - Bandra West',
-        },
-      },
-    ];
+    return [];
   },
 
   /**
@@ -694,113 +543,19 @@ export const adminApi = {
 
     return {
       summary: {
-        totalPendingInr: 26035,
-        partnersAwaitingTransfer: 2,
-        totalSettledInr: 100,
-        completedPayoutsCount: 1,
-        totalSalesInr: 30747,
-        totalCommissionInr: 4612,
-        totalRestaurantEarningsInr: 26135,
-        totalOrdersCount: 196,
-        totalItemsSoldCount: 196,
+        totalPendingInr: 0,
+        partnersAwaitingTransfer: 0,
+        totalSettledInr: 0,
+        completedPayoutsCount: 0,
+        totalSalesInr: 0,
+        totalCommissionInr: 0,
+        totalRestaurantEarningsInr: 0,
+        totalOrdersCount: 0,
+        totalItemsSoldCount: 0,
         periodLabel: 'All Time',
       },
-      restaurants: [
-        {
-          restaurantId: 'demo-rest-daily-dough',
-          restaurantName: 'The Daily Dough Bakery',
-          branchName: 'Sandbox Outlet - Bandra West',
-          address: 'Plot 42, Linking Road, Bandra West',
-          city: 'Mumbai',
-          phone: '+91 98200 12345',
-          kycStatus: 'APPROVED',
-          ordersCount: 164,
-          itemsSold: 164,
-          totalSalesInr: 24379,
-          commissionInr: 3657,
-          restaurantEarningsInr: 20722,
-          alreadyPaidInr: 0,
-          pendingAmountInr: 20722,
-          lifetimeSalesInr: 24379,
-          lifetimeEarningsInr: 20722,
-          dealBreakdown: [
-            {
-              dealId: 'demo-deal-bakery-surprise',
-              dealTitle: 'Evening Bakery & Sourdough Surprise Pack',
-              categoryName: 'Bakery & Pastry',
-              unitPriceInr: 149,
-              quantitySold: 161,
-              ordersCount: 161,
-              revenueInr: 24019,
-              restaurantEarningsInr: 20416,
-            },
-            {
-              dealId: 'demo-deal-451632-73c3',
-              dealTitle: 'Fresh Afternoon Sourdough Loaves',
-              categoryName: 'Artisan Bread',
-              unitPriceInr: 120,
-              quantitySold: 3,
-              ordersCount: 3,
-              revenueInr: 360,
-              restaurantEarningsInr: 306,
-            },
-          ],
-          settlementHistory: [],
-        },
-        {
-          restaurantId: 'demo-rest-metro-banquet',
-          restaurantName: 'Metro Banquet & Catering',
-          branchName: 'Sandbox Central Hub - BKC',
-          address: 'G Block, Bandra Kurla Complex',
-          city: 'Mumbai',
-          phone: '+91 98200 67890',
-          kycStatus: 'APPROVED',
-          ordersCount: 32,
-          itemsSold: 32,
-          totalSalesInr: 6368,
-          commissionInr: 955,
-          restaurantEarningsInr: 5413,
-          alreadyPaidInr: 100,
-          pendingAmountInr: 5313,
-          lifetimeSalesInr: 6368,
-          lifetimeEarningsInr: 5413,
-          dealBreakdown: [
-            {
-              dealId: 'demo-deal-buffet-box',
-              dealTitle: 'Executive Buffet Meal Box',
-              categoryName: 'Meals & Thali',
-              unitPriceInr: 199,
-              quantitySold: 32,
-              ordersCount: 32,
-              revenueInr: 6368,
-              restaurantEarningsInr: 5413,
-            },
-          ],
-          settlementHistory: [
-            {
-              id: 'payout-sample-1',
-              amountInr: 100,
-              status: 'COMPLETED',
-              bankReferenceId: 'UTR-SB-RZP-43448716-6C7C34',
-              payoutDate: '2026-10-31',
-              createdAt: new Date().toISOString(),
-            },
-          ],
-        },
-      ],
-      history: [
-        {
-          id: 'payout-sample-1',
-          restaurantId: 'demo-rest-metro-banquet',
-          restaurantName: 'Metro Banquet & Catering',
-          branchName: 'Sandbox Central Hub - BKC',
-          amountInr: 100,
-          status: 'COMPLETED',
-          bankReferenceId: 'UTR-SB-RZP-43448716-6C7C34',
-          payoutDate: '2026-10-31',
-          createdAt: new Date().toISOString(),
-        },
-      ],
+      restaurants: [],
+      history: [],
     };
   },
 

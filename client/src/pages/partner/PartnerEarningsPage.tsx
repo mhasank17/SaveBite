@@ -231,7 +231,7 @@ export const PartnerEarningsPage: React.FC<PartnerEarningsPageProps> = ({ onShow
           </span>
           <div className="my-2">
             <span className="text-2xl md:text-3xl font-extrabold text-on-surface">
-              ₹{(earnings?.grossRevenueInr ?? 20741).toLocaleString('en-IN')}
+              ₹{(earnings?.grossRevenueInr ?? 0).toLocaleString('en-IN')}
             </span>
           </div>
           <span className="text-[11px] text-on-surface-variant">
@@ -251,7 +251,7 @@ export const PartnerEarningsPage: React.FC<PartnerEarningsPageProps> = ({ onShow
           </div>
           <div className="my-2">
             <span className="text-2xl md:text-3xl font-extrabold text-on-surface-variant">
-              –₹{(earnings?.commissionDeductedInr ?? 3111).toLocaleString('en-IN')}
+              –₹{(earnings?.commissionDeductedInr ?? 0).toLocaleString('en-IN')}
             </span>
           </div>
           <span className="text-[11px] text-on-surface-variant">
@@ -266,7 +266,7 @@ export const PartnerEarningsPage: React.FC<PartnerEarningsPageProps> = ({ onShow
           </span>
           <div className="my-2">
             <span className="text-2xl md:text-3xl font-extrabold text-primary">
-              ₹{(earnings?.netPayoutInr ?? 17630).toLocaleString('en-IN')}
+              ₹{(earnings?.netPayoutInr ?? 0).toLocaleString('en-IN')}
             </span>
           </div>
           <span className="text-[11px] text-secondary font-bold flex items-center gap-1">
@@ -287,7 +287,7 @@ export const PartnerEarningsPage: React.FC<PartnerEarningsPageProps> = ({ onShow
           </div>
           <div className="my-2">
             <span className="text-2xl md:text-3xl font-extrabold text-secondary">
-              ₹{(earnings?.pendingPayoutInr ?? 17630).toLocaleString('en-IN')}
+              ₹{(earnings?.pendingPayoutInr ?? 0).toLocaleString('en-IN')}
             </span>
           </div>
           <span className="text-[11px] text-on-surface-variant font-medium">
@@ -727,29 +727,41 @@ export const PartnerEarningsPage: React.FC<PartnerEarningsPageProps> = ({ onShow
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10 text-on-surface">
-                {(earnings?.recentPayouts || []).map((payout) => (
-                  <tr key={payout.id} className="hover:bg-surface-container-low/50 transition-colors">
-                    <td className="py-3 px-3 font-mono font-bold">{payout.id}</td>
-                    <td className="py-3 px-3 text-on-surface-variant">{payout.payoutDate}</td>
-                    <td className="py-3 px-3 font-bold text-primary text-sm">
-                      ₹{payout.amountInr.toLocaleString('en-IN')}
-                    </td>
-                    <td className="py-3 px-3">
-                      {payout.status === 'COMPLETED' ? (
-                        <Badge variant="verified">
-                          Settled
-                        </Badge>
-                      ) : (
-                        <Badge variant="live" pulseDot pulseColor="secondary">
-                          Next Cycle
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 font-mono text-[11px] text-on-surface-variant">
-                      {payout.bankReferenceId}
+                {(!earnings?.recentPayouts || earnings.recentPayouts.length === 0) ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-on-surface-variant text-sm">
+                      <div className="flex flex-col items-center justify-center gap-1.5">
+                        <span className="material-symbols-outlined text-[28px] text-outline">receipt_long</span>
+                        <span className="font-medium">No settlement transfers yet</span>
+                        <span className="text-xs text-on-surface-variant/80">Disbursements will appear here after orders are completed.</span>
+                      </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  earnings.recentPayouts.map((payout) => (
+                    <tr key={payout.id} className="hover:bg-surface-container-low/50 transition-colors">
+                      <td className="py-3 px-3 font-mono font-bold">{payout.id}</td>
+                      <td className="py-3 px-3 text-on-surface-variant">{payout.payoutDate}</td>
+                      <td className="py-3 px-3 font-bold text-primary text-sm">
+                        ₹{payout.amountInr.toLocaleString('en-IN')}
+                      </td>
+                      <td className="py-3 px-3">
+                        {payout.status === 'COMPLETED' ? (
+                          <Badge variant="verified">
+                            Settled
+                          </Badge>
+                        ) : (
+                          <Badge variant="live" pulseDot pulseColor="secondary">
+                            Next Cycle
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-[11px] text-on-surface-variant">
+                        {payout.bankReferenceId}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

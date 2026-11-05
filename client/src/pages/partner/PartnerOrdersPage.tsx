@@ -159,9 +159,11 @@ export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
       ) : filteredOrders.length === 0 ? (
         <EmptyState
           icon="receipt_long"
-          title="No orders found"
+          title={orders.length === 0 ? "No orders yet" : "No orders found"}
           description={
-            filter === 'PENDING'
+            orders.length === 0
+              ? 'Customer reservations will appear here in real-time as deals are ordered.'
+              : filter === 'PENDING'
               ? 'No customers are currently waiting for pickup.'
               : `No orders matching status "${filter}".`
           }

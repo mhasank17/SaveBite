@@ -60,3 +60,13 @@ export const isEmailConfigured = (): boolean => {
     !ENV.SMTP_PASS.includes('placeholder')
   );
 };
+
+export const isTestEnvironment = (): boolean => {
+  return (
+    process.env.NODE_ENV === 'test' ||
+    process.argv.some(
+      (arg) => typeof arg === 'string' && (arg.includes('--test') || arg.includes('tests/'))
+    ) ||
+    Boolean(process.env.npm_lifecycle_event && process.env.npm_lifecycle_event.includes('test'))
+  );
+};

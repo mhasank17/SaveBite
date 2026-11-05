@@ -154,8 +154,12 @@ export const AdminDisputesPage: React.FC<AdminDisputesPageProps> = ({ onShowToas
         <LoadingState message="Loading customer dispute tickets..." />
       ) : filteredDisputes.length === 0 ? (
         <EmptyState
-          title="No disputes found"
-          description="There are currently no customer dispute tickets matching this status."
+          title={disputes.length === 0 ? "No disputes yet" : "No disputes found"}
+          description={
+            disputes.length === 0
+              ? "All customer orders are currently in good standing. No quality claims opened."
+              : "There are currently no customer dispute tickets matching this status."
+          }
           icon="gavel"
         />
       ) : (

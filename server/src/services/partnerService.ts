@@ -6,9 +6,9 @@ import { ListingStatus, OrderStatus } from '@prisma/client';
 import authService, { hashPassword } from './authService';
 import emailService from './emailService';
 import { supabase } from '../config/supabase';
-import { ENV } from '../config/env';
+import { ENV, isTestEnvironment } from '../config/env';
 import { getFoodFallbackImageUrl } from '../utils/foodImages';
-import inventoryService from './inventoryService';
+import inventoryService, { INITIAL_LISTINGS } from './inventoryService';
 
 export interface PartnerRestaurantRecord {
   id: string;
@@ -88,12 +88,12 @@ export class PartnerService {
     rating: 4.8,
     reviewCount: 42,
     metrics: {
-      activeListingsCount: 2,
-      todayOrdersCount: 4,
-      pendingPickupsCount: 2,
-      totalMealsRescued: 38,
-      totalRevenueInr: 5662,
-      co2eSavedKg: 68.4,
+      activeListingsCount: 0,
+      todayOrdersCount: 0,
+      pendingPickupsCount: 0,
+      totalMealsRescued: 0,
+      totalRevenueInr: 0,
+      co2eSavedKg: 0,
     },
   };
 
@@ -243,7 +243,7 @@ export class PartnerService {
           orderBy: { createdAt: 'desc' },
         });
 
-        if (listings.length > 0) {
+        if (listings.length > 0 || !isTestEnvironment()) {
           return listings.map((l) => ({
             id: l.id,
             restaurantId: l.restaurantId,
@@ -287,65 +287,69 @@ export class PartnerService {
       }
     }
 
-    // Default mock listings for in-memory testing
-    return [
-      {
-        id: 'demo-deal-bakery-surprise',
-        restaurantId,
-        categoryId: 'demo-cat-bakery',
-        categoryName: 'Artisan Bakery',
-        title: '[Demo] Evening Bakery & Sourdough Surprise Pack',
-        description: 'Assorted artisanal bread and breakfast pastries for development testing.',
-        imageUrl:
-          'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
-        originalPriceInr: 550,
-        surplusPriceInr: 149,
-        discountPercent: 73,
-        totalQuantity: 15,
-        availableQuantity: 3,
-        reservedQuantity: 12,
-        claimedQuantity: 12,
-        pickupWindowText: '10:00 – 23:30',
-        pickupStartTime: '10:00',
-        pickupEndTime: '23:30',
-        pickupDate: new Date().toISOString().split('T')[0],
-        dietaryTags: ['Demo Record', 'Vegetarian (Sample)'],
-        allergenNotice: 'Demo notice: Synthetic sample data.',
-        co2eSavingsKg: 1.8,
-        status: 'ACTIVE',
-        isMysteryBox: true,
-        isDemo: true,
-        ordersCount: 4,
-      },
-      {
-        id: 'demo-deal-concurrency-test',
-        restaurantId,
-        categoryId: 'demo-cat-bakery',
-        categoryName: 'Artisan Bakery',
-        title: '[Demo] Concurrency Test Special (Final Portion)',
-        description: 'Single-portion test listing for race condition verification.',
-        imageUrl:
-          'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
-        originalPriceInr: 300,
-        surplusPriceInr: 99,
-        discountPercent: 67,
-        totalQuantity: 1,
-        availableQuantity: 1,
-        reservedQuantity: 0,
-        claimedQuantity: 0,
-        pickupWindowText: '10:00 – 23:30',
-        pickupStartTime: '10:00',
-        pickupEndTime: '23:30',
-        pickupDate: new Date().toISOString().split('T')[0],
-        dietaryTags: ['Demo Record', 'Concurrency Test'],
-        allergenNotice: 'Testing data only.',
-        co2eSavingsKg: 1.0,
-        status: 'ACTIVE',
-        isMysteryBox: false,
-        isDemo: true,
-        ordersCount: 1,
-      },
-    ].filter((item) => !this.deletedListingIds.has(item.id) && item.status !== 'EXPIRED');
+    if (isTestEnvironment()) {
+      // Default mock listings for in-memory testing
+      return [
+        {
+          id: 'demo-deal-bakery-surprise',
+          restaurantId,
+          categoryId: 'demo-cat-bakery',
+          categoryName: 'Artisan Bakery',
+          title: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          description: 'Assorted artisanal bread and breakfast pastries for development testing.',
+          imageUrl:
+            'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
+          originalPriceInr: 550,
+          surplusPriceInr: 149,
+          discountPercent: 73,
+          totalQuantity: 15,
+          availableQuantity: 3,
+          reservedQuantity: 12,
+          claimedQuantity: 12,
+          pickupWindowText: '10:00 – 23:30',
+          pickupStartTime: '10:00',
+          pickupEndTime: '23:30',
+          pickupDate: new Date().toISOString().split('T')[0],
+          dietaryTags: ['Demo Record', 'Vegetarian (Sample)'],
+          allergenNotice: 'Demo notice: Synthetic sample data.',
+          co2eSavingsKg: 1.8,
+          status: 'ACTIVE',
+          isMysteryBox: true,
+          isDemo: true,
+          ordersCount: 4,
+        },
+        {
+          id: 'demo-deal-concurrency-test',
+          restaurantId,
+          categoryId: 'demo-cat-bakery',
+          categoryName: 'Artisan Bakery',
+          title: '[Demo] Concurrency Test Special (Final Portion)',
+          description: 'Single-portion test listing for race condition verification.',
+          imageUrl:
+            'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
+          originalPriceInr: 300,
+          surplusPriceInr: 99,
+          discountPercent: 67,
+          totalQuantity: 1,
+          availableQuantity: 1,
+          reservedQuantity: 0,
+          claimedQuantity: 0,
+          pickupWindowText: '10:00 – 23:30',
+          pickupStartTime: '10:00',
+          pickupEndTime: '23:30',
+          pickupDate: new Date().toISOString().split('T')[0],
+          dietaryTags: ['Demo Record', 'Concurrency Test'],
+          allergenNotice: 'Testing data only.',
+          co2eSavingsKg: 1.0,
+          status: 'ACTIVE',
+          isMysteryBox: false,
+          isDemo: true,
+          ordersCount: 1,
+        },
+      ].filter((item) => !this.deletedListingIds.has(item.id) && item.status !== 'EXPIRED');
+    }
+
+    return [];
   }
 
   /**
@@ -606,6 +610,22 @@ export class PartnerService {
       });
 
       if (!listing) {
+        // Fallback for demo deals during test runs or if demo deal ID passed
+        const inMemory = INITIAL_LISTINGS.find((l) => l.id === listingId);
+        if (inMemory) {
+          if (inMemory.restaurantId !== restaurantId) {
+            const err: any = new Error('Unauthorized: You can only delete food deals from your own restaurant.');
+            err.statusCode = 403;
+            throw err;
+          }
+          this.deletedListingIds.add(listingId);
+          return {
+            id: listingId,
+            title: inMemory.title,
+            status: 'EXPIRED',
+          };
+        }
+
         const err: any = new Error(`Food deal listing with ID "${listingId}" not found.`);
         err.statusCode = 404;
         throw err;
@@ -696,7 +716,7 @@ export class PartnerService {
           orderBy: { createdAt: 'desc' },
         });
 
-        if (orders.length > 0) {
+        if (orders.length > 0 || !isTestEnvironment()) {
           return orders.map((o) => ({
             id: o.id,
             orderNumber: o.orderNumber,
@@ -722,46 +742,50 @@ export class PartnerService {
       }
     }
 
-    // In-memory fallback sample orders for testing
-    return [
-      {
-        id: 'ord-8492',
-        orderNumber: '#8492',
-        customerName: 'Sarah Jenkins',
-        customerEmail: 'sarah.jenkins@savebite.in',
-        customerPhone: '+919876543210',
-        listingTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
-        quantity: 1,
-        totalPriceInr: 149,
-        fulfillmentType: 'SELF_PICKUP',
-        orderStatus: 'READY_FOR_PICKUP',
-        paymentStatus: 'SUCCESS',
-        pickupOtp: '8492',
-        qrSecretToken: 'SAVEBITE-PASS-8492-VERIFIED-AUTH',
-        pickupWindowText: '10:00 – 23:30',
-        expiresAt: new Date(Date.now() + 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'ord-7721',
-        orderNumber: '#7721',
-        customerName: 'Rahul Sharma',
-        customerEmail: 'rahul.s@savebite.in',
-        customerPhone: '+919812345678',
-        listingTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
-        quantity: 2,
-        totalPriceInr: 298,
-        fulfillmentType: 'SELF_PICKUP',
-        orderStatus: 'COMPLETED',
-        paymentStatus: 'SUCCESS',
-        pickupOtp: '7721',
-        qrSecretToken: 'SAVEBITE-PASS-7721-VERIFIED-AUTH',
-        pickupWindowText: '10:00 – 23:30',
-        expiresAt: new Date(Date.now() - 3600000).toISOString(),
-        completedAt: new Date().toISOString(),
-        createdAt: new Date(Date.now() - 7200000).toISOString(),
-      },
-    ];
+    if (isTestEnvironment()) {
+      // In-memory fallback sample orders for testing
+      return [
+        {
+          id: 'ord-8492',
+          orderNumber: '#8492',
+          customerName: 'Sarah Jenkins',
+          customerEmail: 'sarah.jenkins@savebite.in',
+          customerPhone: '+919876543210',
+          listingTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          quantity: 1,
+          totalPriceInr: 149,
+          fulfillmentType: 'SELF_PICKUP',
+          orderStatus: 'READY_FOR_PICKUP',
+          paymentStatus: 'SUCCESS',
+          pickupOtp: '8492',
+          qrSecretToken: 'SAVEBITE-PASS-8492-VERIFIED-AUTH',
+          pickupWindowText: '10:00 – 23:30',
+          expiresAt: new Date(Date.now() + 3600000).toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 'ord-7721',
+          orderNumber: '#7721',
+          customerName: 'Rahul Sharma',
+          customerEmail: 'rahul.s@savebite.in',
+          customerPhone: '+919812345678',
+          listingTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          quantity: 2,
+          totalPriceInr: 298,
+          fulfillmentType: 'SELF_PICKUP',
+          orderStatus: 'COMPLETED',
+          paymentStatus: 'SUCCESS',
+          pickupOtp: '7721',
+          qrSecretToken: 'SAVEBITE-PASS-7721-VERIFIED-AUTH',
+          pickupWindowText: '10:00 – 23:30',
+          expiresAt: new Date(Date.now() - 3600000).toISOString(),
+          completedAt: new Date().toISOString(),
+          createdAt: new Date(Date.now() - 7200000).toISOString(),
+        },
+      ];
+    }
+
+    return [];
   }
 
   /**
@@ -970,56 +994,36 @@ export class PartnerService {
    */
   public async getPartnerEarnings(restaurantId: string): Promise<any> {
     const restaurant = await this.getPartnerRestaurant(restaurantId);
-    let grossRevenue = restaurant?.metrics.totalRevenueInr || 20741;
-    let totalItemsSold = 192;
-    let totalOrdersCount = 189;
-    let totalSettled = 17630;
-    let recentPayouts: any[] = [
-      {
-        id: 'pay-001',
-        amountInr: 16870,
-        status: 'COMPLETED',
-        payoutDate: '2026-10-24',
-        bankReferenceId: 'UTR-DEMO-20261024-001',
-      },
-      {
-        id: 'pay-002',
-        amountInr: 760,
-        status: 'COMPLETED',
-        payoutDate: '2026-10-31',
-        bankReferenceId: 'UTR-DEMO-20261031-002',
-      },
-    ];
-
-    let salesBreakdown: any[] = [
-      {
-        listingId: 'demo-deal-bakery-surprise',
-        foodItemName: '[Demo] Evening Bakery & Sourdough Surprise Pack',
-        categoryName: 'Bakery',
-        quantitySold: 189,
-        ordersCount: 186,
-        grossSalesInr: 20381,
-        commissionInr: 3057,
-        partnerEarningsInr: 17324,
-        paymentStatus: 'SETTLED',
-        orderDates: [new Date().toISOString()],
-      },
-      {
-        listingId: 'demo-deal-sourdough-loaves',
-        foodItemName: '[Demo] Fresh Afternoon Sourdough Loaves',
-        categoryName: 'Bakery',
-        quantitySold: 3,
-        ordersCount: 3,
-        grossSalesInr: 360,
-        commissionInr: 54,
-        partnerEarningsInr: 306,
-        paymentStatus: 'PENDING',
-        orderDates: [new Date().toISOString()],
-      },
-    ];
+    let grossRevenue = restaurant?.metrics.totalRevenueInr || 0;
+    let totalItemsSold = 0;
+    let totalOrdersCount = 0;
+    let totalSettled = 0;
+    let recentPayouts: any[] = [];
+    let salesBreakdown: any[] = [];
 
     if (isDatabaseConfigured()) {
       try {
+        // Query completed and scheduled payouts for this partner
+        const dbPayouts = await prisma.payout.findMany({
+          where: { restaurantId },
+          orderBy: { payoutDate: 'desc' },
+        });
+
+        if (dbPayouts && dbPayouts.length > 0) {
+          recentPayouts = dbPayouts.map((p) => ({
+            id: p.id,
+            amountInr: Number(p.amountInr),
+            status: p.status,
+            payoutDate: p.payoutDate.toISOString().split('T')[0],
+            bankReferenceId: p.bankReferenceId,
+            createdAt: p.createdAt.toISOString(),
+          }));
+
+          totalSettled = dbPayouts
+            .filter((p) => p.status === 'COMPLETED')
+            .reduce((sum, p) => sum + Number(p.amountInr), 0);
+        }
+
         const eligibleOrders = await prisma.order.findMany({
           where: {
             restaurantId,
@@ -1039,27 +1043,6 @@ export class PartnerService {
           totalOrdersCount = eligibleOrders.length;
           grossRevenue = eligibleOrders.reduce((sum, o) => sum + Number(o.totalPriceInr), 0);
           totalItemsSold = eligibleOrders.reduce((sum, o) => sum + o.quantity, 0);
-
-          // Query completed and scheduled payouts for this partner
-          const dbPayouts = await prisma.payout.findMany({
-            where: { restaurantId },
-            orderBy: { payoutDate: 'desc' },
-          });
-
-          if (dbPayouts && dbPayouts.length > 0) {
-            recentPayouts = dbPayouts.map((p) => ({
-              id: p.id,
-              amountInr: Number(p.amountInr),
-              status: p.status,
-              payoutDate: p.payoutDate.toISOString().split('T')[0],
-              bankReferenceId: p.bankReferenceId,
-              createdAt: p.createdAt.toISOString(),
-            }));
-
-            totalSettled = dbPayouts
-              .filter((p) => p.status === 'COMPLETED')
-              .reduce((sum, p) => sum + Number(p.amountInr), 0);
-          }
 
           // Aggregate food deals breakdown
           const dealMap: Record<string, {

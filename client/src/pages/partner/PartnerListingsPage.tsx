@@ -229,7 +229,7 @@ export const PartnerListingsPage: React.FC<PartnerListingsPageProps> = ({
       ) : filteredListings.length === 0 ? (
         <EmptyState
           icon="inventory_2"
-          title="No food deals found"
+          title="No food deals available"
           description={
             filter === 'ALL'
               ? 'You have not published any food deals or mystery boxes yet today.'

@@ -110,8 +110,12 @@ export const AdminOrdersPage: React.FC<AdminOrdersPageProps> = ({ onShowToast })
       {/* Orders Table */}
       {filtered.length === 0 ? (
         <EmptyState
-          title="No orders found"
-          description="There are currently no orders matching this filter."
+          title={orders.length === 0 ? "No orders yet" : "No orders found"}
+          description={
+            orders.length === 0
+              ? "Customer orders across all restaurants will appear here in real-time."
+              : "There are currently no orders matching this filter."
+          }
           icon="receipt_long"
         />
       ) : (

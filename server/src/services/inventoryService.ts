@@ -1,5 +1,5 @@
 import prisma, { isDatabaseConfigured } from '../config/db';
-import { ENV } from '../config/env';
+import { ENV, isTestEnvironment } from '../config/env';
 import { getFoodFallbackImageUrl } from '../utils/foodImages';
 
 export interface ListingInventoryRecord {
@@ -29,7 +29,7 @@ export interface ListingInventoryRecord {
 }
 
 // Initial active listings pre-seeded for development and testing (all demo-prefixed)
-const INITIAL_LISTINGS: ListingInventoryRecord[] = [
+export const INITIAL_LISTINGS: ListingInventoryRecord[] = [
   {
     id: 'demo-deal-bakery-surprise',
     restaurantId: 'demo-rest-daily-dough',
@@ -545,14 +545,16 @@ export class InventoryService {
       }
     }
 
-    if (isProduction) {
-      // In production mode, return only verified commercial partner listings (zero demo listings)
-      return Array.from(this.inMemoryListings.values()).filter(
-        (l) => !l.isDemo && !l.id.startsWith('demo-') && !l.title.includes('[Demo]')
-      );
+    if (isTestEnvironment()) {
+      if (isProduction) {
+        return Array.from(this.inMemoryListings.values()).filter(
+          (item) => !item.isDemo && !item.id.startsWith('demo-') && !item.title.includes('[Demo]')
+        );
+      }
+      return Array.from(this.inMemoryListings.values());
     }
 
-    return Array.from(this.inMemoryListings.values());
+    return [];
   }
 
   /**

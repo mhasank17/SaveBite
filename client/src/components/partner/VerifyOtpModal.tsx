@@ -102,11 +102,6 @@ export const VerifyOtpModal: React.FC<VerifyOtpModalProps> = ({
     }
   };
 
-  const handleSimulateQrScan = (sampleToken: string) => {
-    setQrToken(sampleToken);
-    handleVerify(undefined, sampleToken);
-  };
-
   const handleReset = () => {
     setOtp('');
     setQrToken('');
@@ -211,19 +206,6 @@ export const VerifyOtpModal: React.FC<VerifyOtpModalProps> = ({
                   placeholder="• • • •"
                   className="w-48 h-16 text-center text-3xl font-extrabold tracking-widest bg-surface-container-high rounded-2xl border-2 border-outline-variant focus:border-primary focus:outline-none text-on-surface transition-all"
                 />
-                <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                  <span>Demo quick test:</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOtp('8492');
-                      setErrorFeedback(null);
-                    }}
-                    className="text-primary font-bold underline hover:opacity-80"
-                  >
-                    Use 8492
-                  </button>
-                </div>
               </div>
             ) : (
               /* Mode 2: QR Scanner */
@@ -256,28 +238,9 @@ export const VerifyOtpModal: React.FC<VerifyOtpModalProps> = ({
                       setQrToken(e.target.value);
                       setErrorFeedback(null);
                     }}
-                    placeholder="e.g. SAVEBITE-PASS-8492-XXXXX"
+                    placeholder="e.g. SAVEBITE-PASS-XXXX-VERIFIED-AUTH"
                     className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl text-xs font-mono text-on-surface focus:outline-none focus:border-primary"
                   />
-                </div>
-
-                {/* Quick Simulation Buttons */}
-                <div className="flex flex-wrap gap-2 w-full justify-center text-xs">
-                  <span className="text-on-surface-variant text-[11px] self-center">Simulate scan:</span>
-                  <button
-                    type="button"
-                    onClick={() => handleSimulateQrScan('SAVEBITE-PASS-8492-VERIFIED-AUTH')}
-                    className="px-2.5 py-1 rounded-lg bg-surface-container border border-outline-variant text-[11px] font-bold text-primary hover:bg-surface-container-high"
-                  >
-                    Pass #8492
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSimulateQrScan('SAVEBITE-PASS-OTHER-OUTLET-4411')}
-                    className="px-2.5 py-1 rounded-lg bg-surface-container border border-outline-variant text-[11px] font-bold text-amber-700 dark:text-amber-300 hover:bg-surface-container-high"
-                  >
-                    Other Outlet Pass
-                  </button>
                 </div>
               </div>
             )}

@@ -145,8 +145,12 @@ export const AdminListingsPage: React.FC<AdminListingsPageProps> = ({ onShowToas
         <LoadingState message="Loading platform food deals..." />
       ) : filteredListings.length === 0 ? (
         <EmptyState
-          title="No food deals found"
-          description="No listings matched the filter criteria."
+          title={listings.length === 0 ? "No food deals available" : "No food deals found"}
+          description={
+            listings.length === 0
+              ? "No food deals or mystery boxes are currently active on the platform."
+              : "No listings matched the filter criteria."
+          }
           icon="inventory_2"
         />
       ) : (

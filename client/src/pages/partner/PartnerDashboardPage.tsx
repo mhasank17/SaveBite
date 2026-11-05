@@ -42,12 +42,12 @@ export const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({
   };
 
   const metrics = restaurant?.metrics || {
-    activeListingsCount: 2,
-    todayOrdersCount: 4,
-    pendingPickupsCount: 2,
-    totalMealsRescued: 38,
-    totalRevenueInr: 5662,
-    co2eSavedKg: 68.4,
+    activeListingsCount: 0,
+    todayOrdersCount: 0,
+    pendingPickupsCount: 0,
+    totalMealsRescued: 0,
+    totalRevenueInr: 0,
+    co2eSavedKg: 0,
   };
 
   return (

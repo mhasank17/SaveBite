@@ -4,6 +4,7 @@ import { KycStatus, ListingStatus, DisputeStatus, PayoutStatus } from '@prisma/c
 import authService, { hashPassword } from './authService';
 import { APPROVED_CAMPUS_LOCATIONS } from '../config/campusLocations';
 import razorpayService from './razorpayService';
+import { isTestEnvironment } from '../config/env';
 
 export class AdminService {
   /**
@@ -40,50 +41,29 @@ export class AdminService {
 
         const grossRevenueInr = orders.reduce((sum, o) => sum + Number(o.totalPriceInr), 0);
         const commissionCollectedInr = Math.round(grossRevenueInr * 0.15);
-        const totalMealsRescued = orders.reduce((sum, o) => sum + o.quantity, 0) || 54;
+        const totalMealsRescued = orders.reduce((sum, o) => sum + o.quantity, 0);
         const totalCo2eSavedKg = Number((totalMealsRescued * 1.8).toFixed(1));
 
-        const recentActivity = recentLogs.length > 0
-          ? recentLogs.map((log) => ({
-              id: log.id,
-              type: log.action,
-              description:
-                (log.details as any)?.adminNotes ||
-                (log.details as any)?.message ||
-                `Governance event ${log.action} executed by ${log.actorId || 'SuperAdmin'}`,
-              timestamp: log.createdAt.toISOString(),
-            }))
-          : [
-              {
-                id: 'act-1',
-                type: 'KYC_SUBMISSION',
-                description: 'The Daily Dough Bakery submitted FSSAI license for verification',
-                timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-              },
-              {
-                id: 'act-2',
-                type: 'ORDER_DISPUTE',
-                description: 'Quality dispute opened for Order (Late pickup closure claim)',
-                timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-              },
-              {
-                id: 'act-3',
-                type: 'PAYOUT_SCHEDULED',
-                description: 'Weekly settlement batch generated for merchant partners',
-                timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-              },
-            ];
+        const recentActivity = recentLogs.map((log) => ({
+          id: log.id,
+          type: log.action,
+          description:
+            (log.details as any)?.adminNotes ||
+            (log.details as any)?.message ||
+            `Governance event ${log.action} executed by ${log.actorId || 'SuperAdmin'}`,
+          timestamp: log.createdAt.toISOString(),
+        }));
 
         return {
-          grossRevenueInr: grossRevenueInr || 28450,
-          commissionCollectedInr: commissionCollectedInr || 4268,
+          grossRevenueInr,
+          commissionCollectedInr,
           totalMealsRescued,
           totalCo2eSavedKg,
           co2eSavedKg: totalCo2eSavedKg,
           totalRestaurantsCount,
           pendingKycCount,
           openDisputesCount,
-          totalOrdersCount: totalOrdersCount || orders.length || 42,
+          totalOrdersCount,
           systemHealth: 'OPERATIONAL',
           recentActivity,
           lastAuditTimestamp: new Date().toISOString(),
@@ -93,38 +73,19 @@ export class AdminService {
       }
     }
 
-    // In-memory fallback metrics for testing
+    // In-memory fallback metrics
     return {
-      grossRevenueInr: 28450,
-      commissionCollectedInr: 4268,
-      totalMealsRescued: 54,
-      totalCo2eSavedKg: 97.2,
-      co2eSavedKg: 97.2,
+      grossRevenueInr: 0,
+      commissionCollectedInr: 0,
+      totalMealsRescued: 0,
+      totalCo2eSavedKg: 0,
+      co2eSavedKg: 0,
       totalRestaurantsCount: 4,
       pendingKycCount: 3,
-      openDisputesCount: 2,
-      totalOrdersCount: 42,
+      openDisputesCount: 0,
+      totalOrdersCount: 0,
       systemHealth: 'OPERATIONAL',
-      recentActivity: [
-        {
-          id: 'act-1',
-          type: 'KYC_SUBMISSION',
-          description: 'The Daily Dough Bakery submitted FSSAI license for verification',
-          timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-        },
-        {
-          id: 'act-2',
-          type: 'ORDER_DISPUTE',
-          description: 'Quality dispute #DISP-001 opened for Order #SB-8492 (Late pickup closure)',
-          timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-        },
-        {
-          id: 'act-3',
-          type: 'PAYOUT_SCHEDULED',
-          description: 'Weekly settlement batch generated: ₹12,450 for 4 merchant partners',
-          timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-        },
-      ],
+      recentActivity: [],
       lastAuditTimestamp: new Date().toISOString(),
     };
   }
@@ -310,7 +271,7 @@ export class AdminService {
           orderBy: { createdAt: 'desc' },
         });
 
-        if (listings.length > 0) {
+        if (listings.length > 0 || !isTestEnvironment()) {
           return listings.map((l) => ({
             id: l.id,
             title: l.title,
@@ -333,24 +294,28 @@ export class AdminService {
       }
     }
 
-    return [
-      {
-        id: 'demo-deal-bakery-surprise',
-        title: '[Demo] Evening Bakery & Sourdough Surprise Pack',
-        restaurantName: '[Demo] The Daily Dough Bakery',
-        restaurantBranch: 'Sandbox Outlet - Bandra West',
-        categoryName: 'Bakery',
-        originalPriceInr: 550,
-        surplusPriceInr: 149,
-        availableQuantity: 3,
-        totalQuantity: 15,
-        status: 'ACTIVE',
-        pickupWindowText: '10:00 – 23:30',
-        isMysteryBox: true,
-        isDemo: true,
-        createdAt: new Date().toISOString(),
-      },
-    ];
+    if (isTestEnvironment()) {
+      return [
+        {
+          id: 'demo-deal-bakery-surprise',
+          title: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          restaurantName: '[Demo] The Daily Dough Bakery',
+          restaurantBranch: 'Sandbox Outlet - Bandra West',
+          categoryName: 'Bakery',
+          originalPriceInr: 550,
+          surplusPriceInr: 149,
+          availableQuantity: 3,
+          totalQuantity: 15,
+          status: 'ACTIVE',
+          pickupWindowText: '10:00 – 23:30',
+          isMysteryBox: true,
+          isDemo: true,
+          createdAt: new Date().toISOString(),
+        },
+      ];
+    }
+
+    return [];
   }
 
   /**
@@ -411,7 +376,7 @@ export class AdminService {
           orderBy: { createdAt: 'desc' },
         });
 
-        if (disputes.length > 0) {
+        if (disputes.length > 0 || !isTestEnvironment()) {
           return disputes.map((d) => ({
             id: d.id,
             orderId: d.orderId,
@@ -433,37 +398,41 @@ export class AdminService {
       }
     }
 
-    return [
-      {
-        id: 'disp-001',
-        orderId: 'ord-8492',
-        orderNumber: '#8492',
-        customerName: 'Sarah Jenkins',
-        customerEmail: 'sarah.jenkins@savebite.in',
-        restaurantName: '[Demo] The Daily Dough Bakery',
-        dealTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
-        reason: 'Store was closed when arriving within the scheduled pickup window.',
-        status: 'OPEN',
-        refundAmountInr: 149,
-        adminNotes: 'Customer contacted support via counter chat.',
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'disp-002',
-        orderId: 'ord-7721',
-        orderNumber: '#7721',
-        customerName: 'Rahul Sharma',
-        customerEmail: 'rahul.s@savebite.in',
-        restaurantName: '[Demo] Metro Banquet & Catering',
-        dealTitle: '[Demo] Executive Buffet Meal Box',
-        reason: 'Package was missing advertised vegetarian allergen safety notice.',
-        status: 'RESOLVED_REFUNDED',
-        refundAmountInr: 199,
-        adminNotes: 'Full refund credited back to original payment method.',
-        resolvedAt: new Date(Date.now() - 86400000).toISOString(),
-        createdAt: new Date(Date.now() - 172800000).toISOString(),
-      },
-    ];
+    if (isTestEnvironment()) {
+      return [
+        {
+          id: 'disp-001',
+          orderId: 'ord-8492',
+          orderNumber: '#8492',
+          customerName: 'Sarah Jenkins',
+          customerEmail: 'sarah.jenkins@savebite.in',
+          restaurantName: '[Demo] The Daily Dough Bakery',
+          dealTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          reason: 'Store was closed when arriving within the scheduled pickup window.',
+          status: 'OPEN',
+          refundAmountInr: 149,
+          adminNotes: 'Customer contacted support via counter chat.',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 'disp-002',
+          orderId: 'ord-7721',
+          orderNumber: '#7721',
+          customerName: 'Rahul Sharma',
+          customerEmail: 'rahul.s@savebite.in',
+          restaurantName: '[Demo] Metro Banquet & Catering',
+          dealTitle: '[Demo] Executive Buffet Meal Box',
+          reason: 'Package was missing advertised vegetarian allergen safety notice.',
+          status: 'RESOLVED_REFUNDED',
+          refundAmountInr: 199,
+          adminNotes: 'Full refund credited back to original payment method.',
+          resolvedAt: new Date(Date.now() - 86400000).toISOString(),
+          createdAt: new Date(Date.now() - 172800000).toISOString(),
+        },
+      ];
+    }
+
+    return [];
   }
 
   /**
@@ -545,7 +514,7 @@ export class AdminService {
           orderBy: { createdAt: 'desc' },
         });
 
-        if (payouts.length > 0) {
+        if (payouts.length > 0 || !isTestEnvironment()) {
           return payouts.map((p) => ({
             id: p.id,
             restaurantId: p.restaurantId,
@@ -562,38 +531,42 @@ export class AdminService {
       }
     }
 
-    return [
-      {
-        id: 'pay-20261020-001',
-        restaurantId: 'demo-rest-daily-dough',
-        restaurantName: '[Demo] The Daily Dough Bakery',
-        amountInr: 4813,
-        status: 'COMPLETED',
-        bankReferenceId: 'UTR-HDFC-20261020-001',
-        payoutDate: '2026-10-20',
-        createdAt: '2026-10-20T09:00:00Z',
-      },
-      {
-        id: 'pay-20261027-002',
-        restaurantId: 'demo-rest-daily-dough',
-        restaurantName: '[Demo] The Daily Dough Bakery',
-        amountInr: 1613,
-        status: 'SCHEDULED',
-        bankReferenceId: null,
-        payoutDate: '2026-10-27',
-        createdAt: '2026-10-24T00:00:00Z',
-      },
-      {
-        id: 'pay-20261027-003',
-        restaurantId: 'demo-rest-metro-banquet',
-        restaurantName: '[Demo] Metro Banquet & Catering',
-        amountInr: 3250,
-        status: 'SCHEDULED',
-        bankReferenceId: null,
-        payoutDate: '2026-10-27',
-        createdAt: '2026-10-24T00:00:00Z',
-      },
-    ];
+    if (isTestEnvironment()) {
+      return [
+        {
+          id: 'pay-20261020-001',
+          restaurantId: 'demo-rest-daily-dough',
+          restaurantName: '[Demo] The Daily Dough Bakery',
+          amountInr: 4813,
+          status: 'COMPLETED',
+          bankReferenceId: 'UTR-HDFC-20261020-001',
+          payoutDate: '2026-10-20',
+          createdAt: '2026-10-20T09:00:00Z',
+        },
+        {
+          id: 'pay-20261027-002',
+          restaurantId: 'demo-rest-daily-dough',
+          restaurantName: '[Demo] The Daily Dough Bakery',
+          amountInr: 1613,
+          status: 'SCHEDULED',
+          bankReferenceId: null,
+          payoutDate: '2026-10-27',
+          createdAt: '2026-10-24T00:00:00Z',
+        },
+        {
+          id: 'pay-20261027-003',
+          restaurantId: 'demo-rest-metro-banquet',
+          restaurantName: '[Demo] Metro Banquet & Catering',
+          amountInr: 3250,
+          status: 'SCHEDULED',
+          bankReferenceId: null,
+          payoutDate: '2026-10-27',
+          createdAt: '2026-10-24T00:00:00Z',
+        },
+      ];
+    }
+
+    return [];
   }
 
   /**
@@ -1169,45 +1142,26 @@ export class AdminService {
           },
           orderBy: { createdAt: 'desc' },
         });
-        if (orders.length > 0) {
-          return orders.map((o) => ({
-            id: o.id,
-            orderNumber: o.orderNumber,
-            customerName: o.customer.fullName,
-            customerEmail: o.customer.email,
-            restaurantName: o.restaurant.name,
-            dealTitle: o.listing.title,
-            quantity: o.quantity,
-            totalPriceInr: Number(o.totalPriceInr),
-            deliveryFeeInr: Number(o.deliveryFeeInr),
-            fulfillmentType: o.fulfillmentType,
-            deliveryAddress: o.deliveryAddress,
-            orderStatus: o.orderStatus,
-            paymentStatus: o.paymentStatus,
-            createdAt: o.createdAt.toISOString(),
-          }));
-        }
+        return orders.map((o) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          customerName: o.customer.fullName,
+          customerEmail: o.customer.email,
+          restaurantName: o.restaurant.name,
+          dealTitle: o.listing.title,
+          quantity: o.quantity,
+          totalPriceInr: Number(o.totalPriceInr),
+          deliveryFeeInr: Number(o.deliveryFeeInr),
+          fulfillmentType: o.fulfillmentType,
+          deliveryAddress: o.deliveryAddress,
+          orderStatus: o.orderStatus,
+          paymentStatus: o.paymentStatus,
+          createdAt: o.createdAt.toISOString(),
+        }));
       } catch {}
     }
 
-    return [
-      {
-        id: 'ord-demo-1',
-        orderNumber: '#SB-8492',
-        customerName: 'Sarah Mehta',
-        customerEmail: 'sarah@savebite.in',
-        restaurantName: 'The Daily Dough Bakery',
-        dealTitle: 'Evening Mystery Patisserie Bag',
-        quantity: 1,
-        totalPriceInr: 149,
-        deliveryFeeInr: 0,
-        fulfillmentType: 'SELF_PICKUP',
-        deliveryAddress: undefined,
-        orderStatus: 'CONFIRMED',
-        paymentStatus: 'SUCCESS',
-        createdAt: new Date().toISOString(),
-      },
-    ];
+    return [];
   }
 
   /**
