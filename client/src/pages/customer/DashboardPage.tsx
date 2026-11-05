@@ -12,17 +12,11 @@ import { formatINR } from '../../utils/formatters';
 
 export interface DashboardPageProps {
   onSelectDeal: (deal: FoodDeal) => void;
-  onOpenLocationModal: () => void;
-  currentLocationName: string;
-  maxDistanceKm: number;
   onShowPassModal: () => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   onSelectDeal,
-  onOpenLocationModal,
-  currentLocationName,
-  maxDistanceKm,
   onShowPassModal,
 }) => {
   const [deals, setDeals] = useState<FoodDeal[]>([]);
@@ -52,7 +46,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // Dynamic filtering of deals for the dashboard
   const filteredDeals = useMemo(() => {
     return deals.filter((deal) => {
-      if (deal.distanceKm > maxDistanceKm) return false;
       if (priceCapInr !== null && deal.dealPriceInr > priceCapInr) return false;
 
       // Category filter (All, Meal, Bakery, Pantry)
@@ -111,7 +104,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
       return true;
     });
-  }, [searchQuery, selectedCategory, priceCapInr, maxDistanceKm]);
+  }, [searchQuery, selectedCategory, priceCapInr]);
 
   return (
     <div className="flex flex-col gap-space-md w-full">
@@ -124,24 +117,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </h2>
             <span className="text-xl">👋</span>
           </div>
-          <button
-            type="button"
-            onClick={onOpenLocationModal}
-            className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-left group"
-          >
-            <span
-              className="material-symbols-outlined text-[18px] text-primary"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              location_on
+          <div className="flex items-center gap-1.5 text-on-surface-variant text-left mt-0.5">
+            <span className="material-symbols-outlined text-[16px] text-primary">
+              storefront
             </span>
             <span className="font-label-md text-label-md truncate">
-              {currentLocationName} • Within {maxDistanceKm} km
+              Direct Restaurant Counter Pickup
             </span>
-            <span className="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">
-              tune
-            </span>
-          </button>
+          </div>
         </div>
 
         {/* Quick Eco Status Spark */}
@@ -339,17 +322,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
             </span>
             <span className="font-title-md text-[14px] text-on-surface font-bold">
-              {filteredDeals.length} Fresh meal offers nearby
+              {filteredDeals.length} Fresh meal offers available
             </span>
           </div>
-          <button
-            type="button"
-            onClick={onOpenLocationModal}
-            className="font-label-sm text-label-sm text-primary flex items-center gap-0.5 hover:underline font-bold"
-          >
-            <span>Expand Area</span>
-            <span className="material-symbols-outlined text-[14px]">map</span>
-          </button>
         </div>
 
         {/* Map Snapshot Visual */}
@@ -370,7 +345,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <span>2 meals</span>
           </div>
           <div className="absolute bottom-2 left-3 text-white text-[11px] font-medium drop-shadow-md">
-            📍 {currentLocationName} (within {maxDistanceKm} km)
+            📍 Direct Partner Counter Pickup
           </div>
         </div>
       </section>

@@ -10,7 +10,6 @@ export interface CustomerLayoutProps {
   subtitle?: string;
   showBack?: boolean;
   onBack?: () => void;
-  onLocationClick?: () => void;
   ordersBadgeCount?: number;
   hideHeader?: boolean;
   onLogout?: () => void;
@@ -27,7 +26,6 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   subtitle,
   showBack = false,
   onBack,
-  onLocationClick,
   ordersBadgeCount,
   hideHeader = false,
   onLogout,
@@ -49,7 +47,6 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           subtitle={subtitle}
           showBack={showBack}
           onBack={onBack}
-          onLocationClick={onLocationClick}
           unreadNotifications={0}
           onLogout={onLogout}
           userAvatarUrl={userAvatarUrl}

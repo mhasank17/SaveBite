@@ -407,48 +407,6 @@ export class AdminController {
   }
 
   /**
-   * GET /api/v1/admin/campus-locations
-   */
-  public async getCampusLocations(_req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const locations = adminService.getCampusLocations();
-      res.status(200).json({ success: true, data: locations });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * PATCH /api/v1/admin/campus-locations/:id
-   */
-  public async toggleCampusLocation(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { isApproved } = req.body;
-      const updated = adminService.toggleCampusLocation(req.params.id, Boolean(isApproved));
-      res.status(200).json({ success: true, data: updated, message: 'Campus pickup location updated.' });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * POST /api/v1/admin/campus-locations
-   */
-  public async addCampusLocation(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { name, zone, type, description } = req.body;
-      if (!name) {
-        res.status(400).json({ success: false, message: 'Location name is required.' });
-        return;
-      }
-      const added = adminService.addCampusLocation({ name, zone, type, description });
-      res.status(201).json({ success: true, data: added, message: 'Approved campus pickup location created.' });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
    * GET /api/v1/admin/audit-logs
    */
   public async getAuditLogs(_req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {

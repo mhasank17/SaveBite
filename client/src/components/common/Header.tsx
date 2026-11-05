@@ -8,7 +8,6 @@ export interface HeaderProps {
   subtitle?: string;
   showBack?: boolean;
   onBack?: () => void;
-  onLocationClick?: () => void;
   unreadNotifications?: number;
   onNotificationClick?: () => void;
   onProfileClick?: () => void;
@@ -36,7 +35,6 @@ export const Header: React.FC<HeaderProps> = ({
   subtitle,
   showBack = false,
   onBack,
-  onLocationClick,
   unreadNotifications = 0,
   onNotificationClick,
   onProfileClick,
@@ -152,24 +150,14 @@ export const Header: React.FC<HeaderProps> = ({
                 <h1 className="font-title-md text-title-md text-on-surface truncate hidden sm:block">
                   {title || "Today's Food Deals"}
                 </h1>
-                <button
-                  type="button"
-                  onClick={onLocationClick}
-                  className="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-left group"
-                >
-                  <span
-                    className="material-symbols-outlined text-[16px] text-primary"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    location_on
+                <div className="flex items-center gap-1 text-on-surface-variant text-left">
+                  <span className="material-symbols-outlined text-[15px] text-primary">
+                    storefront
                   </span>
                   <span className="font-label-sm text-label-sm truncate">
-                    {subtitle || 'Downtown West • Within 2.5 km'}
+                    {subtitle || 'Direct Restaurant Counter Pickup'}
                   </span>
-                  <span className="material-symbols-outlined text-[14px] text-on-surface-variant group-hover:text-primary">
-                    expand_more
-                  </span>
-                </button>
+                </div>
               </>
             )}
 

@@ -9,9 +9,6 @@ import { getFoodFallbackImageUrl } from '../../utils/foodImages';
 
 export interface ExplorePageProps {
   onSelectDeal: (deal: FoodDeal) => void;
-  onOpenLocationModal: () => void;
-  currentLocationName: string;
-  maxDistanceKm: number;
   onOpenAccount?: () => void;
 }
 
@@ -25,9 +22,6 @@ const CATEGORY_TABS = [
 
 export const ExplorePage: React.FC<ExplorePageProps> = ({
   onSelectDeal,
-  onOpenLocationModal,
-  currentLocationName,
-  maxDistanceKm,
   onOpenAccount: _onOpenAccount,
 }) => {
   const [deals, setDeals] = useState<FoodDeal[]>([]);
@@ -42,15 +36,10 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
   const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>({
     maxPriceInr: 1000,
     dealType: 'all',
-    maxDistanceKm: maxDistanceKm,
+    maxDistanceKm: 15,
     pickupWindowHours: 24,
     dietaryTags: [],
   });
-
-  // Sync prop maxDistanceKm
-  useEffect(() => {
-    setFilterCriteria((prev) => ({ ...prev, maxDistanceKm }));
-  }, [maxDistanceKm]);
 
   // Load deals from API (Original partner data only)
   const fetchDeals = async () => {
@@ -231,23 +220,17 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
       <section className="bg-[#006030] text-white rounded-b-[2rem] md:rounded-b-3xl shadow-sm pb-5 pt-3.5 px-4 md:px-8">
         <div className="w-full flex flex-col gap-3.5">
           
-          {/* Row a: Pickup location */}
+          {/* Row a: Direct Counter Pickup Banner */}
           <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onOpenLocationModal}
-              className="flex flex-col items-start text-left group"
-              aria-label="Change current location"
-            >
-              <span className="text-[11px] text-emerald-200/90 font-medium flex items-center gap-0.5">
-                <span className="material-symbols-outlined text-[13px] text-emerald-300">location_on</span>
-                <span>Current location</span>
-                <span className="material-symbols-outlined text-[14px]">expand_more</span>
+            <div className="flex flex-col items-start text-left">
+              <span className="text-[11px] text-emerald-200/90 font-medium flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px] text-emerald-300">storefront</span>
+                <span>Direct Restaurant Counter Pickup</span>
               </span>
-              <span className="text-sm md:text-base font-bold text-white group-hover:text-emerald-100 transition-colors truncate max-w-[280px] sm:max-w-md md:max-w-xl">
-                {currentLocationName}
+              <span className="text-sm md:text-base font-bold text-white">
+                Today's Surplus Deals
               </span>
-            </button>
+            </div>
 
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-800/80 border border-emerald-700/60 text-emerald-100 text-xs font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -445,8 +428,8 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
                   </h4>
                   <p className="text-xs text-slate-500 mt-1 max-w-sm">
                     {deals.length === 0
-                      ? `Partner restaurants near ${currentLocationName} post their surplus food as closing hours approach. Check back soon for fresh counter pickup deals!`
-                      : `Partner restaurants offer counter pickup near ${currentLocationName}. Try resetting category or dietary filters to view all available offers.`}
+                      ? 'Partner restaurants post their surplus food as closing hours approach. Check back soon for fresh counter pickup deals!'
+                      : 'Partner restaurants offer direct counter pickup. Try resetting category or dietary filters to view all available offers.'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 pt-2">

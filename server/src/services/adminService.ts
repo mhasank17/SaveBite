@@ -2,7 +2,6 @@ import prisma, { isDatabaseConfigured } from '../config/db';
 import crypto from 'crypto';
 import { KycStatus, ListingStatus, DisputeStatus, PayoutStatus } from '@prisma/client';
 import authService, { hashPassword } from './authService';
-import { APPROVED_CAMPUS_LOCATIONS } from '../config/campusLocations';
 import razorpayService from './razorpayService';
 import { isTestEnvironment } from '../config/env';
 
@@ -1161,35 +1160,6 @@ export class AdminService {
     }
 
     return [];
-  }
-
-  /**
-   * Campus pickup location management
-   */
-  public getCampusLocations(): any[] {
-    return APPROVED_CAMPUS_LOCATIONS;
-  }
-
-  public toggleCampusLocation(id: string, isApproved: boolean): any {
-    const loc = APPROVED_CAMPUS_LOCATIONS.find((l) => l.id === id);
-    if (loc) {
-      loc.isApproved = isApproved;
-      return loc;
-    }
-    throw new Error(`Campus pickup location '${id}' not found.`);
-  }
-
-  public addCampusLocation(point: { name: string; zone: any; type: any; description: string }): any {
-    const newPoint = {
-      id: `campus-${Date.now()}`,
-      name: point.name,
-      zone: point.zone,
-      type: point.type,
-      description: point.description,
-      isApproved: true,
-    };
-    APPROVED_CAMPUS_LOCATIONS.push(newPoint);
-    return newPoint;
   }
 
   /**

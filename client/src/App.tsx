@@ -7,7 +7,6 @@ import { FoodDeal, Order } from './types';
 import authApi, { AuthUser, PartnerRestaurantInfo } from './services/authApi';
 import api from './services/api';
 import partnerApi, { PartnerRestaurant } from './services/partnerApi';
-import { MOCK_LOCATIONS, LocationOption } from './data/mockDeals';
 
 // Customer Pages
 import ExplorePage from './pages/customer/ExplorePage';
@@ -16,7 +15,6 @@ import OrdersPage from './pages/customer/OrdersPage';
 import AccountPage from './pages/customer/AccountPage';
 import CustomerLoginPage from './pages/customer/CustomerLoginPage';
 import CustomerRegisterPage from './pages/customer/CustomerRegisterPage';
-import LocationPickerModal from './components/customer/LocationPickerModal';
 import PickupPassModal from './components/customer/PickupPassModal';
 import CheckoutModal from './components/customer/CheckoutModal';
 import AvatarSelectorModal from './components/customer/AvatarSelectorModal';
@@ -75,11 +73,8 @@ export const App: React.FC = () => {
 
   const [adminTab, setAdminTab] = useState<string>('overview');
 
-  // Customer Deal & Location State
+  // Customer Deal & Modal State
   const [selectedDeal, setSelectedDeal] = useState<FoodDeal | null>(null);
-  const [currentLocation, setCurrentLocation] = useState<LocationOption>(MOCK_LOCATIONS[0]);
-  const [maxDistanceKm, setMaxDistanceKm] = useState<number>(3);
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isPassModalOpen, setIsPassModalOpen] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [activePassOrder, setActivePassOrder] = useState<Order | null>(null);
@@ -157,17 +152,6 @@ export const App: React.FC = () => {
         .catch(() => {});
     }
   }, [currentPath, currentUser]);
-
-  // Restore selected pickup location on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedLocationId = localStorage.getItem('savebite_selected_location_id');
-      if (storedLocationId) {
-        const found = MOCK_LOCATIONS.find((l) => l.id === storedLocationId);
-        if (found) setCurrentLocation(found);
-      }
-    }
-  }, []);
 
   const handleOrderHistoryCleared = async () => {
     try {
@@ -632,9 +616,8 @@ export const App: React.FC = () => {
         setSelectedDeal(null);
         setCustomerTab(tabId);
       }}
-      onLocationClick={() => setIsLocationModalOpen(true)}
       ordersBadgeCount={customerUser ? orders.filter((o) => o.orderStatus === 'CONFIRMED').length : 0}
-      subtitle={`Pickup near: ${currentLocation.name}`}
+      subtitle="Direct Restaurant Counter Pickup"
       onLogout={customerUser ? handleLogout : undefined}
       userAvatarUrl={customerUser?.avatarUrl}
       userName={customerUser?.fullName}
@@ -686,8 +669,6 @@ export const App: React.FC = () => {
         />
       ) : customerTab === 'account' ? (
         <AccountPage
-          onOpenLocationPicker={() => setIsLocationModalOpen(true)}
-          currentLocationName={currentLocation.name}
           currentUser={customerUser}
           onLogout={customerUser ? handleLogout : () => navigate('/customer/login')}
           onOpenAvatarSelector={() => setIsAvatarModalOpen(true)}
@@ -699,9 +680,6 @@ export const App: React.FC = () => {
             setSelectedDeal(deal);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          onOpenLocationModal={() => setIsLocationModalOpen(true)}
-          currentLocationName={currentLocation.name}
-          maxDistanceKm={maxDistanceKm}
           onOpenAccount={() => {
             if (customerUser) {
               setCustomerTab('account');
@@ -711,27 +689,6 @@ export const App: React.FC = () => {
           }}
         />
       )}
-
-      {/* Customer Location Picker Modal */}
-      <LocationPickerModal
-        isOpen={isLocationModalOpen}
-        onClose={() => setIsLocationModalOpen(false)}
-        currentLocation={currentLocation}
-        currentRadiusKm={maxDistanceKm}
-        onSelectLocation={(loc, radiusKm) => {
-          setCurrentLocation(loc);
-          if (radiusKm) setMaxDistanceKm(radiusKm);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('savebite_selected_location_id', loc.id);
-          }
-          addToast(
-            'success',
-            `Pickup location set to ${loc.name}.`,
-            'Location Updated'
-          );
-        }}
-        onShowToast={addToast}
-      />
 
       {/* Checkout & Razorpay Sandbox Modal */}
       {checkoutDeal && (

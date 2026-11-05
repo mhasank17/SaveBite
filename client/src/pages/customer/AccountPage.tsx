@@ -10,8 +10,6 @@ export interface AccountPageProps {
   onLogout?: () => void;
   onNavigateToLogin?: () => void;
   onOpenAvatarSelector?: () => void;
-  onOpenLocationPicker?: () => void;
-  currentLocationName?: string;
   onShowToast?: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
 }
 
@@ -21,8 +19,6 @@ export const AccountPage: React.FC<AccountPageProps> = ({
   onLogout,
   onNavigateToLogin,
   onOpenAvatarSelector,
-  onOpenLocationPicker,
-  currentLocationName = 'North Campus, Hostels',
 }) => {
   const user = currentUser ?? userProp;
   // If no authenticated user, prompt to sign in
@@ -141,38 +137,17 @@ export const AccountPage: React.FC<AccountPageProps> = ({
       </section>
 
       {/* Account Settings & Preferences */}
-      <section className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col gap-2">
+      <section className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm flex flex-col gap-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-2 py-1">
-          Pickup Preferences
+          Pickup Policy & Information
         </h3>
-
-        <button
-          type="button"
-          onClick={onOpenLocationPicker}
-          className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors text-left"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#006030] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">pin_drop</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-slate-900">Preferred Pickup Area</span>
-              <span className="text-xs text-slate-500">{currentLocationName}</span>
-            </div>
-          </div>
-          <span className="material-symbols-outlined text-slate-400 text-[20px]">
-            chevron_right
-          </span>
-        </button>
-
-        <div className="h-px bg-slate-100 my-1" />
 
         <div className="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-100 text-xs text-emerald-950 flex items-start gap-2.5">
           <span className="material-symbols-outlined text-[#006030] text-[20px] shrink-0 mt-0.5">
             storefront
           </span>
           <div>
-            <strong>Counter Pickup:</strong> SaveBite exclusively supports direct counter pickup. Pick up your meal hot and fresh from partner restaurants by showing your 4-digit OTP or digital QR pass.
+            <strong>Direct Restaurant Counter Pickup:</strong> SaveBite exclusively supports direct counter pickup. Pick up your meal hot and fresh from the partner restaurant's counter by showing your 4-digit OTP or digital QR pass.
           </div>
         </div>
 
