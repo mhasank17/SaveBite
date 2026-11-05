@@ -93,7 +93,7 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
             Customer Login
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Access affordable food rescue deals and track your doorstep deliveries.
+            Access affordable food rescue deals and track your counter pickups.
           </p>
         </div>
 

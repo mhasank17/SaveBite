@@ -245,7 +245,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         totalQuantity,
         pickupStartTime,
         pickupEndTime,
-        dietaryTags: [dietaryTag, 'Fresh Today', 'Demo Record'],
+        dietaryTags: [dietaryTag, 'Fresh Today'].filter(Boolean),
         isMysteryBox,
         co2eSavingsKg: 1.8,
       };

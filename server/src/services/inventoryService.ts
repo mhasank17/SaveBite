@@ -420,9 +420,12 @@ export class InventoryService {
           return {
             id: dbListing.id,
             restaurantId: dbListing.restaurantId,
-            restaurantName: dbListing.restaurant.name,
+            restaurantName: dbListing.restaurant.name
+              .replace(/^\[Demo\]\s*/i, '')
+              .replace(/\s*\(Unverified Sample Partner\)/i, '')
+              .trim(),
             restaurantAddress: dbListing.restaurant.address,
-            title: dbListing.title,
+            title: dbListing.title.replace(/^\[Demo\]\s*/i, '').trim(),
             description: dbListing.description,
             imageUrl: getFoodFallbackImageUrl({
               id: dbListing.id,
@@ -513,9 +516,12 @@ export class InventoryService {
             return {
               id: l.id,
               restaurantId: l.restaurantId,
-              restaurantName: l.restaurant.name,
+              restaurantName: l.restaurant.name
+                .replace(/^\[Demo\]\s*/i, '')
+                .replace(/\s*\(Unverified Sample Partner\)/i, '')
+                .trim(),
               restaurantAddress: l.restaurant.address,
-              title: l.title,
+              title: l.title.replace(/^\[Demo\]\s*/i, '').trim(),
               description: l.description,
               imageUrl: getFoodFallbackImageUrl({
                 id: l.id,

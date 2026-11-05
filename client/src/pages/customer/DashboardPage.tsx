@@ -2,12 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import DealCard from '../../components/deals/DealCard';
 import Badge from '../../components/common/Badge';
 import EmptyState from '../../components/common/EmptyState';
-import { FoodDeal } from '../../types';
+import { FoodDeal, Order } from '../../types';
 import api from '../../services/api';
-import {
-  MOCK_ACTIVE_PASS,
-  MOCK_COMMUNITY_STATS,
-} from '../../data/mockDeals';
+import { getFoodFallbackImageUrl } from '../../utils/foodImages';
 import { formatINR } from '../../utils/formatters';
 
 export interface DashboardPageProps {
@@ -20,27 +17,110 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onShowPassModal,
 }) => {
   const [deals, setDeals] = useState<FoodDeal[]>([]);
+  const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [mealsSaved, setMealsSaved] = useState<number>(0);
+  const [moneySavedInr, setMoneySavedInr] = useState<number>(0);
+  const [co2eSavedKg, setCo2eSavedKg] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [priceCapInr, setPriceCapInr] = useState<number | null>(null);
 
   useEffect(() => {
+    // 1. Fetch live active listings from partner database
     api.getActiveListings()
       .then((backendDeals) => {
         if (backendDeals && backendDeals.length > 0) {
-          const originalDeals = backendDeals.filter(
-            (d: any) =>
-              !d.isDemo &&
-              !d.id?.startsWith('demo-') &&
-              !d.title?.startsWith('[Demo]') &&
-              !d.restaurantName?.startsWith('[Demo]')
-          );
-          setDeals(originalDeals);
+          const validDeals = backendDeals.filter((d: any) => {
+            if (d.status === 'EXPIRED' || (typeof d.availableQuantity === 'number' && d.availableQuantity <= 0)) {
+              return false;
+            }
+            if (Array.isArray(d.dietaryTags) && d.dietaryTags.includes('SYSTEM_DEMO_RECORD_V1')) {
+              return false;
+            }
+            return true;
+          });
+
+          const mapped: FoodDeal[] = validDeals.map((d: any) => {
+            const cleanRestaurantName = (d.restaurantName || 'Partner Kitchen')
+              .replace(/^\[Demo\]\s*/i, '')
+              .replace(/\s*\(Unverified Sample Partner\)/i, '')
+              .trim();
+            const cleanTitle = (d.title || 'Food Deal').replace(/^\[Demo\]\s*/i, '').trim();
+
+            return {
+              ...d,
+              restaurantName: cleanRestaurantName,
+              title: cleanTitle,
+              imageUrl: d.imageUrl || getFoodFallbackImageUrl(d),
+              dealPriceInr: d.dealPriceInr ?? d.surplusPriceInr ?? 149,
+              originalPriceInr: d.originalPriceInr ?? 450,
+              discountPercent:
+                d.discountPercent ??
+                (d.originalPriceInr && (d.dealPriceInr ?? d.surplusPriceInr)
+                  ? Math.round(
+                      ((d.originalPriceInr - (d.dealPriceInr ?? d.surplusPriceInr)) /
+                        d.originalPriceInr) *
+                        100
+                    )
+                  : 65),
+              savingsInr:
+                d.savingsInr ??
+                Math.max(0, (d.originalPriceInr || 450) - (d.dealPriceInr ?? d.surplusPriceInr ?? 149)),
+              distanceKm: d.distanceKm ?? 1.2,
+              pickupWindow: d.pickupWindow ?? {
+                date: 'Today',
+                startTime: '19:00',
+                endTime: '21:00',
+                displayText: d.pickupWindowText || 'Tonight, 7:00 PM – 9:00 PM',
+                expiresInSeconds: 3200,
+              },
+              dietaryTags: Array.isArray(d.dietaryTags)
+                ? d.dietaryTags.filter((t: string) => t !== 'Demo Record' && t !== 'SYSTEM_DEMO_RECORD_V1')
+                : ['Freshly Prepared'],
+              hygieneGrade: d.hygieneGrade ?? 'Grade A',
+              isMysteryBox: d.isMysteryBox ?? (d.categoryName?.toLowerCase().includes('bakery') || false),
+            };
+          });
+          setDeals(mapped);
         } else {
           setDeals([]);
         }
       })
       .catch(() => setDeals([]));
+
+    // 2. Fetch genuine customer orders to compute impact and active pass
+    api.getMyOrders()
+      .then((myOrders) => {
+        if (myOrders && myOrders.length > 0) {
+          const active = myOrders.find(
+            (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'
+          );
+          setActiveOrder(active || null);
+
+          const completed = myOrders.filter((o) => o.orderStatus === 'COMPLETED');
+          const savedMeals = completed.reduce((sum, o) => sum + (o.quantity || 1), 0);
+          const savedMoney = completed.reduce((sum, o) => {
+            const orig = o.originalPriceInr || (o.dealPriceInr ? o.dealPriceInr * 2 : 0);
+            const deal = o.totalPriceInr || o.dealPriceInr || 0;
+            return sum + Math.max(0, orig - deal);
+          }, 0);
+
+          setMealsSaved(savedMeals);
+          setMoneySavedInr(savedMoney);
+          setCo2eSavedKg(Number((savedMeals * 1.8).toFixed(1)));
+        } else {
+          setActiveOrder(null);
+          setMealsSaved(0);
+          setMoneySavedInr(0);
+          setCo2eSavedKg(0);
+        }
+      })
+      .catch(() => {
+        setActiveOrder(null);
+        setMealsSaved(0);
+        setMoneySavedInr(0);
+        setCo2eSavedKg(0);
+      });
   }, []);
 
   // Dynamic filtering of deals for the dashboard
@@ -135,35 +215,51 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </section>
 
       {/* Active Pickup Pass Banner (Stitch Design) */}
-      <section className="bg-primary-container text-on-primary rounded-2xl p-space-sm sm:p-space-md flex items-center justify-between gap-space-sm shadow-sm relative overflow-hidden">
-        <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-on-primary/10 rounded-full blur-xl pointer-events-none" />
-        <div className="flex items-center gap-3 min-w-0 z-10">
-          <div className="w-11 h-11 rounded-xl bg-surface-container-lowest/15 backdrop-blur-sm flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-on-primary text-[24px]">shopping_bag</span>
-          </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="bg-secondary text-on-secondary font-label-sm text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
-                Tonight
-              </span>
-              <span className="font-title-md text-title-md truncate font-bold text-on-primary">
-                {MOCK_ACTIVE_PASS.restaurantName}
-              </span>
+      {activeOrder ? (
+        <section className="bg-primary-container text-on-primary rounded-2xl p-space-sm sm:p-space-md flex items-center justify-between gap-space-sm shadow-sm relative overflow-hidden">
+          <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-on-primary/10 rounded-full blur-xl pointer-events-none" />
+          <div className="flex items-center gap-3 min-w-0 z-10">
+            <div className="w-11 h-11 rounded-xl bg-surface-container-lowest/15 backdrop-blur-sm flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-on-primary text-[24px]">shopping_bag</span>
             </div>
-            <p className="font-body-sm text-body-sm text-on-primary-container truncate mt-0.5">
-              {MOCK_ACTIVE_PASS.pickupWindow} • {MOCK_ACTIVE_PASS.dealTitle}
-            </p>
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="bg-secondary text-on-secondary font-label-sm text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                  Active Pass
+                </span>
+                <span className="font-title-md text-title-md truncate font-bold text-on-primary">
+                  {activeOrder.restaurantName || 'Partner Restaurant'}
+                </span>
+              </div>
+              <p className="font-body-sm text-body-sm text-on-primary-container truncate mt-0.5">
+                {activeOrder.pickupWindowText || 'Ready for Counter Pickup'} • {activeOrder.dealTitle}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <button
-          type="button"
-          onClick={onShowPassModal}
-          className="shrink-0 bg-surface-container-lowest text-primary font-bold font-label-md text-label-md px-3.5 py-2 rounded-xl shadow-xs hover:bg-surface-container-low active:scale-95 transition-all z-10"
-        >
-          View Pass
-        </button>
-      </section>
+          <button
+            type="button"
+            onClick={onShowPassModal}
+            className="shrink-0 bg-surface-container-lowest text-primary font-bold font-label-md text-label-md px-3.5 py-2 rounded-xl shadow-xs hover:bg-surface-container-low active:scale-95 transition-all z-10"
+          >
+            View Pass
+          </button>
+        </section>
+      ) : (
+        <section className="bg-surface-container-low rounded-2xl p-space-sm sm:p-space-md flex items-center justify-between gap-space-sm border border-outline-variant/30">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[22px]">storefront</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-on-surface">No Active Pickups</span>
+              <p className="text-xs text-on-surface-variant">
+                Browse today's surplus deals below to rescue meals and pocket savings!
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Live Impact HUD Cards (2 Columns strictly from Stitch) */}
       <section className="grid grid-cols-2 gap-space-sm">
@@ -179,14 +275,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="font-headline-lg text-headline-lg text-primary font-bold tabular-nums">
-              {MOCK_COMMUNITY_STATS.mealsSavedUser}
+              {mealsSaved}
             </span>
             <span className="font-label-sm text-label-sm text-on-surface-variant font-medium">
               Meals Enjoyed
             </span>
           </div>
           <p className="font-body-sm text-body-sm text-primary font-bold mt-1">
-            {formatINR(MOCK_COMMUNITY_STATS.moneySavedUserInr)} pocketed
+            {formatINR(moneySavedInr)} pocketed
           </p>
         </div>
 
@@ -207,12 +303,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
           <div className="flex items-baseline gap-1.5 mt-1">
             <span className="font-headline-lg text-headline-lg text-on-surface font-bold tabular-nums">
-              {MOCK_COMMUNITY_STATS.co2ePreventedUserKg}
+              {co2eSavedKg}
             </span>
             <span className="font-label-sm text-label-sm text-on-surface-variant font-medium">kg</span>
           </div>
           <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-            ≈ 3 car trips prevented
+            {mealsSaved > 0 ? `≈ ${Math.max(1, Math.round(mealsSaved / 3))} car trips prevented` : '0 emissions rescued yet'}
           </p>
         </div>
       </section>

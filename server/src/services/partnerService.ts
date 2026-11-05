@@ -361,10 +361,13 @@ export class PartnerService {
     if (isDatabaseConfigured()) {
       try {
         const restaurant = await prisma.restaurant.findUnique({ where: { id: restaurantId } });
-        const isDemo = Boolean(restaurant?.isDemo);
-        const listingId = isDemo
-          ? `demo-deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`
-          : `deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`;
+        // Genuine partner listings created via dashboard are always active operational deals
+        const isDemo = false;
+        const listingId = `deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`;
+
+        const cleanDietaryTags = (input.dietaryTags || ['Fresh Today']).filter(
+          (t: string) => t !== 'Demo Record' && t !== 'SYSTEM_DEMO_RECORD_V1'
+        );
 
         const newListing = await prisma.listing.create({
           data: {
@@ -384,12 +387,12 @@ export class PartnerService {
             pickupDate,
             pickupStartTime: input.pickupStartTime,
             pickupEndTime: input.pickupEndTime,
-            dietaryTags: input.dietaryTags || ['Fresh Today'],
+            dietaryTags: cleanDietaryTags.length > 0 ? cleanDietaryTags : ['Fresh Today'],
             allergenNotice: input.allergenNotice || null,
             co2eSavingsKg: input.co2eSavingsKg || 1.8,
             status: 'ACTIVE',
             isMysteryBox: input.isMysteryBox ?? true,
-            isDemo,
+            isDemo: false,
           },
           include: { category: true },
         });
@@ -417,10 +420,8 @@ export class PartnerService {
       }
     }
 
-    const isDemo = restaurantId.startsWith('demo-');
-    const listingId = isDemo
-      ? `demo-deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`
-      : `deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`;
+    const isDemo = false;
+    const listingId = `deal-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex')}`;
 
     const memoryListing = {
       id: listingId,

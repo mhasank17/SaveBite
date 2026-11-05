@@ -49,7 +49,7 @@ export const AdminCustomersPage: React.FC<AdminCustomersPageProps> = ({ onShowTo
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Verified customer accounts authorized to reserve meal deals and receive deliveries.
+            Verified customer accounts authorized to reserve meal deals for counter pickup.
           </p>
         </div>
 

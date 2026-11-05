@@ -87,6 +87,7 @@ export interface Order {
   dealTitle: string;
   imageUrl?: string;
   quantity: number;
+  originalPriceInr?: number;
   dealPriceInr: number;
   totalPriceInr: number;
   fulfillmentType: FulfillmentType;

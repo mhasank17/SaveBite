@@ -52,8 +52,12 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
       ? completedOrders
       : orders;
 
-  const totalMealsSaved = completedOrders.reduce((sum, o) => sum + o.quantity, 0) + 14;
-  const totalMoneySaved = completedOrders.reduce((sum, o) => sum + (o.dealPriceInr * 2.5), 0) + 1420;
+  const totalMealsSaved = completedOrders.reduce((sum, o) => sum + (o.quantity || 1), 0);
+  const totalMoneySaved = completedOrders.reduce((sum, o) => {
+    const orig = o.originalPriceInr || (o.dealPriceInr ? o.dealPriceInr * 2 : 0);
+    const deal = o.totalPriceInr || o.dealPriceInr || 0;
+    return sum + Math.max(0, orig - deal);
+  }, 0);
 
   const handleConfirmClear = async () => {
     setIsClearing(true);

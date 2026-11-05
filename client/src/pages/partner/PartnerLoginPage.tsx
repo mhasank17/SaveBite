@@ -60,7 +60,7 @@ export const PartnerLoginPage: React.FC<PartnerLoginPageProps> = ({
             Restaurant Owner Login
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage surplus inventory, active deals, doorstep deliveries, and merchant earnings.
+            Manage surplus inventory, active deals, counter pickups, and merchant earnings.
           </p>
         </div>
 

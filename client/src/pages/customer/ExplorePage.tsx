@@ -49,47 +49,59 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
       // Fetch active listings from backend
       const backendDeals = await api.getActiveListings();
       if (backendDeals && backendDeals.length > 0) {
-        // Strictly filter out any demo items so customers only see original partner listings
-        const originalDeals = backendDeals.filter((d: any) => {
-          const isDemo =
-            Boolean(d.isDemo) ||
-            d.id?.startsWith('demo-') ||
-            d.title?.startsWith('[Demo]') ||
-            d.restaurantName?.startsWith('[Demo]') ||
-            (Array.isArray(d.dietaryTags) && d.dietaryTags.includes('SYSTEM_DEMO_RECORD_V1'));
-          return !isDemo;
+        // Display active live partner deals directly from backend
+        const validDeals = backendDeals.filter((d: any) => {
+          if (d.status === 'EXPIRED' || (typeof d.availableQuantity === 'number' && d.availableQuantity <= 0)) {
+            return false;
+          }
+          if (Array.isArray(d.dietaryTags) && d.dietaryTags.includes('SYSTEM_DEMO_RECORD_V1')) {
+            return false;
+          }
+          return true;
         });
 
         // Map live partner deals
-        const mapped: FoodDeal[] = originalDeals.map((d: any) => ({
-          ...d,
-          imageUrl: d.imageUrl || getFoodFallbackImageUrl(d),
-          dealPriceInr: d.dealPriceInr ?? d.surplusPriceInr ?? 149,
-          originalPriceInr: d.originalPriceInr ?? 450,
-          discountPercent:
-            d.discountPercent ??
-            (d.originalPriceInr && (d.dealPriceInr ?? d.surplusPriceInr)
-              ? Math.round(
-                  ((d.originalPriceInr - (d.dealPriceInr ?? d.surplusPriceInr)) /
-                    d.originalPriceInr) *
-                    100
-                )
-              : 65),
-          savingsInr:
-            d.savingsInr ??
-            Math.max(0, (d.originalPriceInr || 450) - (d.dealPriceInr ?? d.surplusPriceInr ?? 149)),
-          distanceKm: d.distanceKm ?? 1.2,
-          pickupWindow: d.pickupWindow ?? {
-            date: 'Today',
-            startTime: '19:00',
-            endTime: '21:00',
-            displayText: d.pickupWindowText || 'Tonight, 7:00 PM – 9:00 PM',
-            expiresInSeconds: 3200,
-          },
-          dietaryTags: d.dietaryTags ?? ['Freshly Prepared', 'Vegetarian Friendly'],
-          hygieneGrade: d.hygieneGrade ?? 'Grade A',
-          isMysteryBox: d.isMysteryBox ?? (d.categoryName?.toLowerCase().includes('bakery') || false),
-        }));
+        const mapped: FoodDeal[] = validDeals.map((d: any) => {
+          const cleanRestaurantName = (d.restaurantName || 'Partner Kitchen')
+            .replace(/^\[Demo\]\s*/i, '')
+            .replace(/\s*\(Unverified Sample Partner\)/i, '')
+            .trim();
+          const cleanTitle = (d.title || 'Food Deal').replace(/^\[Demo\]\s*/i, '').trim();
+
+          return {
+            ...d,
+            restaurantName: cleanRestaurantName,
+            title: cleanTitle,
+            imageUrl: d.imageUrl || getFoodFallbackImageUrl(d),
+            dealPriceInr: d.dealPriceInr ?? d.surplusPriceInr ?? 149,
+            originalPriceInr: d.originalPriceInr ?? 450,
+            discountPercent:
+              d.discountPercent ??
+              (d.originalPriceInr && (d.dealPriceInr ?? d.surplusPriceInr)
+                ? Math.round(
+                    ((d.originalPriceInr - (d.dealPriceInr ?? d.surplusPriceInr)) /
+                      d.originalPriceInr) *
+                      100
+                  )
+                : 65),
+            savingsInr:
+              d.savingsInr ??
+              Math.max(0, (d.originalPriceInr || 450) - (d.dealPriceInr ?? d.surplusPriceInr ?? 149)),
+            distanceKm: d.distanceKm ?? 1.2,
+            pickupWindow: d.pickupWindow ?? {
+              date: 'Today',
+              startTime: '19:00',
+              endTime: '21:00',
+              displayText: d.pickupWindowText || 'Tonight, 7:00 PM – 9:00 PM',
+              expiresInSeconds: 3200,
+            },
+            dietaryTags: Array.isArray(d.dietaryTags)
+              ? d.dietaryTags.filter((t: string) => t !== 'Demo Record' && t !== 'SYSTEM_DEMO_RECORD_V1')
+              : ['Freshly Prepared'],
+            hygieneGrade: d.hygieneGrade ?? 'Grade A',
+            isMysteryBox: d.isMysteryBox ?? (d.categoryName?.toLowerCase().includes('bakery') || false),
+          };
+        });
         setDeals(mapped);
       } else {
         setDeals([]);
