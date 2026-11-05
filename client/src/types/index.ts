@@ -59,8 +59,6 @@ export interface FoodDeal {
   restaurantAddress?: string;
   restaurantRating?: number;
   restaurantReviewCount?: number;
-  deliveryAvailable?: boolean;
-  deliveryFeeInr?: number;
   status: FoodDealStatus;
   isMysteryBox: boolean;
 }
@@ -90,10 +88,8 @@ export interface Order {
   imageUrl?: string;
   quantity: number;
   dealPriceInr: number;
-  deliveryFeeInr: number;
   totalPriceInr: number;
   fulfillmentType: FulfillmentType;
-  deliveryAddress?: string;
   orderStatus: OrderStatus;
   paymentMethod?: PaymentMethod;
   paymentStatus?: PaymentStatus;

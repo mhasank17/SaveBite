@@ -8,8 +8,6 @@ export const CreateOrderSchema = z.object({
     .positive('Quantity must be greater than zero')
     .max(50, 'Quantity cannot exceed 50 portions'),
   fulfillmentType: z.enum(['SELF_PICKUP', 'ECO_COURIER']).default('SELF_PICKUP'),
-  deliveryAddress: z.string().optional(),
-  deliveryAddressId: z.string().optional(),
 });
 
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
@@ -38,7 +36,6 @@ export interface OrderItemDetails {
   deliveryFeeInr: number;
   totalPriceInr: number;
   fulfillmentType: 'SELF_PICKUP' | 'ECO_COURIER';
-  deliveryAddress?: string;
   orderStatus: 'PENDING_PAYMENT' | 'CONFIRMED' | 'READY_FOR_PICKUP' | 'ARRIVING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
   paymentStatus: 'INITIATED' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
   paymentMethod: string;

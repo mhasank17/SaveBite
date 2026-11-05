@@ -62,7 +62,7 @@ export class OrderService {
     customerId: string,
     input: CreateOrderInput
   ): Promise<{ order: OrderItemDetails; razorpay: RazorpayCheckoutDetails }> {
-    const { listingId, quantity, fulfillmentType, deliveryAddress, deliveryAddressId } = input;
+    const { listingId, quantity, fulfillmentType } = input;
 
     const resolvedCustomerId =
       customerId === 'cust-sarah' || customerId === 'user-sarah'
@@ -143,7 +143,6 @@ export class OrderService {
       deliveryFeeInr: 0,
       totalPriceInr: pricing.totalPriceInr,
       fulfillmentType: 'SELF_PICKUP',
-      deliveryAddress: undefined,
       orderStatus: 'PENDING_PAYMENT',
       paymentStatus: 'INITIATED',
       paymentMethod: 'RAZORPAY_SANDBOX',
@@ -173,7 +172,7 @@ export class OrderService {
             deliveryFeeInr: orderRecord.deliveryFeeInr,
             totalPriceInr: orderRecord.totalPriceInr,
             fulfillmentType: orderRecord.fulfillmentType,
-            deliveryAddress: orderRecord.deliveryAddress,
+            deliveryAddress: null,
             orderStatus: 'PENDING_PAYMENT',
             paymentStatus: 'INITIATED',
             isDemo: Boolean(listing.isDemo),
@@ -522,7 +521,6 @@ export class OrderService {
               deliveryFeeInr: Number(o.deliveryFeeInr),
               totalPriceInr: Number(o.totalPriceInr),
               fulfillmentType: o.fulfillmentType,
-              deliveryAddress: o.deliveryAddress || undefined,
               orderStatus: o.orderStatus as any,
               paymentStatus: o.paymentStatus as any,
               paymentMethod: 'RAZORPAY_SANDBOX',
@@ -659,7 +657,6 @@ export class OrderService {
             deliveryFeeInr: Number(dbOrder.deliveryFeeInr),
             totalPriceInr: Number(dbOrder.totalPriceInr),
             fulfillmentType: dbOrder.fulfillmentType,
-            deliveryAddress: dbOrder.deliveryAddress || undefined,
             orderStatus: dbOrder.orderStatus as any,
             paymentStatus: dbOrder.paymentStatus as any,
             paymentMethod: 'RAZORPAY_SANDBOX',

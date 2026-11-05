@@ -1,10 +1,10 @@
 /**
- * Approved University Campus Delivery Locations
- * Business Rule: Restaurants are located outside the university campus,
- * but deliver orders exclusively to approved locations inside the campus and hostels.
+ * Approved University Campus Pickup & Collection Points
+ * Business Rule: SaveBite supports Counter Pickup only.
+ * Food deals are reserved online and picked up directly at partner counters or designated campus collection points.
  */
 
-export interface CampusDeliveryPoint {
+export interface CampusLocationPoint {
   id: string;
   name: string;
   zone: 'North Campus Hostels' | 'South Campus Hostels' | 'Central Academic Block' | 'Campus Perimeter';
@@ -13,13 +13,15 @@ export interface CampusDeliveryPoint {
   isApproved: boolean;
 }
 
-export const APPROVED_CAMPUS_LOCATIONS: CampusDeliveryPoint[] = [
+export type CampusDeliveryPoint = CampusLocationPoint;
+
+export const APPROVED_CAMPUS_LOCATIONS: CampusLocationPoint[] = [
   {
     id: 'campus-hostel-a',
-    name: 'Hostel Block A - Main Entrance Drop Point',
+    name: 'Hostel Block A - Pickup Desk',
     zone: 'North Campus Hostels',
     type: 'hostel',
-    description: 'Hostel Block A Security Gate Drop Table',
+    description: 'Hostel Block A Counter Pickup Desk',
     isApproved: true,
   },
   {
@@ -27,39 +29,39 @@ export const APPROVED_CAMPUS_LOCATIONS: CampusDeliveryPoint[] = [
     name: 'Hostel Block B - Reception Area',
     zone: 'North Campus Hostels',
     type: 'hostel',
-    description: 'Hostel Block B Main Porch Reception Desk',
+    description: 'Hostel Block B Main Porch Reception Counter',
     isApproved: true,
   },
   {
     id: 'campus-hostel-c',
-    name: 'Hostel Block C - Gate Desk',
+    name: 'Hostel Block C - Gate Counter',
     zone: 'South Campus Hostels',
     type: 'hostel',
-    description: 'Hostel Block C Entry Lobby / Delivery Desk',
+    description: 'Hostel Block C Entry Lobby / Pickup Desk',
     isApproved: true,
   },
   {
     id: 'campus-hostel-d',
-    name: 'Hostel Block D - Delivery Lobby',
+    name: 'Hostel Block D - Pickup Lobby',
     zone: 'South Campus Hostels',
     type: 'hostel',
-    description: 'Hostel Block D Reception & Delivery Box',
+    description: 'Hostel Block D Reception & Pickup Counter',
     isApproved: true,
   },
   {
     id: 'campus-academic-1',
-    name: 'Central Academic Complex - Food Drop Station',
+    name: 'Central Academic Complex - Food Pickup Station',
     zone: 'Central Academic Block',
     type: 'academic_block',
-    description: 'Academic Block 1 Ground Floor Drop Station',
+    description: 'Academic Block 1 Ground Floor Pickup Station',
     isApproved: true,
   },
   {
     id: 'campus-library',
-    name: 'University Library - Front Courtyard Drop Point',
+    name: 'University Library - Front Courtyard Pickup Point',
     zone: 'Central Academic Block',
     type: 'academic_block',
-    description: 'Main Library Portico Drop Point',
+    description: 'Main Library Portico Pickup Point',
     isApproved: true,
   },
   {
@@ -67,62 +69,18 @@ export const APPROVED_CAMPUS_LOCATIONS: CampusDeliveryPoint[] = [
     name: 'Student Activity Center (SAC) - Ground Floor Entry',
     zone: 'Central Academic Block',
     type: 'designated_point',
-    description: 'SAC Ground Floor Cafeteria Entrance',
+    description: 'SAC Ground Floor Cafeteria Counter',
     isApproved: true,
   },
   {
     id: 'campus-main-gate',
-    name: 'Campus Main Gate - Security Desk Drop Point',
+    name: 'Campus Main Gate - Security Desk Pickup Point',
     zone: 'Campus Perimeter',
     type: 'designated_point',
-    description: 'Main Campus Entrance Visitor & Delivery Desk',
+    description: 'Main Campus Entrance Visitor & Pickup Desk',
     isApproved: true,
   },
 ];
 
-/**
- * Validates whether a delivery address targets an approved university campus location
- */
-export const isApprovedCampusDeliveryAddress = (address?: string): boolean => {
-  if (!address || address.trim() === '') {
-    return false;
-  }
-
-  const normalized = address.toLowerCase();
-
-  // Reject explicit off-campus locations
-  if (
-    normalized.includes('off-campus') ||
-    normalized.includes('outside campus') ||
-    normalized.includes('highway') ||
-    normalized.includes('downtown') ||
-    normalized.includes('suburb')
-  ) {
-    return false;
-  }
-
-  // Check against approved campus identifiers or general campus designation
-  const matchesApprovedPoint = APPROVED_CAMPUS_LOCATIONS.some((loc) =>
-    normalized.includes(loc.name.toLowerCase()) ||
-    normalized.includes(loc.id.toLowerCase()) ||
-    normalized.includes(loc.description.toLowerCase())
-  );
-
-  if (matchesApprovedPoint) {
-    return true;
-  }
-
-  // Allow general campus / hostel / block drop patterns (e.g. "Hostel Block A, Room 302")
-  const hasCampusKeywords =
-    (normalized.includes('campus') ||
-     normalized.includes('hostel') ||
-     normalized.includes('academic') ||
-     normalized.includes('library') ||
-     normalized.includes('sac') ||
-     normalized.includes('hall')) &&
-    !normalized.includes('off-campus');
-
-  return hasCampusKeywords;
-};
-
 export const DEFAULT_CAMPUS_DELIVERY_LOCATION = APPROVED_CAMPUS_LOCATIONS[0];
+export const DEFAULT_CAMPUS_PICKUP_LOCATION = APPROVED_CAMPUS_LOCATIONS[0];

@@ -1151,9 +1151,8 @@ export class AdminService {
           dealTitle: o.listing.title,
           quantity: o.quantity,
           totalPriceInr: Number(o.totalPriceInr),
-          deliveryFeeInr: Number(o.deliveryFeeInr),
+          deliveryFeeInr: 0,
           fulfillmentType: o.fulfillmentType,
-          deliveryAddress: o.deliveryAddress,
           orderStatus: o.orderStatus,
           paymentStatus: o.paymentStatus,
           createdAt: o.createdAt.toISOString(),
@@ -1165,7 +1164,7 @@ export class AdminService {
   }
 
   /**
-   * Campus delivery location management
+   * Campus pickup location management
    */
   public getCampusLocations(): any[] {
     return APPROVED_CAMPUS_LOCATIONS;
@@ -1177,7 +1176,7 @@ export class AdminService {
       loc.isApproved = isApproved;
       return loc;
     }
-    throw new Error(`Campus delivery location '${id}' not found.`);
+    throw new Error(`Campus pickup location '${id}' not found.`);
   }
 
   public addCampusLocation(point: { name: string; zone: any; type: any; description: string }): any {

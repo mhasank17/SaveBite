@@ -7,7 +7,6 @@ export interface LocationPickerModalProps {
   currentLocation?: LocationOption;
   currentRadiusKm?: number;
   onSelectLocation?: (location: LocationOption, radiusKm?: number) => void;
-  onSelectAddress?: (address: any) => void;
   onShowToast?: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
 }
 
