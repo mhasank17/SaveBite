@@ -1,9 +1,20 @@
+process.env.NODE_ENV = 'test';
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app';
 import inventoryService from '../src/services/inventoryService';
 import partnerService from '../src/services/partnerService';
+import emailService from '../src/services/emailService';
+
+// Configure mock transporter for test suite to prevent external SMTP network calls
+emailService.setTransporter({
+  sendMail: async () => ({
+    messageId: '<test-partner-otp@savebite.in>',
+    response: '250 2.0.0 OK: message accepted',
+  }),
+  verify: async () => true,
+} as any);
 
 const app = createApp();
 

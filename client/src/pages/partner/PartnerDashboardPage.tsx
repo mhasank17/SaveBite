@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import partnerApi, { PartnerRestaurant } from '../../services/partnerApi';
@@ -9,6 +9,7 @@ export interface PartnerDashboardPageProps {
   onOpenVerifyOtpModal: () => void;
   onNavigateTab: (tabId: string) => void;
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
+  refreshTrigger?: number;
 }
 
 export const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({
@@ -17,9 +18,39 @@ export const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({
   onOpenVerifyOtpModal,
   onNavigateTab,
   onShowToast,
+  refreshTrigger,
 }) => {
+  const [liveRestaurant, setLiveRestaurant] = useState<PartnerRestaurant | null>(restaurant);
   const [isStoreLive, setIsStoreLive] = useState(restaurant?.isStoreLive ?? true);
   const [toggling, setToggling] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (restaurant) {
+      setLiveRestaurant(restaurant);
+      setIsStoreLive(restaurant.isStoreLive);
+    }
+  }, [restaurant]);
+
+  const handleRefresh = async (showNotice = true) => {
+    setRefreshing(true);
+    try {
+      const fresh = await partnerApi.getRestaurant();
+      setLiveRestaurant(fresh);
+      setIsStoreLive(fresh.isStoreLive);
+      if (showNotice) {
+        onShowToast('info', 'Dashboard metrics updated from database.', 'Refreshed');
+      }
+    } catch {
+      // keep existing
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    handleRefresh(false);
+  }, [refreshTrigger]);
 
   const handleToggleStoreLive = async () => {
     setToggling(true);
@@ -41,7 +72,8 @@ export const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({
     }
   };
 
-  const metrics = restaurant?.metrics || {
+  const currentRestaurant = liveRestaurant || restaurant;
+  const metrics = currentRestaurant?.metrics || {
     activeListingsCount: 0,
     todayOrdersCount: 0,
     pendingPickupsCount: 0,
@@ -62,44 +94,60 @@ export const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <h2 className="font-headline-sm text-headline-sm font-bold text-on-surface">
-                {restaurant?.name || 'The Daily Dough Bakery'}
+                {currentRestaurant?.name || 'The Daily Dough Bakery'}
               </h2>
               <span className="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full font-medium">
-                {restaurant?.branchName || 'Downtown Branch'}
+                {currentRestaurant?.branchName || 'Downtown Branch'}
               </span>
             </div>
             <p className="text-body-sm text-on-surface-variant flex items-center gap-2 mt-0.5">
-              <span>{restaurant?.address || '100 Demo Street, Sandbox Sector 1'}</span>
+              <span>{currentRestaurant?.address || '100 Demo Street, Sandbox Sector 1'}</span>
               <span>•</span>
-              <span className="text-primary font-bold">FSSAI: {restaurant?.licenseNumber || 'DEMO-FSSAI-00000000000001-SAMPLE'}</span>
+              <span className="text-primary font-bold">FSSAI: {currentRestaurant?.licenseNumber || 'DEMO-FSSAI-00000000000001-SAMPLE'}</span>
             </p>
           </div>
         </div>
 
-        {/* Live Store Toggle */}
-        <div className="flex items-center gap-3 bg-surface-container-low p-2 rounded-2xl border border-outline-variant/30 w-full md:w-auto justify-between md:justify-start">
-          <div className="flex items-center gap-2 pl-2">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                isStoreLive ? 'bg-secondary animate-pulse' : 'bg-outline'
-              }`}
-            />
-            <span className="text-xs font-bold text-on-surface">
-              {isStoreLive ? 'Store Open & Accepting Deals' : 'Store Paused'}
-            </span>
-          </div>
+        {/* Controls: Refresh & Store Status */}
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
           <button
             type="button"
-            disabled={toggling}
-            onClick={handleToggleStoreLive}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              isStoreLive
-                ? 'bg-secondary text-on-secondary shadow-xs'
-                : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
-            }`}
+            disabled={refreshing}
+            onClick={() => handleRefresh(true)}
+            className="px-3 py-2 rounded-2xl bg-surface-container-low border border-outline-variant/30 text-xs font-bold text-on-surface hover:bg-surface-container-high transition-all flex items-center gap-1.5 shadow-xs"
+            title="Refresh database metrics"
           >
-            {toggling ? 'Updating...' : isStoreLive ? 'Open' : 'Resume'}
+            <span className={`material-symbols-outlined text-[18px] text-primary ${refreshing ? 'animate-spin' : ''}`}>
+              refresh
+            </span>
+            <span>{refreshing ? 'Syncing...' : 'Refresh'}</span>
           </button>
+
+          {/* Live Store Toggle */}
+          <div className="flex items-center gap-3 bg-surface-container-low p-2 rounded-2xl border border-outline-variant/30">
+            <div className="flex items-center gap-2 pl-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  isStoreLive ? 'bg-secondary animate-pulse' : 'bg-outline'
+                }`}
+              />
+              <span className="text-xs font-bold text-on-surface">
+                {isStoreLive ? 'Store Open & Accepting Deals' : 'Store Paused'}
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={toggling}
+              onClick={handleToggleStoreLive}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                isStoreLive
+                  ? 'bg-secondary text-on-secondary shadow-xs'
+                  : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              {toggling ? 'Updating...' : isStoreLive ? 'Open' : 'Resume'}
+            </button>
+          </div>
         </div>
       </section>
 

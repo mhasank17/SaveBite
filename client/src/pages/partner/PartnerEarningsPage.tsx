@@ -5,12 +5,13 @@ import partnerApi, { PartnerEarnings, FoodSaleItem } from '../../services/partne
 
 export interface PartnerEarningsPageProps {
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
+  refreshTrigger?: number;
 }
 
 type DateFilterType = 'all' | 'today' | 'week' | 'month' | 'custom';
 type SortByType = 'sales_desc' | 'items_desc' | 'name_asc';
 
-export const PartnerEarningsPage: React.FC<PartnerEarningsPageProps> = ({ onShowToast }) => {
+export const PartnerEarningsPage: React.FC<PartnerEarningsPageProps> = ({ onShowToast, refreshTrigger }) => {
   const [earnings, setEarnings] = useState<PartnerEarnings | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -35,7 +36,7 @@ export const PartnerEarningsPage: React.FC<PartnerEarningsPageProps> = ({ onShow
 
   useEffect(() => {
     fetchEarnings();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleDownloadStatement = () => {
     onShowToast(

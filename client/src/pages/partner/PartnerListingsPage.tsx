@@ -30,11 +30,13 @@ export interface PartnerListingItem {
 export interface PartnerListingsPageProps {
   onOpenCreateDealModal: () => void;
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
+  refreshTrigger?: number;
 }
 
 export const PartnerListingsPage: React.FC<PartnerListingsPageProps> = ({
   onOpenCreateDealModal,
   onShowToast,
+  refreshTrigger,
 }) => {
   const [listings, setListings] = useState<PartnerListingItem[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'SOLD_OUT' | 'PAUSED'>('ALL');
@@ -62,7 +64,7 @@ export const PartnerListingsPage: React.FC<PartnerListingsPageProps> = ({
 
   useEffect(() => {
     fetchListings();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleUpdateQuantity = async (listingId: string, currentQty: number, delta: number) => {
     const nextQty = Math.max(0, currentQty + delta);

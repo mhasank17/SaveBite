@@ -53,6 +53,14 @@ export interface PartnerRestaurantInfo {
   isStoreLive: boolean;
   rating: number;
   reviewCount: number;
+  metrics?: {
+    activeListingsCount: number;
+    todayOrdersCount: number;
+    pendingPickupsCount: number;
+    totalMealsRescued: number;
+    totalRevenueInr: number;
+    co2eSavedKg: number;
+  };
 }
 
 export interface AuthResponse {

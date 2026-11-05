@@ -22,11 +22,13 @@ export interface PartnerOrderSummary {
 export interface PartnerOrdersPageProps {
   onOpenVerifyOtpModal: () => void;
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
+  refreshTrigger?: number;
 }
 
 export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
   onOpenVerifyOtpModal,
   onShowToast,
+  refreshTrigger,
 }) => {
   const [orders, setOrders] = useState<PartnerOrderSummary[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'COMPLETED' | 'CANCELLED'>('PENDING');
@@ -51,7 +53,7 @@ export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [refreshTrigger]);
 
   const pendingOrders = orders.filter(
     (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'

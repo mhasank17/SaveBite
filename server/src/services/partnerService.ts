@@ -103,40 +103,72 @@ export class PartnerService {
   public async getPartnerRestaurant(userId?: string): Promise<PartnerRestaurantRecord | null> {
     if (isDatabaseConfigured()) {
       try {
-        const whereClause = userId
-          ? {
+        let restaurant: any = null;
+        if (userId) {
+          restaurant = await prisma.restaurant.findFirst({
+            where: {
               OR: [
                 { ownerUserId: userId },
                 { id: userId },
+              ],
+            },
+            include: {
+              listings: true,
+              orders: {
+                include: { listing: true },
+              },
+            },
+          });
+        }
+
+        if (!restaurant) {
+          restaurant = await prisma.restaurant.findFirst({
+            where: {
+              OR: [
+                { id: 'demo-rest-daily-dough' },
                 { ownerUserId: 'demo-user-partner-baker' },
               ],
-            }
-          : { id: 'demo-rest-daily-dough' };
-
-        const restaurant = await prisma.restaurant.findFirst({
-          where: whereClause,
-          include: {
-            listings: true,
-            orders: {
-              include: { listing: true },
             },
-          },
-        });
+            include: {
+              listings: true,
+              orders: {
+                include: { listing: true },
+              },
+            },
+          });
+        }
 
         if (restaurant) {
-          const activeListings = restaurant.listings.filter((l) => l.status === 'ACTIVE');
-          const completedOrders = restaurant.orders.filter((o) => o.orderStatus === 'COMPLETED');
+          const activeListings = restaurant.listings.filter((l: any) => l.status === 'ACTIVE');
+          const completedOrders = restaurant.orders.filter(
+            (o: any) =>
+              (o.orderStatus === 'COMPLETED' || o.paymentStatus === 'SUCCESS') &&
+              o.orderStatus !== 'CANCELLED' &&
+              o.orderStatus !== 'REFUNDED'
+          );
           const pendingOrders = restaurant.orders.filter(
-            (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'
+            (o: any) =>
+              (o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP') &&
+              o.orderStatus !== 'CANCELLED' &&
+              o.orderStatus !== 'REFUNDED'
+          );
+
+          const startOfDay = new Date();
+          startOfDay.setHours(0, 0, 0, 0);
+          const todaysOrders = restaurant.orders.filter(
+            (o: any) =>
+              new Date(o.createdAt).getTime() >= startOfDay.getTime() &&
+              o.orderStatus !== 'CANCELLED' &&
+              o.orderStatus !== 'REFUNDED'
           );
 
           const totalRevenue = completedOrders.reduce(
-            (sum, o) => sum + Number(o.totalPriceInr),
+            (sum: number, o: any) => sum + Number(o.totalPriceInr),
             0
           );
-          const totalMeals = completedOrders.reduce((sum, o) => sum + o.quantity, 0);
+          const totalMeals = completedOrders.reduce((sum: number, o: any) => sum + o.quantity, 0);
           const totalCo2e = completedOrders.reduce(
-            (sum, o) => sum + Number(o.listing?.co2eSavingsKg || 1.8) * o.quantity,
+            (sum: number, o: any) => sum + Number(o.listing?.co2eSavingsKg || 1.8) * o.quantity,
             0
           );
 
@@ -158,7 +190,12 @@ export class PartnerService {
             reviewCount: restaurant.reviewCount,
             metrics: {
               activeListingsCount: activeListings.length,
-              todayOrdersCount: restaurant.orders.length,
+              todayOrdersCount:
+                todaysOrders.length > 0
+                  ? todaysOrders.length
+                  : restaurant.orders.filter(
+                      (o: any) => o.orderStatus !== 'CANCELLED' && o.orderStatus !== 'REFUNDED'
+                    ).length,
               pendingPickupsCount: pendingOrders.length,
               totalMealsRescued: totalMeals,
               totalRevenueInr: totalRevenue,
@@ -794,10 +831,30 @@ export class PartnerService {
    * Atomically transitions order status to COMPLETED
    */
   public async verifyPickup(restaurantId: string, input: VerifyPickupInput): Promise<any> {
-    if (!input.pickupOtp && !input.qrSecretToken && !input.orderId) {
+    const cleanOtp = input.pickupOtp?.trim();
+    const cleanQr = input.qrSecretToken?.trim();
+    const cleanOrderId = input.orderId?.trim();
+
+    if (!cleanOtp && !cleanQr && !cleanOrderId) {
       const err: any = new Error('Please provide either a 4-digit Pickup OTP or a valid QR token.');
       err.statusCode = 400;
       throw err;
+    }
+
+    const searchConditions: any[] = [];
+    if (cleanOtp) {
+      searchConditions.push({ pickupOtp: cleanOtp });
+    }
+    if (cleanQr) {
+      searchConditions.push({ qrSecretToken: cleanQr });
+      searchConditions.push({ orderNumber: cleanQr });
+      searchConditions.push({ orderNumber: `#${cleanQr.replace(/^#/, '')}` });
+      if (cleanQr.length === 4 && /^\d+$/.test(cleanQr)) {
+        searchConditions.push({ pickupOtp: cleanQr });
+      }
+    }
+    if (cleanOrderId) {
+      searchConditions.push({ id: cleanOrderId });
     }
 
     if (isDatabaseConfigured()) {
@@ -806,11 +863,7 @@ export class PartnerService {
         let order = await prisma.order.findFirst({
           where: {
             restaurantId,
-            OR: [
-              ...(input.pickupOtp ? [{ pickupOtp: input.pickupOtp }] : []),
-              ...(input.qrSecretToken ? [{ qrSecretToken: input.qrSecretToken }] : []),
-              ...(input.orderId ? [{ id: input.orderId }] : []),
-            ],
+            OR: searchConditions,
           },
           orderBy: { createdAt: 'desc' },
           include: { customer: true, listing: true, restaurant: true },
@@ -820,11 +873,7 @@ export class PartnerService {
         if (!order) {
           order = await prisma.order.findFirst({
             where: {
-              OR: [
-                ...(input.pickupOtp ? [{ pickupOtp: input.pickupOtp }] : []),
-                ...(input.qrSecretToken ? [{ qrSecretToken: input.qrSecretToken }] : []),
-                ...(input.orderId ? [{ id: input.orderId }] : []),
-              ],
+              OR: searchConditions,
             },
             orderBy: { createdAt: 'desc' },
             include: { customer: true, listing: true, restaurant: true },
@@ -876,6 +925,20 @@ export class PartnerService {
             },
             include: { customer: true, listing: true },
           });
+
+          // Sync in-memory if present
+          try {
+            const { orderService } = await import('./orderService');
+            if ((orderService as any).inMemoryOrders) {
+              const mem = (orderService as any).inMemoryOrders.get(order.id);
+              if (mem) {
+                mem.orderStatus = 'COMPLETED';
+                mem.completedAt = completedAt.toISOString();
+              }
+            }
+          } catch {
+            // Ignore in-memory sync error
+          }
 
           return {
             success: true,
@@ -1343,11 +1406,17 @@ export class PartnerService {
 
     console.log(`[PartnerService] Generated email change OTP for ${cleanNewEmail}: ${otp}`);
 
-    await emailService.sendEmailVerificationOtp(
+    const sendResult = await emailService.sendEmailVerificationOtp(
       cleanNewEmail,
       user?.fullName || 'Partner',
       otp
     );
+
+    if (!sendResult.sent) {
+      this.emailChangeOtps.delete(targetKey);
+      console.error(`[PartnerService] Email verification delivery failed for ${cleanNewEmail}:`, sendResult.error);
+      throw new Error(sendResult.error || `Failed to dispatch verification code to ${cleanNewEmail}. Please verify the email address and try again.`);
+    }
 
     return {
       message: `A 6-digit verification code has been dispatched to ${cleanNewEmail}.`,

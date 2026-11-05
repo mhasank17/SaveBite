@@ -63,6 +63,7 @@ export const App: React.FC = () => {
     }
     return 'dashboard';
   });
+  const [partnerRefreshTrigger, setPartnerRefreshTrigger] = useState<number>(0);
 
   const setPartnerTab = useCallback((tab: string) => {
     setPartnerTabState(tab);
@@ -201,6 +202,7 @@ export const App: React.FC = () => {
           isStoreLive: res.isStoreLive,
           rating: res.rating,
           reviewCount: res.reviewCount,
+          metrics: res.metrics,
         };
         setPartnerRestaurant(info);
         if (typeof window !== 'undefined') {
@@ -499,14 +501,16 @@ export const App: React.FC = () => {
           <PartnerListingsPage
             onOpenCreateDealModal={() => setIsPartnerCreateDealOpen(true)}
             onShowToast={addToast}
+            refreshTrigger={partnerRefreshTrigger}
           />
         ) : partnerTab === 'orders' ? (
           <PartnerOrdersPage
             onOpenVerifyOtpModal={() => setIsPartnerVerifyOtpOpen(true)}
             onShowToast={addToast}
+            refreshTrigger={partnerRefreshTrigger}
           />
         ) : partnerTab === 'earnings' ? (
-          <PartnerEarningsPage onShowToast={addToast} />
+          <PartnerEarningsPage onShowToast={addToast} refreshTrigger={partnerRefreshTrigger} />
         ) : partnerTab === 'settings' ? (
           <PartnerSettingsPage
             restaurant={partnerRestaurant as any}
@@ -520,6 +524,7 @@ export const App: React.FC = () => {
             onOpenVerifyOtpModal={() => setIsPartnerVerifyOtpOpen(true)}
             onNavigateTab={(tab) => setPartnerTab(tab)}
             onShowToast={addToast}
+            refreshTrigger={partnerRefreshTrigger}
           />
         )}
 
@@ -528,6 +533,8 @@ export const App: React.FC = () => {
           isOpen={isPartnerCreateDealOpen}
           onClose={() => setIsPartnerCreateDealOpen(false)}
           onSuccess={(newDeal) => {
+            refreshPartnerRestaurant();
+            setPartnerRefreshTrigger((prev) => prev + 1);
             addToast('success', `"${newDeal.title}" created successfully!`, 'Deal Published 🎉');
           }}
           onShowToast={addToast}
@@ -537,6 +544,8 @@ export const App: React.FC = () => {
           isOpen={isPartnerVerifyOtpOpen}
           onClose={() => setIsPartnerVerifyOtpOpen(false)}
           onVerificationSuccess={(orderData) => {
+            refreshPartnerRestaurant();
+            setPartnerRefreshTrigger((prev) => prev + 1);
             addToast('success', `Order ${orderData.orderNumber} collected!`, 'Pickup Verified 🎉');
           }}
           onShowToast={addToast}

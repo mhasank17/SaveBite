@@ -504,7 +504,7 @@ export class InventoryService {
         });
 
         if (eligibleListings.length > 0) {
-          return eligibleListings.map((l) => {
+          const mapped: ListingInventoryRecord[] = eligibleListings.map((l) => {
             const isDemo =
               Boolean(l.isDemo) ||
               Boolean(l.restaurant.isDemo) ||
@@ -545,6 +545,17 @@ export class InventoryService {
               isDemo,
             };
           });
+
+          if (!isProduction) {
+            const existingIds = new Set(mapped.map((m) => m.id));
+            for (const item of Array.from(this.inMemoryListings.values())) {
+              if (!existingIds.has(item.id)) {
+                mapped.push(item);
+              }
+            }
+          }
+
+          return mapped;
         }
       } catch {
         // DB offline, fall back
