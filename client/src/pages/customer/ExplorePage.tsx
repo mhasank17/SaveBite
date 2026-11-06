@@ -35,7 +35,6 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
   // Initial filter criteria
   const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>({
     maxPriceInr: 1000,
-    dealType: 'all',
     maxDistanceKm: 15,
     pickupWindowHours: 24,
     dietaryTags: [],
@@ -99,7 +98,6 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
               ? d.dietaryTags.filter((t: string) => t !== 'Demo Record' && t !== 'SYSTEM_DEMO_RECORD_V1')
               : ['Freshly Prepared'],
             hygieneGrade: d.hygieneGrade ?? 'Grade A',
-            isMysteryBox: d.isMysteryBox ?? (d.categoryName?.toLowerCase().includes('bakery') || false),
           };
         });
         setDeals(mapped);
@@ -173,11 +171,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
         }
       }
 
-      // 4. Deal type filter
-      if (filterCriteria.dealType === 'mystery' && !deal.isMysteryBox) return false;
-      if (filterCriteria.dealType === 'meal' && deal.isMysteryBox) return false;
-
-      // 5. Pickup window cutoff
+      // 4. Pickup window cutoff
       if (filterCriteria.pickupWindowHours < 24) {
         const hoursLeft = (deal.pickupWindow?.expiresInSeconds || 3600) / 3600;
         if (hoursLeft > filterCriteria.pickupWindowHours) return false;
@@ -220,7 +214,6 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
   }, [filteredDeals]);
 
   const hasActiveFilters =
-    filterCriteria.dealType !== 'all' ||
     filterCriteria.dietaryTags.length > 0 ||
     filterCriteria.pickupWindowHours < 24 ||
     filterCriteria.maxPriceInr < 800;
@@ -462,7 +455,6 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
                         setSelectedCategory('all');
                         setFilterCriteria({
                           maxPriceInr: 1000,
-                          dealType: 'all',
                           maxDistanceKm: 20,
                           pickupWindowHours: 24,
                           dietaryTags: [],
@@ -514,7 +506,6 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
         onClear={() =>
           setFilterCriteria({
             maxPriceInr: 1000,
-            dealType: 'all',
             maxDistanceKm: 20,
             pickupWindowHours: 24,
             dietaryTags: [],

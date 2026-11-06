@@ -57,7 +57,6 @@ export interface AdminListing {
   pickupStartTime: string;
   pickupEndTime: string;
   status: 'ACTIVE' | 'PAUSED' | 'SOLD_OUT' | 'EXPIRED';
-  isMysteryBox: boolean;
   isDemo: boolean;
   co2eSavingsKg: number;
   createdAt: string;

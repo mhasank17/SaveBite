@@ -343,7 +343,7 @@ async function main() {
       id: 'demo-deal-bakery-surprise',
       restaurantId: 'demo-rest-daily-dough',
       categoryId: 'demo-cat-bakery',
-      title: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+      title: '[Demo] Evening Bakery & Sourdough Assortment',
       description:
         '[DEMO RECORD - NOT A REAL OFFER] Assorted artisanal bread and breakfast pastries for development and testing purposes only.',
       imageUrl:
@@ -360,7 +360,6 @@ async function main() {
       allergenNotice: 'Demo notice: Synthetic sample data. Not for actual consumption.',
       co2eSavingsKg: 1.8,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: true,
       isDemo: true,
     },
     {
@@ -384,7 +383,6 @@ async function main() {
       allergenNotice: 'Demo notice: Synthetic sample data. Not for actual consumption.',
       co2eSavingsKg: 2.4,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: false,
       isDemo: true,
     },
     {
@@ -408,7 +406,6 @@ async function main() {
       allergenNotice: 'Demo notice: Synthetic sample data. Not for actual consumption.',
       co2eSavingsKg: 2.1,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: false,
       isDemo: true,
     },
     {
@@ -432,7 +429,6 @@ async function main() {
       allergenNotice: 'Demo notice: Synthetic sample data. Not for actual consumption.',
       co2eSavingsKg: 1.9,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: true,
       isDemo: true,
     },
     {
@@ -456,7 +452,6 @@ async function main() {
       allergenNotice: 'Testing data only.',
       co2eSavingsKg: 1.0,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: false,
       isDemo: true,
     },
     {
@@ -480,7 +475,6 @@ async function main() {
       allergenNotice: 'Contains wheat gluten and milk.',
       co2eSavingsKg: 2.2,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: false,
       isDemo: true,
     },
     {
@@ -504,7 +498,6 @@ async function main() {
       allergenNotice: 'Contains sesame seeds and gluten.',
       co2eSavingsKg: 1.7,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: false,
       isDemo: true,
     },
     {
@@ -528,7 +521,6 @@ async function main() {
       allergenNotice: 'Contains dairy, wheat, and eggs.',
       co2eSavingsKg: 1.6,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: false,
       isDemo: true,
     },
     {
@@ -552,16 +544,15 @@ async function main() {
       allergenNotice: 'Contains dairy and wheat.',
       co2eSavingsKg: 1.4,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: false,
       isDemo: true,
     },
     {
-      id: 'demo-deal-mystery-crate',
+      id: 'demo-deal-curry-special',
       restaurantId: 'demo-rest-spice-symphony',
       categoryId: 'demo-cat-meal',
-      title: '[Demo] Chef’s Midnight Surprise Mystery Rescue Crate',
+      title: '[Demo] Chef’s Midnight Surplus Rice & Curry Banquet',
       description:
-        '[DEMO RECORD - NOT A REAL OFFER] Generous mystery assortment of today’s finest kitchen surplus dishes and specialties.',
+        '[DEMO RECORD - NOT A REAL OFFER] Generous evening assortment of today’s finest kitchen surplus dishes and specialties.',
       imageUrl:
         'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
       originalPriceInr: 750.0,
@@ -576,7 +567,6 @@ async function main() {
       allergenNotice: 'Contains dairy and spices. Inquire at counter.',
       co2eSavingsKg: 2.5,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: true,
       isDemo: true,
     },
     {
@@ -600,7 +590,6 @@ async function main() {
       allergenNotice: 'Contains tree nuts.',
       co2eSavingsKg: 1.5,
       status: ListingStatus.ACTIVE,
-      isMysteryBox: false,
       isDemo: true,
     },
   ];

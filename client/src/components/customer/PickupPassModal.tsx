@@ -32,7 +32,7 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
 }) => {
   const displayOrderNumber = order ? order.orderNumber : pass?.orderNumber || '#8492';
   const displayRestaurant = order ? order.restaurantName : pass?.restaurantName || 'The Daily Dough Bakery';
-  const displayDealTitle = order ? order.dealTitle : pass?.dealTitle || 'Evening Mystery Patisserie Bag';
+  const displayDealTitle = order ? order.dealTitle : pass?.dealTitle || 'Evening Patisserie & Bakery Bag';
   const displayQuantity = order ? order.quantity : pass?.quantity || 1;
   const displayPickupWindow = order
     ? order.pickupWindowText || 'Tonight, 8:00 PM – 9:00 PM'

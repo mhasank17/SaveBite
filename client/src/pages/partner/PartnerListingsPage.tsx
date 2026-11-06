@@ -24,7 +24,6 @@ export interface PartnerListingItem {
   pickupStartTime: string;
   pickupEndTime: string;
   status: 'ACTIVE' | 'SOLD_OUT' | 'PAUSED' | 'CANCELLED';
-  isMysteryBox?: boolean;
 }
 
 export interface PartnerListingsPageProps {
@@ -147,7 +146,7 @@ export const PartnerListingsPage: React.FC<PartnerListingsPageProps> = ({
       <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-container-lowest p-space-md md:p-space-lg rounded-3xl border border-outline-variant/30 shadow-xs">
         <div className="flex flex-col">
           <h2 className="font-headline-sm text-headline-sm font-bold text-on-surface">
-            Food Deals & Mystery Boxes
+            Food Deals
           </h2>
           <p className="text-body-sm text-on-surface-variant mt-0.5">
             Set available quantities, manage pickup hours, and broadcast rescue bundles in real time.
@@ -234,7 +233,7 @@ export const PartnerListingsPage: React.FC<PartnerListingsPageProps> = ({
           title="No food deals available"
           description={
             filter === 'ALL'
-              ? 'You have not published any food deals or mystery boxes yet today.'
+              ? 'You have not published any food deals yet today.'
               : `No food deals currently match the status "${filter}".`
           }
           actionText="Publish a Food Deal"
@@ -265,11 +264,6 @@ export const PartnerListingsPage: React.FC<PartnerListingsPageProps> = ({
                       }
                       className="w-full h-full object-cover"
                     />
-                    {deal.isMysteryBox && (
-                      <span className="absolute top-1 left-1 bg-surface-container-highest/90 backdrop-blur-xs text-[10px] font-bold px-1.5 py-0.5 rounded-md text-on-surface">
-                        Mystery
-                      </span>
-                    )}
                   </div>
 
                   {/* Info */}

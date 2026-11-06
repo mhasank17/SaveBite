@@ -133,12 +133,6 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
         </button>
 
         <div className="flex items-center gap-2">
-          {deal.isMysteryBox && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-100 text-orange-800 text-[11px] font-bold">
-              <span className="material-symbols-outlined text-[13px]">redeem</span>
-              <span>Mystery Bag</span>
-            </span>
-          )}
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-[#006030] text-[11px] font-bold">
             <span className="material-symbols-outlined text-[13px]">verified</span>
             <span>Verified Surplus</span>
@@ -273,7 +267,7 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-slate-900">
-                      {deal.isMysteryBox ? 'Standard Mystery Bag' : 'Regular Meal Portion'}
+                      Regular Meal Portion
                     </span>
                     <span className="text-xs text-slate-500">
                       Serves 1–2 portions • {deal.availableQuantity} available

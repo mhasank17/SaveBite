@@ -20,7 +20,7 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     distanceKm: 0.4,
     categoryId: 'cat-bakery',
     categoryName: 'Bakery',
-    title: 'Evening Mystery Patisserie & Sourdough Box',
+    title: 'Evening Patisserie & Sourdough Selection',
     description:
       'A delightful assortment of freshly baked artisanal sourdough, butter croissants, fruit danishes, and rustic baguettes. Baked fresh today, packed for evening pickup.',
     imageUrl:
@@ -43,7 +43,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Traces of almonds, hazelnuts, and sesame seeds may be present.',
     co2eSavingsKg: 1.8,
     status: 'ACTIVE',
-    isMysteryBox: true,
   },
   {
     id: 'deal-2',
@@ -80,7 +79,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains dairy, wheat, and soy.',
     co2eSavingsKg: 2.8,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
   {
     id: 'deal-3',
@@ -117,7 +115,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains soy, sesame, and gluten.',
     co2eSavingsKg: 2.1,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
   {
     id: 'deal-4',
@@ -154,7 +151,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains wheat and dairy.',
     co2eSavingsKg: 1.4,
     status: 'ACTIVE',
-    isMysteryBox: true,
   },
   {
     id: 'deal-5',
@@ -191,7 +187,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains tree nuts (walnuts).',
     co2eSavingsKg: 1.6,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
   {
     id: 'deal-6',
@@ -228,7 +223,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains wheat gluten and milk.',
     co2eSavingsKg: 2.2,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
   {
     id: 'deal-7',
@@ -265,7 +259,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains dairy, wheat gluten, and sesame seeds.',
     co2eSavingsKg: 2.0,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
   {
     id: 'deal-8',
@@ -302,7 +295,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains dairy, wheat, and eggs.',
     co2eSavingsKg: 1.6,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
   {
     id: 'deal-9',
@@ -339,7 +331,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains dairy and peanuts in salan.',
     co2eSavingsKg: 2.3,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
   {
     id: 'deal-10',
@@ -376,7 +367,6 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains wheat gluten, milk, and eggs.',
     co2eSavingsKg: 1.3,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
   {
     id: 'deal-11',
@@ -390,9 +380,9 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     distanceKm: 1.8,
     categoryId: 'cat-meal',
     categoryName: 'Meal',
-    title: 'Chef’s Midnight Surprise Mystery Rescue Crate',
+    title: 'Chef’s Midnight Surplus Banquet Selection',
     description:
-      'Surprise package filled with fresh chef-prepared evening delicacies, gourmet savory bakes, and meal sides rescued before closing.',
+      'Gourmet surplus banquet package filled with fresh chef-prepared evening delicacies, savory bakes, and meal sides rescued before closing.',
     imageUrl:
       'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
     originalPriceInr: 750,
@@ -409,11 +399,10 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
       displayText: 'Tonight, 9:30 PM – 10:30 PM',
       expiresInSeconds: 4800,
     },
-    dietaryTags: ['Surprise Assortment', 'Maximum Savings', 'Zero Waste Impact'],
+    dietaryTags: ['Fresh Assortment', 'Maximum Savings', 'Zero Waste Impact'],
     allergenNotice: 'Assorted items. Please ask counter staff for allergen breakdown.',
     co2eSavingsKg: 2.7,
     status: 'ACTIVE',
-    isMysteryBox: true,
   },
   {
     id: 'deal-12',
@@ -450,13 +439,12 @@ export const MOCK_FOOD_DEALS: FoodDeal[] = [
     allergenNotice: 'Contains dairy and wheat gluten.',
     co2eSavingsKg: 1.8,
     status: 'ACTIVE',
-    isMysteryBox: false,
   },
 ];
 
 export const MOCK_ACTIVE_PASS = {
   restaurantName: 'Le Paris Bakery',
-  dealTitle: '1 Mystery Patisserie Box',
+  dealTitle: '1 Fresh Patisserie Selection',
   pickupWindow: 'Ready 8:00 - 8:45 PM',
   orderNumber: '#8492',
   qrSecretToken: 'sb-pass-8492-secure',
@@ -479,7 +467,7 @@ export const MOCK_ORDERS: Order[] = [
     restaurantName: 'The French Boulangerie & Patisserie',
     restaurantAddress: '142 Saint-Denis Ave, Downtown West',
     dealId: 'deal-1',
-    dealTitle: 'Evening Mystery Patisserie & Sourdough Box',
+    dealTitle: 'Evening Patisserie & Sourdough Selection',
     imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
     quantity: 1,
     dealPriceInr: 149,

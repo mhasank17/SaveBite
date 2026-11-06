@@ -65,7 +65,7 @@ Project/
 ## 🌟 The Three Portals
 
 ### 1. Customer Food Discovery & Rescue Portal
-* **Hyperlocal Discovery**: Explore surplus meal packs and mystery boxes filtered by distance (1 km to 10 km) and food category.
+* **Hyperlocal Discovery**: Explore surplus meal packs and food deals filtered by distance (1 km to 10 km) and food category.
 * **Price Transparency**: All prices displayed in ₹ INR with original price, deal price, and savings badge.
 * **Instant Checkout**: In-app portion reservation, fulfillment mode selection (Self-Pickup or Eco Courier), and integer-paise Razorpay sandbox checkout.
 * **Digital Pickup Pass**: Dynamic SVG QR code token and 4-digit counter OTP displayed immediately on confirmation and stored in "My Orders".

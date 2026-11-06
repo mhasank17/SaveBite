@@ -35,7 +35,7 @@ export const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     restaurantId: 'demo-rest-daily-dough',
     restaurantName: '[Demo] The Daily Dough Bakery (Unverified Sample Partner)',
     restaurantAddress: '100 Demo Street, Sandbox Sector 1',
-    title: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+    title: '[Demo] Evening Bakery & Sourdough Assortment',
     description:
       '[DEMO RECORD - NOT A REAL OFFER] Assorted artisanal bread and breakfast pastries for development and testing purposes only.',
     imageUrl:
@@ -266,13 +266,13 @@ export const INITIAL_LISTINGS: ListingInventoryRecord[] = [
     isDemo: true,
   },
   {
-    id: 'demo-deal-mystery-crate',
+    id: 'demo-deal-curry-special',
     restaurantId: 'demo-rest-spice-symphony',
     restaurantName: '[Demo] Spice Symphony Kitchen (Unverified Sample Partner)',
     restaurantAddress: '400 Demo Circle, Sandbox Sector 4',
-    title: '[Demo] Chef’s Midnight Surprise Mystery Rescue Crate',
+    title: '[Demo] Chef’s Midnight Surplus Rice & Curry Banquet',
     description:
-      '[DEMO RECORD - NOT A REAL OFFER] Generous mystery assortment of today’s finest kitchen surplus dishes and specialties.',
+      '[DEMO RECORD - NOT A REAL OFFER] Generous evening assortment of today’s finest kitchen surplus dishes and specialties.',
     imageUrl: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
     categoryName: 'Meal',
     originalPriceInr: 750,

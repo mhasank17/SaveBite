@@ -36,11 +36,6 @@ export const FOOD_CATEGORY_IMAGES = {
     'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
     'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80',
   ],
-  mystery_box: [
-    'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1607349913338-fca6f7fc42d0?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&w=800&q=80',
-  ],
   pantry: [
     'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80',
     'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?auto=format&fit=crop&w=800&q=80',
@@ -66,7 +61,6 @@ export interface FoodDealMeta {
   description?: string;
   categoryName?: string;
   categoryId?: string;
-  isMysteryBox?: boolean;
   imageUrl?: string;
 }
 
@@ -75,9 +69,6 @@ export function detectFoodCategory(deal?: FoodDealMeta | null): FoodCategoryType
 
   const text = `${deal.title || ''} ${deal.description || ''} ${deal.categoryName || ''} ${deal.categoryId || ''}`.toLowerCase();
 
-  if (deal.isMysteryBox || text.includes('mystery') || text.includes('surprise') || text.includes('rescue crate')) {
-    return 'mystery_box';
-  }
   if (text.includes('pizza') || text.includes('calzone') || text.includes('neapolitan') || text.includes('dough ball')) {
     return 'pizza';
   }
@@ -158,7 +149,7 @@ export function detectFoodCategory(deal?: FoodDealMeta | null): FoodCategoryType
 
 export function getFoodFallbackImageUrl(deal?: FoodDealMeta | null): string {
   if (deal?.imageUrl && deal.imageUrl.trim() !== '') {
-    // If the image is the legacy repeated bakery image AND this is not the designated bakery surprise deal,
+    // If the image is the legacy repeated bakery image AND this is not the designated bakery sample deal,
     // generate a distinct category-specific image to avoid repeating the bakery image across different deals
     const isLegacyRepeatedBakery =
       deal.imageUrl.includes('photo-1509440159596-0249088772ff') &&

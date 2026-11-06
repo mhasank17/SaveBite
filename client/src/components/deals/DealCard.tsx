@@ -148,7 +148,7 @@ export const DealCard: React.FC<DealCardProps> = ({
           </p>
         </div>
 
-        {/* Meal / Mystery Title & Portions Left */}
+        {/* Meal Title & Portions Left */}
         <div className="pt-1 flex items-center justify-between text-[11px] text-slate-400 gap-2">
           <span className="truncate flex-1 text-slate-600 font-medium">
             {deal.title.replace(/^\[Demo\]\s*/i, '')}

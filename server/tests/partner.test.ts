@@ -102,7 +102,7 @@ describe('Phase 5: Restaurant Partner Portal', () => {
   });
 
   // 6. Create new food deal listing
-  it('6. should allow partner to create a new food deal / mystery box listing', async () => {
+  it('6. should allow partner to create a new food deal listing', async () => {
     const res = await request(app)
       .post('/api/v1/partner/listings')
       .set('Authorization', partnerAuth)
@@ -117,7 +117,6 @@ describe('Phase 5: Restaurant Partner Portal', () => {
         pickupEndTime: '18:00',
         dietaryTags: ['Vegetarian', 'Demo Record'],
         allergenNotice: 'Contains Wheat Gluten',
-        isMysteryBox: false,
       });
 
     assert.equal(res.status, 201);
@@ -278,7 +277,6 @@ describe('Phase 5: Restaurant Partner Portal', () => {
         pickupEndTime: '19:00',
         dietaryTags: ['Vegetarian', 'Demo Record'],
         allergenNotice: 'Contains Wheat, Dairy',
-        isMysteryBox: false,
       });
 
     assert.equal(createRes.status, 201);

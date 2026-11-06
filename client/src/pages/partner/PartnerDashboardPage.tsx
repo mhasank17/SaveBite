@@ -260,7 +260,7 @@ export const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({
             <span className="material-symbols-outlined text-[24px]">add_circle</span>
             <div className="flex flex-col text-left">
               <span className="text-sm font-bold">Post New Food Deal</span>
-              <span className="text-xs opacity-90">Publish mystery box or meal bag</span>
+              <span className="text-xs opacity-90">Publish food deal listing</span>
             </div>
           </div>
           <span className="material-symbols-outlined text-[20px] group-hover:translate-x-1 transition-transform">
@@ -312,7 +312,7 @@ export const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({
           <div className="flex flex-col">
             <span className="font-bold text-sm text-on-surface">Evening Pickup Protocol</span>
             <span className="text-xs text-on-surface-variant">
-              Keep freshly packed mystery bags ready at the counter 15 minutes before the pickup window begins.
+              Keep freshly packed meal bags ready at the counter 15 minutes before the pickup window begins.
             </span>
           </div>
         </div>

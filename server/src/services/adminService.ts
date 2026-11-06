@@ -283,7 +283,6 @@ export class AdminService {
             totalQuantity: l.totalQuantity,
             status: l.status,
             pickupWindowText: `${l.pickupStartTime} – ${l.pickupEndTime}`,
-            isMysteryBox: l.isMysteryBox,
             isDemo: l.isDemo,
             createdAt: l.createdAt.toISOString(),
           }));
@@ -297,7 +296,7 @@ export class AdminService {
       return [
         {
           id: 'demo-deal-bakery-surprise',
-          title: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          title: '[Demo] Evening Bakery & Sourdough Assortment',
           restaurantName: '[Demo] The Daily Dough Bakery',
           restaurantBranch: 'Sandbox Outlet - Bandra West',
           categoryName: 'Bakery',
@@ -307,7 +306,6 @@ export class AdminService {
           totalQuantity: 15,
           status: 'ACTIVE',
           pickupWindowText: '10:00 – 23:30',
-          isMysteryBox: true,
           isDemo: true,
           createdAt: new Date().toISOString(),
         },
@@ -406,7 +404,7 @@ export class AdminService {
           customerName: 'Sarah Jenkins',
           customerEmail: 'sarah.jenkins@savebite.in',
           restaurantName: '[Demo] The Daily Dough Bakery',
-          dealTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          dealTitle: '[Demo] Evening Bakery & Sourdough Assortment',
           reason: 'Store was closed when arriving within the scheduled pickup window.',
           status: 'OPEN',
           refundAmountInr: 149,
@@ -1032,7 +1030,7 @@ export class AdminService {
           dealBreakdown: [
             {
               dealId: 'demo-deal-bakery-surprise',
-              dealTitle: 'Evening Bakery & Sourdough Surprise Pack',
+              dealTitle: 'Evening Bakery & Sourdough Assortment',
               categoryName: 'Bakery',
               unitPriceInr: 149,
               quantitySold: 161,

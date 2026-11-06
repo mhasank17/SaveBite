@@ -36,7 +36,7 @@ export interface FoodDeal {
   distanceKm: number; // e.g. 0.4
   categoryId: string;
   categoryName: string;
-  title: string; // e.g. "Evening Mystery Patisserie Bag"
+  title: string; // e.g. "Evening Patisserie & Sourdough Selection"
   description: string;
   imageUrl: string;
   originalPriceInr: number; // e.g. 550
@@ -60,7 +60,6 @@ export interface FoodDeal {
   restaurantRating?: number;
   restaurantReviewCount?: number;
   status: FoodDealStatus;
-  isMysteryBox: boolean;
 }
 
 export type FulfillmentType = 'SELF_PICKUP';

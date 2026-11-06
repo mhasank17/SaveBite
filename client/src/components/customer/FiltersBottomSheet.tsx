@@ -4,7 +4,6 @@ import { formatINR } from '../../utils/formatters';
 
 export interface FilterCriteria {
   maxPriceInr: number;
-  dealType: 'all' | 'mystery' | 'meal';
   maxDistanceKm: number;
   pickupWindowHours: number; // hours cutoff: 1, 2, 4, 12 (or 24 for anytime)
   dietaryTags: string[];
@@ -48,9 +47,6 @@ export const FiltersBottomSheet: React.FC<FiltersBottomSheetProps> = ({
     return deals.filter((deal) => {
       if (deal.dealPriceInr > localCriteria.maxPriceInr) return false;
       if (deal.distanceKm > localCriteria.maxDistanceKm) return false;
-      
-      if (localCriteria.dealType === 'mystery' && !deal.isMysteryBox) return false;
-      if (localCriteria.dealType === 'meal' && deal.isMysteryBox) return false;
 
       if (localCriteria.pickupWindowHours < 24) {
         const hoursLeft = (deal.pickupWindow?.expiresInSeconds || 3600) / 3600;
@@ -86,7 +82,6 @@ export const FiltersBottomSheet: React.FC<FiltersBottomSheetProps> = ({
   const handleClearAll = () => {
     const cleared: FilterCriteria = {
       maxPriceInr: highestPrice,
-      dealType: 'all',
       maxDistanceKm: 20,
       pickupWindowHours: 24,
       dietaryTags: [],
@@ -198,40 +193,7 @@ export const FiltersBottomSheet: React.FC<FiltersBottomSheetProps> = ({
                 </div>
               </div>
 
-              {/* 2. Bag / Deal Type Chips */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-slate-800">Bag & Deal Type</label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {[
-                    { id: 'all', label: 'All Deals' },
-                    { id: 'mystery', label: 'Mystery Bags' },
-                    { id: 'meal', label: 'Chef Meal Boxes' },
-                  ].map((chip) => {
-                    const isSelected = localCriteria.dealType === chip.id;
-                    return (
-                      <button
-                        key={chip.id}
-                        type="button"
-                        onClick={() =>
-                          setLocalCriteria((prev) => ({
-                            ...prev,
-                            dealType: chip.id as 'all' | 'mystery' | 'meal',
-                          }))
-                        }
-                        className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border ${
-                          isSelected
-                            ? 'bg-[#006030] text-white border-[#006030] shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        }`}
-                      >
-                        {chip.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 3. Distance Chips (<3 km, <5 km, <10 km, <20 km) */}
+              {/* 2. Distance Chips (<3 km, <5 km, <10 km, <20 km) */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-bold text-slate-800">Maximum Distance</label>

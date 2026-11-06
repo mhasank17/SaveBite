@@ -17,7 +17,6 @@ const CreateListingSchema = z.object({
   dietaryTags: z.array(z.string()).optional(),
   allergenNotice: z.string().optional(),
   co2eSavingsKg: z.number().optional(),
-  isMysteryBox: z.boolean().optional(),
 });
 
 const UpdateListingSchema = z.object({
@@ -34,7 +33,6 @@ const UpdateListingSchema = z.object({
   pickupEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   dietaryTags: z.array(z.string()).optional(),
   allergenNotice: z.string().nullable().optional(),
-  isMysteryBox: z.boolean().optional(),
 });
 
 const UploadImageSchema = z.object({
@@ -150,7 +148,7 @@ export class PartnerController {
 
   /**
    * POST /api/v1/partner/listings
-   * Create new Food Deal / Mystery Box listing
+   * Create new Food Deal listing
    */
   public async createListing(
     req: AuthenticatedRequest,

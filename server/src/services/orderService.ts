@@ -25,7 +25,7 @@ export class OrderService {
       restaurantName: 'The French Boulangerie & Patisserie',
       restaurantAddress: '142 Saint-Denis Ave, Downtown West',
       listingId: 'deal-1',
-      dealTitle: 'Evening Mystery Patisserie & Sourdough Box',
+      dealTitle: 'Evening Patisserie & Sourdough Selection',
       imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
       quantity: 1,
       unitPriceInr: 149,

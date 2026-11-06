@@ -50,7 +50,6 @@ export interface PartnerListingInput {
   dietaryTags?: string[];
   allergenNotice?: string;
   co2eSavingsKg?: number;
-  isMysteryBox?: boolean;
 }
 
 export interface VerifyPickupInput {
@@ -314,7 +313,6 @@ export class PartnerService {
             allergenNotice: l.allergenNotice,
             co2eSavingsKg: Number(l.co2eSavingsKg),
             status: l.status,
-            isMysteryBox: l.isMysteryBox,
             isDemo: l.isDemo,
             ordersCount: l.orders.length,
           }));
@@ -332,7 +330,7 @@ export class PartnerService {
           restaurantId,
           categoryId: 'demo-cat-bakery',
           categoryName: 'Artisan Bakery',
-          title: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          title: '[Demo] Evening Bakery & Sourdough Assortment',
           description: 'Assorted artisanal bread and breakfast pastries for development testing.',
           imageUrl:
             'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
@@ -351,7 +349,6 @@ export class PartnerService {
           allergenNotice: 'Demo notice: Synthetic sample data.',
           co2eSavingsKg: 1.8,
           status: 'ACTIVE',
-          isMysteryBox: true,
           isDemo: true,
           ordersCount: 4,
         },
@@ -379,7 +376,6 @@ export class PartnerService {
           allergenNotice: 'Testing data only.',
           co2eSavingsKg: 1.0,
           status: 'ACTIVE',
-          isMysteryBox: false,
           isDemo: true,
           ordersCount: 1,
         },
@@ -390,7 +386,7 @@ export class PartnerService {
   }
 
   /**
-   * Create a new Food Deal / Mystery Box listing for the restaurant
+   * Create a new Food Deal listing for the restaurant
    */
   public async createListing(restaurantId: string, input: PartnerListingInput): Promise<any> {
     const pickupDate = input.pickupDate ? new Date(input.pickupDate) : new Date();
@@ -428,7 +424,6 @@ export class PartnerService {
             allergenNotice: input.allergenNotice || null,
             co2eSavingsKg: input.co2eSavingsKg || 1.8,
             status: 'ACTIVE',
-            isMysteryBox: input.isMysteryBox ?? true,
             isDemo: false,
           },
           include: { category: true },
@@ -449,7 +444,6 @@ export class PartnerService {
           reservedQuantity: newListing.reservedQuantity,
           pickupWindowText: `${newListing.pickupStartTime} – ${newListing.pickupEndTime}`,
           status: newListing.status,
-          isMysteryBox: newListing.isMysteryBox,
           isDemo: newListing.isDemo,
         };
       } catch {
@@ -477,7 +471,6 @@ export class PartnerService {
       reservedQuantity: 0,
       pickupWindowText: `${input.pickupStartTime} – ${input.pickupEndTime}`,
       status: 'ACTIVE' as const,
-      isMysteryBox: input.isMysteryBox ?? true,
       isDemo,
     };
 
@@ -575,7 +568,6 @@ export class PartnerService {
       pickupEndTime?: string;
       dietaryTags?: string[];
       allergenNotice?: string | null;
-      isMysteryBox?: boolean;
     }
   ): Promise<any> {
     if (isDatabaseConfigured()) {
@@ -594,7 +586,6 @@ export class PartnerService {
         if (updates.pickupEndTime !== undefined) updateData.pickupEndTime = updates.pickupEndTime;
         if (updates.dietaryTags !== undefined) updateData.dietaryTags = updates.dietaryTags;
         if (updates.allergenNotice !== undefined) updateData.allergenNotice = updates.allergenNotice;
-        if (updates.isMysteryBox !== undefined) updateData.isMysteryBox = updates.isMysteryBox;
 
         const updated = await prisma.listing.update({
           where: { id: listingId },
@@ -619,7 +610,6 @@ export class PartnerService {
           pickupEndTime: updated.pickupEndTime,
           pickupWindowText: `${updated.pickupStartTime} – ${updated.pickupEndTime}`,
           status: updated.status,
-          isMysteryBox: updated.isMysteryBox,
         };
       } catch (err) {
         console.warn('[PartnerService] updateListing error:', err);
@@ -789,7 +779,7 @@ export class PartnerService {
           customerName: 'Sarah Jenkins',
           customerEmail: 'sarah.jenkins@savebite.in',
           customerPhone: '+919876543210',
-          listingTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          listingTitle: '[Demo] Evening Bakery & Sourdough Assortment',
           quantity: 1,
           totalPriceInr: 149,
           fulfillmentType: 'SELF_PICKUP',
@@ -807,7 +797,7 @@ export class PartnerService {
           customerName: 'Rahul Sharma',
           customerEmail: 'rahul.s@savebite.in',
           customerPhone: '+919812345678',
-          listingTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+          listingTitle: '[Demo] Evening Bakery & Sourdough Assortment',
           quantity: 2,
           totalPriceInr: 298,
           fulfillmentType: 'SELF_PICKUP',
@@ -1040,7 +1030,7 @@ export class PartnerService {
         orderId: 'ord-8492',
         orderNumber: '#8492',
         customerName: 'Sarah Jenkins',
-        dealTitle: '[Demo] Evening Bakery & Sourdough Surprise Pack',
+        dealTitle: '[Demo] Evening Bakery & Sourdough Assortment',
         quantity: 1,
         totalPriceInr: 149,
         completedAt: new Date().toISOString(),

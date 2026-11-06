@@ -78,7 +78,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 ? d.dietaryTags.filter((t: string) => t !== 'Demo Record' && t !== 'SYSTEM_DEMO_RECORD_V1')
                 : ['Freshly Prepared'],
               hygieneGrade: d.hygieneGrade ?? 'Grade A',
-              isMysteryBox: d.isMysteryBox ?? (d.categoryName?.toLowerCase().includes('bakery') || false),
             };
           });
           setDeals(mapped);

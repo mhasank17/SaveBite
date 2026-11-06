@@ -35,7 +35,6 @@ export interface CreateListingData {
   pickupEndTime: string;
   dietaryTags?: string[];
   allergenNotice?: string;
-  isMysteryBox?: boolean;
   co2eSavingsKg?: number;
 }
 
@@ -173,7 +172,7 @@ export const partnerApi = {
   },
 
   /**
-   * Create a new Food Deal / Mystery Box
+   * Create a new Food Deal
    */
   async createListing(data: CreateListingData): Promise<any> {
     const res = await fetch('/api/v1/partner/listings', {

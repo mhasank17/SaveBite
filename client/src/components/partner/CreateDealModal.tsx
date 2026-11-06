@@ -18,7 +18,6 @@ export interface DealItemForEdit {
   pickupStartTime?: string;
   pickupEndTime?: string;
   dietaryTags?: string[];
-  isMysteryBox?: boolean;
 }
 
 export interface CreateDealModalProps {
@@ -45,7 +44,7 @@ export const CATEGORY_PRESET_IMAGES: Record<string, string[]> = {
     'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80', // Artisan Neapolitan Pizza
     'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=800&q=80', // Fresh Sushi & Maki Bento
     'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80', // Toasted Artisan Club Sandwich
-    'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80', // Curated Mystery Meal Rescue Box
+    'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80', // Curated Meal Rescue Box
     'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80', // Indian Curry & Rice Thali
     'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80', // Wok Noodles / Ramen
   ],
@@ -85,7 +84,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
   const [totalQuantity, setTotalQuantity] = useState<number>(5);
   const [pickupStartTime, setPickupStartTime] = useState('18:00');
   const [pickupEndTime, setPickupEndTime] = useState('21:30');
-  const [isMysteryBox, setIsMysteryBox] = useState(true);
   const [imageUrl, setImageUrl] = useState(CATEGORY_PRESET_IMAGES.meal[0]);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
   const [dietaryTag, setDietaryTag] = useState('Vegetarian Friendly');
@@ -126,7 +124,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
       setTotalQuantity(dealToEdit.totalQuantity || 5);
       setPickupStartTime(dealToEdit.pickupStartTime || '18:00');
       setPickupEndTime(dealToEdit.pickupEndTime || '21:30');
-      setIsMysteryBox(dealToEdit.isMysteryBox ?? true);
 
       if (dealToEdit.imageUrl) {
         setImageUrl(dealToEdit.imageUrl);
@@ -148,7 +145,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
       setTotalQuantity(5);
       setPickupStartTime('18:00');
       setPickupEndTime('21:30');
-      setIsMysteryBox(true);
       setImageUrl(CATEGORY_PRESET_IMAGES.meal[0]);
       setCustomImageUrl(null);
       setDietaryTag('Vegetarian Friendly');
@@ -246,7 +242,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         pickupStartTime,
         pickupEndTime,
         dietaryTags: [dietaryTag, 'Fresh Today'].filter(Boolean),
-        isMysteryBox,
         co2eSavingsKg: 1.8,
       };
 
@@ -274,29 +269,10 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Edit Food Deal / Mystery Box' : 'Create Food Deal / Mystery Box'}
+      title={isEditing ? 'Edit Food Deal' : 'Create Food Deal'}
       maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-1 max-h-[75vh] overflow-y-auto pr-1">
-        {/* Deal Type Selector */}
-        <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant/30">
-          <div className="flex-1 flex flex-col">
-            <span className="font-bold text-sm text-on-surface">Mystery Box / Surprise Pack</span>
-            <span className="text-xs text-on-surface-variant">
-              Surprise assortment of today’s freshly prepared food or surplus items
-            </span>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer shrink-0">
-            <input
-              type="checkbox"
-              checked={isMysteryBox}
-              onChange={(e) => setIsMysteryBox(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-          </label>
-        </div>
-
         {/* Category Picker (Only 3 genuine deal categories) */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
@@ -335,7 +311,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Evening Mystery Pastry Bag or Chef Dum Biryani"
+            placeholder="e.g. Fresh Artisan Pastry Assortment or Chef Dum Biryani"
             className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface focus:outline-none focus:border-primary"
           />
         </div>
@@ -350,7 +326,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="What delicious food items might customers find inside?"
+            placeholder="Describe the freshly prepared food items and portions included in this deal."
             className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface focus:outline-none focus:border-primary"
           />
         </div>
