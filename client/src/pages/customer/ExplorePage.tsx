@@ -10,6 +10,7 @@ import { getFoodFallbackImageUrl } from '../../utils/foodImages';
 export interface ExplorePageProps {
   onSelectDeal: (deal: FoodDeal) => void;
   onOpenAccount?: () => void;
+  onNavigate?: (path: string) => void;
 }
 
 // 4 categories supported in SaveBite: All, Meal, Bakery, Pantry
@@ -23,6 +24,7 @@ const CATEGORY_TABS = [
 export const ExplorePage: React.FC<ExplorePageProps> = ({
   onSelectDeal,
   onOpenAccount: _onOpenAccount,
+  onNavigate: _onNavigate,
 }) => {
   const [deals, setDeals] = useState<FoodDeal[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);

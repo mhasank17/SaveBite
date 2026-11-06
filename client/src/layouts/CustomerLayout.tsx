@@ -11,11 +11,13 @@ export interface CustomerLayoutProps {
   showBack?: boolean;
   onBack?: () => void;
   ordersBadgeCount?: number;
+  unreadNotifications?: number;
   hideHeader?: boolean;
   onLogout?: () => void;
   userAvatarUrl?: string;
   userName?: string;
   onProfileClick?: () => void;
+  onNotificationsClick?: () => void;
 }
 
 export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
@@ -27,13 +29,15 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
   showBack = false,
   onBack,
   ordersBadgeCount,
+  unreadNotifications = 0,
   hideHeader = false,
   onLogout,
   userAvatarUrl,
   userName,
   onProfileClick,
+  onNotificationsClick,
 }) => {
-  const [internalTab, setInternalTab] = useState('explore');
+  const [internalTab, setInternalTab] = useState('dashboard');
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
   const handleTabChange = controlledOnTabChange || setInternalTab;
 
@@ -47,7 +51,8 @@ export const CustomerLayout: React.FC<CustomerLayoutProps> = ({
           subtitle={subtitle}
           showBack={showBack}
           onBack={onBack}
-          unreadNotifications={0}
+          unreadNotifications={unreadNotifications}
+          onNotificationClick={onNotificationsClick}
           onLogout={onLogout}
           userAvatarUrl={userAvatarUrl}
           userName={userName}

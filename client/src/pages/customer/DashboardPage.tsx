@@ -10,11 +10,13 @@ import { formatINR } from '../../utils/formatters';
 export interface DashboardPageProps {
   onSelectDeal: (deal: FoodDeal) => void;
   onShowPassModal: () => void;
+  onNavigate?: (path: string) => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   onSelectDeal,
   onShowPassModal,
+  onNavigate: _onNavigate,
 }) => {
   const [deals, setDeals] = useState<FoodDeal[]>([]);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);

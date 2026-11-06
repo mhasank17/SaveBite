@@ -7,51 +7,46 @@ import AdminChangePasswordModal from '../components/admin/AdminChangePasswordMod
 
 export interface AdminLayoutProps {
   children: React.ReactNode;
-  activeTab?: string;
-  onTabChange?: (tabId: string) => void;
+  activePath?: string;
+  onNavigate?: (path: string) => void;
   onLogout?: () => void;
   currentUser?: AuthUser | null;
   onUserUpdate?: (updatedUser: AuthUser) => void;
   onShowToast?: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
 }
 
-const ADMIN_NAVIGATION_ITEMS = [
-  { id: 'overview', label: 'Overview', icon: 'dashboard' },
-  { id: 'vendors', label: 'Applications & KYC', icon: 'verified' },
-  { id: 'customers', label: 'Customers', icon: 'group' },
-  { id: 'orders', label: 'Orders & GMV', icon: 'receipt_long' },
-  { id: 'listings', label: 'Listings', icon: 'inventory_2' },
-  { id: 'disputes', label: 'Disputes & Refunds', icon: 'gavel' },
-  { id: 'payouts', label: 'Settlements', icon: 'payments' },
-  { id: 'audit', label: 'Audit Logs', icon: 'history' },
+export const ADMIN_NAV_LINKS = [
+  { path: '/app/admin/dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { path: '/app/admin/partners', label: 'Partners', icon: 'verified' },
+  { path: '/app/admin/customers', label: 'Customers', icon: 'group' },
+  { path: '/app/admin/food-deals', label: 'Food Deals', icon: 'inventory_2' },
+  { path: '/app/admin/orders', label: 'Orders', icon: 'receipt_long' },
+  { path: '/app/admin/reports', label: 'Reports', icon: 'monitoring' },
+  { path: '/app/admin/settings', label: 'Settings', icon: 'settings' },
 ];
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
   children,
-  activeTab: controlledTab,
-  onTabChange: controlledOnTabChange,
+  activePath = '/app/admin/dashboard',
+  onNavigate,
   onLogout,
   currentUser,
   onUserUpdate,
   onShowToast,
 }) => {
-  const [internalTab, setInternalTab] = useState('overview');
-  const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
-  const handleTabChange = controlledOnTabChange || setInternalTab;
-
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50 font-body text-slate-900 flex flex-col antialiased">
-      {/* SuperAdmin Header */}
+      {/* Admin Header */}
       <Header
         portal="admin"
         title="SaveBite Admin"
-        subtitle="SuperAdmin Console"
+        subtitle="Operations Console"
         unreadNotifications={0}
         onLogout={onLogout}
-        userName={currentUser?.fullName || 'Campus SuperAdmin'}
+        userName={currentUser?.fullName || 'Campus Admin'}
         userEmail={currentUser?.email || 'admin@savebite.in'}
         userPhone={currentUser?.phone}
         onEditProfile={() => setIsEditProfileOpen(true)}
@@ -61,13 +56,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       {/* Admin Horizontal Navigation Bar */}
       <div className="fixed top-16 md:top-20 inset-x-0 z-40 bg-white border-b border-slate-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 overflow-x-auto py-2 no-scrollbar">
-          {ADMIN_NAVIGATION_ITEMS.map((item) => {
-            const isActive = activeTab === item.id;
+          {ADMIN_NAV_LINKS.map((item) => {
+            const isActive = activePath === item.path;
             return (
               <button
-                key={item.id}
+                key={item.path}
                 type="button"
-                onClick={() => handleTabChange(item.id)}
+                onClick={() => {
+                  if (onNavigate) {
+                    onNavigate(item.path);
+                  }
+                }}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
                   isActive
                     ? 'bg-slate-900 text-white shadow-xs'
@@ -91,7 +90,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </div>
       </main>
 
-      {/* Modals for SuperAdmin Profile Management */}
+      {/* Modals for Admin Profile Management */}
       <AdminEditProfileModal
         isOpen={isEditProfileOpen}
         onClose={() => setIsEditProfileOpen(false)}

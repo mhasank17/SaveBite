@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import CustomerLayout from './layouts/CustomerLayout';
 import PartnerLayout from './layouts/PartnerLayout';
 import AdminLayout from './layouts/AdminLayout';
+import SuperAdminLayout from './layouts/SuperAdminLayout';
 import Toast from './components/common/Toast';
 import { FoodDeal, Order } from './types';
 import authApi, { AuthUser, PartnerRestaurantInfo } from './services/authApi';
@@ -9,10 +10,12 @@ import api from './services/api';
 import partnerApi, { PartnerRestaurant } from './services/partnerApi';
 
 // Customer Pages
+import DashboardPage from './pages/customer/DashboardPage';
 import ExplorePage from './pages/customer/ExplorePage';
 import DealDetailPage from './pages/customer/DealDetailPage';
 import OrdersPage from './pages/customer/OrdersPage';
 import AccountPage from './pages/customer/AccountPage';
+import CustomerNotificationsPage from './pages/customer/CustomerNotificationsPage';
 import CustomerLoginPage from './pages/customer/CustomerLoginPage';
 import CustomerRegisterPage from './pages/customer/CustomerRegisterPage';
 import PickupPassModal from './components/customer/PickupPassModal';
@@ -38,9 +41,17 @@ import AdminVendorsPage from './pages/admin/AdminVendorsPage';
 import AdminCustomersPage from './pages/admin/AdminCustomersPage';
 import AdminOrdersPage from './pages/admin/AdminOrdersPage';
 import AdminListingsPage from './pages/admin/AdminListingsPage';
-import AdminDisputesPage from './pages/admin/AdminDisputesPage';
-import AdminPayoutsPage from './pages/admin/AdminPayoutsPage';
-import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
+import AdminReportsPage from './pages/admin/AdminReportsPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+
+// Super Admin Pages
+import SuperAdminDashboardPage from './pages/super-admin/SuperAdminDashboardPage';
+import SuperAdminAdminsPage from './pages/super-admin/SuperAdminAdminsPage';
+import SuperAdminPartnersPage from './pages/super-admin/SuperAdminPartnersPage';
+import SuperAdminCustomersPage from './pages/super-admin/SuperAdminCustomersPage';
+import SuperAdminOrdersPage from './pages/super-admin/SuperAdminOrdersPage';
+import SuperAdminReportsPage from './pages/super-admin/SuperAdminReportsPage';
+import SuperAdminSettingsPage from './pages/super-admin/SuperAdminSettingsPage';
 
 export const App: React.FC = () => {
   // Navigation & URL Routing
@@ -66,25 +77,8 @@ export const App: React.FC = () => {
   // Guest deal browsing toggle (only active if user explicitly clicks "Explore Deals as Guest")
   const [isGuestBrowsing, setIsGuestBrowsing] = useState<boolean>(false);
 
-  // Active sub-tabs per portal with persistent tab restoration
-  const [customerTab, setCustomerTab] = useState<string>('explore');
-  const [partnerTab, setPartnerTabState] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('savebite_partner_tab');
-      if (stored) return stored;
-    }
-    return 'dashboard';
-  });
+  // Partner refresh trigger for listings/orders updates
   const [partnerRefreshTrigger, setPartnerRefreshTrigger] = useState<number>(0);
-
-  const setPartnerTab = useCallback((tab: string) => {
-    setPartnerTabState(tab);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('savebite_partner_tab', tab);
-    }
-  }, []);
-
-  const [adminTab, setAdminTab] = useState<string>('overview');
 
   // Customer Deal & Modal State
   const [selectedDeal, setSelectedDeal] = useState<FoodDeal | null>(null);
@@ -98,7 +92,6 @@ export const App: React.FC = () => {
   } | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-
 
   // Partner Modals
   const [isPartnerCreateDealOpen, setIsPartnerCreateDealOpen] = useState(false);
@@ -168,22 +161,50 @@ export const App: React.FC = () => {
       });
   }, []);
 
-  // Role-based automatic redirection when visiting '/'
+  // Helper to resolve redirect path post-login
+  const getRedirectPathForRole = useCallback((role: string, defaultPath: string): string => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('savebite_redirect_path');
+      if (saved) {
+        sessionStorage.removeItem('savebite_redirect_path');
+        if (role === 'CUSTOMER' && saved.startsWith('/app/customer')) return saved;
+        if (role === 'PARTNER' && saved.startsWith('/app/partner')) return saved;
+        if (role === 'ADMIN' && (saved.startsWith('/app/admin') || saved.startsWith('/app/super-admin'))) return saved;
+      }
+    }
+    return defaultPath;
+  }, []);
+
+  // Role-based automatic redirection when visiting '/' or legacy root routes
   useEffect(() => {
-    if (!isAuthInitializing && currentUser) {
-      if (currentUser.role === 'ADMIN' && currentPath === '/') {
-        navigate('/admin');
-      } else if (currentUser.role === 'PARTNER' && currentPath === '/') {
-        navigate('/partner');
+    if (!isAuthInitializing) {
+      if (currentPath === '/') {
+        if (currentUser) {
+          if (currentUser.role === 'ADMIN') {
+            navigate('/app/admin/dashboard');
+          } else if (currentUser.role === 'PARTNER') {
+            navigate('/app/partner/dashboard');
+          } else {
+            navigate('/app/customer/dashboard');
+          }
+        }
+      } else if (currentPath === '/partner' || currentPath === '/app/partner') {
+        navigate('/app/partner/dashboard');
+      } else if (currentPath === '/admin' || currentPath === '/app/admin') {
+        navigate('/app/admin/dashboard');
+      } else if (currentPath === '/super-admin' || currentPath === '/app/super-admin') {
+        navigate('/app/super-admin/dashboard');
+      } else if (currentPath === '/customer' || currentPath === '/app/customer') {
+        navigate('/app/customer/dashboard');
       }
     }
   }, [currentUser, currentPath, isAuthInitializing, navigate]);
 
-  // Refresh customer orders ONLY for authenticated customer users
+  // Refresh customer orders ONLY for authenticated customer users on customer views
   useEffect(() => {
     if (
       currentUser?.role === 'CUSTOMER' &&
-      (currentPath === '/' || currentPath.startsWith('/customer'))
+      (currentPath === '/' || currentPath.startsWith('/app/customer') || currentPath.startsWith('/customer'))
     ) {
       api
         .getMyOrders()
@@ -259,7 +280,10 @@ export const App: React.FC = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    if (currentPath.startsWith('/partner') && currentUser?.role === 'PARTNER') {
+    if (
+      (currentPath.startsWith('/app/partner') || currentPath.startsWith('/partner')) &&
+      currentUser?.role === 'PARTNER'
+    ) {
       refreshPartnerRestaurant();
     }
   }, [currentPath, currentUser, refreshPartnerRestaurant]);
@@ -277,7 +301,7 @@ export const App: React.FC = () => {
     setIsGuestBrowsing(false);
 
     if (prevRole === 'ADMIN') {
-      addToast('info', 'SuperAdmin session terminated.', 'Signed Out');
+      addToast('info', 'Admin session terminated.', 'Signed Out');
       navigate('/admin/login');
     } else if (prevRole === 'PARTNER') {
       addToast('info', 'Restaurant Partner session terminated.', 'Signed Out');
@@ -320,28 +344,247 @@ export const App: React.FC = () => {
   }
 
   // ---------------------------------------------------------------------------
-  // 1. ADMIN PORTAL (Strictly Isolated)
+  // AUTHENTICATION ROUTES (Login & Register)
   // ---------------------------------------------------------------------------
-  if (currentPath === '/admin/login') {
+
+  // Admin & SuperAdmin Login
+  if (currentPath === '/admin/login' || currentPath === '/super-admin/login') {
+    const isSuperAdminLogin = currentPath.startsWith('/super-admin');
     return (
       <>
         {toastContainer}
         <AdminLoginPage
           onSuccess={(adminUser) => {
             setCurrentUser(adminUser);
-            navigate('/admin');
+            const target = getRedirectPathForRole(
+              'ADMIN',
+              isSuperAdminLogin ? '/app/super-admin/dashboard' : '/app/admin/dashboard'
+            );
+            navigate(target);
           }}
-          onNavigateToCustomer={() => navigate('/')}
+          onNavigateToCustomer={() => navigate('/app/customer/dashboard')}
           onShowToast={addToast}
         />
       </>
     );
   }
 
-  if (currentPath.startsWith('/admin')) {
-    // Role Gate: Must be logged in as ADMIN
+  // Partner Registration
+  if (currentPath === '/partner/register') {
+    return (
+      <>
+        {toastContainer}
+        <PartnerRegisterPage
+          onSuccess={(partnerUser, restaurant) => {
+            setCurrentUser(partnerUser);
+            if (restaurant) setPartnerRestaurant(restaurant);
+            navigate('/app/partner/dashboard');
+          }}
+          onNavigateToLogin={() => navigate('/partner/login')}
+          onShowToast={addToast}
+        />
+      </>
+    );
+  }
+
+  // Partner Login
+  if (currentPath === '/partner/login') {
+    return (
+      <>
+        {toastContainer}
+        <PartnerLoginPage
+          onSuccess={(partnerUser, restaurant) => {
+            setCurrentUser(partnerUser);
+            if (restaurant) setPartnerRestaurant(restaurant);
+            const target = getRedirectPathForRole('PARTNER', '/app/partner/dashboard');
+            navigate(target);
+          }}
+          onNavigateToRegister={() => navigate('/partner/register')}
+          onNavigateToCustomer={() => navigate('/customer/login')}
+          onShowToast={addToast}
+        />
+      </>
+    );
+  }
+
+  // Customer Login
+  if (currentPath === '/customer/login' || currentPath === '/login') {
+    return (
+      <>
+        {toastContainer}
+        <CustomerLoginPage
+          currentUser={currentUser?.role === 'CUSTOMER' ? currentUser : null}
+          onContinue={() => {
+            setIsGuestBrowsing(false);
+            const target = getRedirectPathForRole('CUSTOMER', '/app/customer/dashboard');
+            navigate(target);
+          }}
+          onSwitchAccount={handleLogout}
+          onSuccess={(customerUser) => {
+            setCurrentUser(customerUser);
+            setIsGuestBrowsing(false);
+            const pendingStr = sessionStorage.getItem('savebite_pending_deal');
+            if (pendingStr) {
+              try {
+                const pending = JSON.parse(pendingStr);
+                if (!selectedDeal && pending.deal) {
+                  setSelectedDeal(pending.deal);
+                }
+              } catch {}
+            }
+            const target = getRedirectPathForRole('CUSTOMER', '/app/customer/dashboard');
+            navigate(target);
+          }}
+          onNavigateToRegister={() => navigate('/customer/register')}
+          onNavigateToPartner={() => navigate('/partner/login')}
+          onNavigateToAdmin={() => navigate('/admin/login')}
+          onBrowseGuest={() => {
+            setIsGuestBrowsing(true);
+            navigate('/app/customer/food-deals');
+          }}
+          onShowToast={addToast}
+        />
+      </>
+    );
+  }
+
+  // Customer Registration
+  if (currentPath === '/customer/register' || currentPath === '/register') {
+    return (
+      <>
+        {toastContainer}
+        <CustomerRegisterPage
+          onSuccess={(customerUser) => {
+            setCurrentUser(customerUser);
+            setIsGuestBrowsing(false);
+            const pendingStr = sessionStorage.getItem('savebite_pending_deal');
+            if (pendingStr) {
+              try {
+                const pending = JSON.parse(pendingStr);
+                if (!selectedDeal && pending.deal) {
+                  setSelectedDeal(pending.deal);
+                }
+              } catch {}
+            }
+            const target = getRedirectPathForRole('CUSTOMER', '/app/customer/dashboard');
+            navigate(target);
+          }}
+          onNavigateToLogin={() => navigate('/customer/login')}
+          onShowToast={addToast}
+        />
+      </>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1. SUPER ADMIN PORTAL (Strictly Role-Protected: ADMIN only)
+  // Routes: /app/super-admin/dashboard, /app/super-admin/admins, /app/super-admin/partners,
+  //         /app/super-admin/customers, /app/super-admin/orders, /app/super-admin/reports,
+  //         /app/super-admin/settings
+  // ---------------------------------------------------------------------------
+  if (currentPath.startsWith('/app/super-admin') || currentPath.startsWith('/super-admin')) {
+    // Gate: Must be logged in as ADMIN
     if (!currentUser || currentUser.role !== 'ADMIN') {
-      // If logged in as another role, block with notice
+      if (currentUser && currentUser.role !== 'ADMIN') {
+        return (
+          <>
+            {toastContainer}
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+              <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center mb-4">
+                <span className="material-symbols-outlined text-[32px]">shield_lock</span>
+              </div>
+              <h1 className="text-2xl font-bold mb-2">SuperAdmin Access Restricted</h1>
+              <p className="text-slate-400 text-sm max-w-md mb-6">
+                Your account role ({currentUser.role}) does not have root administrative clearance for the SuperAdmin Console.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
+                  className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm"
+                >
+                  Return to Authorized Portal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleLogout();
+                    navigate('/super-admin/login');
+                  }}
+                  className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
+                >
+                  Switch Account
+                </button>
+              </div>
+            </div>
+          </>
+        );
+      }
+
+      // Not authenticated: Save intended path & show admin login
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('savebite_redirect_path', currentPath);
+      }
+      return (
+        <>
+          {toastContainer}
+          <AdminLoginPage
+            onSuccess={(adminUser) => {
+              setCurrentUser(adminUser);
+              const target = getRedirectPathForRole('ADMIN', '/app/super-admin/dashboard');
+              navigate(target);
+            }}
+            onNavigateToCustomer={() => navigate('/app/customer/dashboard')}
+            onShowToast={addToast}
+          />
+        </>
+      );
+    }
+
+    // Authenticated SuperAdmin Layout
+    const normalizedSuperPath = currentPath === '/super-admin' || currentPath === '/app/super-admin'
+      ? '/app/super-admin/dashboard'
+      : currentPath;
+
+    return (
+      <SuperAdminLayout
+        activePath={normalizedSuperPath}
+        onNavigate={(path) => navigate(path)}
+        onLogout={handleLogout}
+        currentUser={currentUser}
+        onUserUpdate={(updated) => setCurrentUser(updated)}
+        onShowToast={addToast}
+      >
+        {toastContainer}
+
+        {normalizedSuperPath === '/app/super-admin/admins' ? (
+          <SuperAdminAdminsPage onShowToast={addToast} />
+        ) : normalizedSuperPath === '/app/super-admin/partners' ? (
+          <SuperAdminPartnersPage onShowToast={addToast} />
+        ) : normalizedSuperPath === '/app/super-admin/customers' ? (
+          <SuperAdminCustomersPage onShowToast={addToast} />
+        ) : normalizedSuperPath === '/app/super-admin/orders' ? (
+          <SuperAdminOrdersPage onShowToast={addToast} />
+        ) : normalizedSuperPath === '/app/super-admin/reports' ? (
+          <SuperAdminReportsPage onShowToast={addToast} />
+        ) : normalizedSuperPath === '/app/super-admin/settings' ? (
+          <SuperAdminSettingsPage currentUser={currentUser} onShowToast={addToast} onLogout={handleLogout} />
+        ) : (
+          <SuperAdminDashboardPage onNavigate={(path) => navigate(path)} onShowToast={addToast} />
+        )}
+      </SuperAdminLayout>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. ADMIN PORTAL (Strictly Role-Protected: ADMIN only)
+  // Routes: /app/admin/dashboard, /app/admin/partners, /app/admin/customers,
+  //         /app/admin/food-deals, /app/admin/orders, /app/admin/reports,
+  //         /app/admin/settings
+  // ---------------------------------------------------------------------------
+  if (currentPath.startsWith('/app/admin') || currentPath.startsWith('/admin')) {
+    // Gate: Must be logged in as ADMIN
+    if (!currentUser || currentUser.role !== 'ADMIN') {
       if (currentUser && currentUser.role !== 'ADMIN') {
         return (
           <>
@@ -352,12 +595,12 @@ export const App: React.FC = () => {
               </div>
               <h1 className="text-2xl font-bold mb-2">Access Restricted</h1>
               <p className="text-slate-400 text-sm max-w-md mb-6">
-                Your account ({currentUser.role}) does not have administrative clearance for the University SuperAdmin Console.
+                Your account ({currentUser.role}) does not have administrative clearance for the Admin Console.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button
                   type="button"
-                  onClick={() => navigate(currentUser.role === 'PARTNER' ? '/partner' : '/')}
+                  onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
                   className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
                 >
                   Return to Authorized Portal
@@ -370,7 +613,7 @@ export const App: React.FC = () => {
                   }}
                   className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
                 >
-                  Switch to SuperAdmin Login
+                  Switch to Admin Login
                 </button>
               </div>
             </div>
@@ -378,27 +621,66 @@ export const App: React.FC = () => {
         );
       }
 
-      // Not authenticated: Show secure admin login
+      // Not authenticated: Save intended path & show admin login
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('savebite_redirect_path', currentPath);
+      }
       return (
         <>
           {toastContainer}
           <AdminLoginPage
             onSuccess={(adminUser) => {
               setCurrentUser(adminUser);
-              navigate('/admin');
+              const target = getRedirectPathForRole('ADMIN', '/app/admin/dashboard');
+              navigate(target);
             }}
-            onNavigateToCustomer={() => navigate('/')}
+            onNavigateToCustomer={() => navigate('/app/customer/dashboard')}
             onShowToast={addToast}
           />
         </>
       );
     }
 
-    // Authenticated SuperAdmin Layout
+    // Authenticated Admin Layout
+    const normalizedAdminPath = currentPath === '/admin' || currentPath === '/app/admin'
+      ? '/app/admin/dashboard'
+      : currentPath;
+
+    const handleAdminOverviewNavigate = (tabId: string) => {
+      switch (tabId) {
+        case 'vendors':
+        case 'partners':
+          navigate('/app/admin/partners');
+          break;
+        case 'customers':
+          navigate('/app/admin/customers');
+          break;
+        case 'listings':
+        case 'food-deals':
+          navigate('/app/admin/food-deals');
+          break;
+        case 'orders':
+          navigate('/app/admin/orders');
+          break;
+        case 'disputes':
+        case 'payouts':
+        case 'reports':
+        case 'audit':
+          navigate('/app/admin/reports');
+          break;
+        case 'settings':
+          navigate('/app/admin/settings');
+          break;
+        default:
+          navigate('/app/admin/dashboard');
+          break;
+      }
+    };
+
     return (
       <AdminLayout
-        activeTab={adminTab}
-        onTabChange={setAdminTab}
+        activePath={normalizedAdminPath}
+        onNavigate={(path) => navigate(path)}
         onLogout={handleLogout}
         currentUser={currentUser}
         onUserUpdate={(updated) => setCurrentUser(updated)}
@@ -406,67 +688,32 @@ export const App: React.FC = () => {
       >
         {toastContainer}
 
-        {adminTab === 'vendors' ? (
+        {normalizedAdminPath === '/app/admin/partners' ? (
           <AdminVendorsPage onShowToast={addToast} />
-        ) : adminTab === 'customers' ? (
+        ) : normalizedAdminPath === '/app/admin/customers' ? (
           <AdminCustomersPage onShowToast={addToast} />
-        ) : adminTab === 'orders' ? (
-          <AdminOrdersPage onShowToast={addToast} />
-        ) : adminTab === 'listings' ? (
+        ) : normalizedAdminPath === '/app/admin/food-deals' ? (
           <AdminListingsPage onShowToast={addToast} />
-        ) : adminTab === 'disputes' ? (
-          <AdminDisputesPage onShowToast={addToast} />
-        ) : adminTab === 'payouts' ? (
-          <AdminPayoutsPage onShowToast={addToast} />
-        ) : adminTab === 'audit' ? (
-          <AdminAuditLogsPage onShowToast={addToast} />
+        ) : normalizedAdminPath === '/app/admin/orders' ? (
+          <AdminOrdersPage onShowToast={addToast} />
+        ) : normalizedAdminPath === '/app/admin/reports' ? (
+          <AdminReportsPage onShowToast={addToast} onNavigateTab={(path) => navigate(path)} />
+        ) : normalizedAdminPath === '/app/admin/settings' ? (
+          <AdminSettingsPage currentUser={currentUser} onShowToast={addToast} onLogout={handleLogout} />
         ) : (
-          <AdminOverviewPage onNavigateTab={(tab) => setAdminTab(tab)} onShowToast={addToast} />
+          <AdminOverviewPage onNavigateTab={handleAdminOverviewNavigate} onShowToast={addToast} />
         )}
       </AdminLayout>
     );
   }
 
   // ---------------------------------------------------------------------------
-  // 2. RESTAURANT OWNER PORTAL (Strictly Isolated)
+  // 3. RESTAURANT PARTNER PORTAL (Strictly Role-Protected: PARTNER only)
+  // Routes: /app/partner/dashboard, /app/partner/listings, /app/partner/orders,
+  //         /app/partner/earnings, /app/partner/settings
   // ---------------------------------------------------------------------------
-  if (currentPath === '/partner/register') {
-    return (
-      <>
-        {toastContainer}
-        <PartnerRegisterPage
-          onSuccess={(partnerUser, restaurant) => {
-            setCurrentUser(partnerUser);
-            setPartnerRestaurant(restaurant);
-            navigate('/partner');
-          }}
-          onNavigateToLogin={() => navigate('/partner/login')}
-          onShowToast={addToast}
-        />
-      </>
-    );
-  }
-
-  if (currentPath === '/partner/login') {
-    return (
-      <>
-        {toastContainer}
-        <PartnerLoginPage
-          onSuccess={(partnerUser, restaurant) => {
-            setCurrentUser(partnerUser);
-            if (restaurant) setPartnerRestaurant(restaurant);
-            navigate('/partner');
-          }}
-          onNavigateToRegister={() => navigate('/partner/register')}
-          onNavigateToCustomer={() => navigate('/customer/login')}
-          onShowToast={addToast}
-        />
-      </>
-    );
-  }
-
-  if (currentPath.startsWith('/partner') || currentPath.startsWith('/restaurant')) {
-    // Role Gate: Must be PARTNER (or ADMIN testing)
+  if (currentPath.startsWith('/app/partner') || currentPath.startsWith('/partner') || currentPath.startsWith('/restaurant')) {
+    // Gate: Must be PARTNER (or ADMIN testing)
     if (!currentUser || (currentUser.role !== 'PARTNER' && currentUser.role !== 'ADMIN')) {
       if (currentUser && currentUser.role === 'CUSTOMER') {
         return (
@@ -483,7 +730,7 @@ export const App: React.FC = () => {
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate('/app/customer/dashboard')}
                   className="px-5 py-2.5 bg-[#006030] text-white rounded-xl font-bold text-sm"
                 >
                   Return to Deals
@@ -504,7 +751,10 @@ export const App: React.FC = () => {
         );
       }
 
-      // Not authenticated: Show partner login
+      // Not authenticated: Save intended path & show partner login
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('savebite_redirect_path', currentPath);
+      }
       return (
         <>
           {toastContainer}
@@ -512,7 +762,8 @@ export const App: React.FC = () => {
             onSuccess={(partnerUser, restaurant) => {
               setCurrentUser(partnerUser);
               if (restaurant) setPartnerRestaurant(restaurant);
-              navigate('/partner');
+              const target = getRedirectPathForRole('PARTNER', '/app/partner/dashboard');
+              navigate(target);
             }}
             onNavigateToRegister={() => navigate('/partner/register')}
             onNavigateToCustomer={() => navigate('/customer/login')}
@@ -536,11 +787,46 @@ export const App: React.FC = () => {
       );
     }
 
-    // Authenticated & Approved Partner Layout
+    // Authenticated Partner Layout
+    const normalizedPartnerPath = currentPath === '/partner' || currentPath === '/app/partner'
+      ? '/app/partner/dashboard'
+      : currentPath;
+
+    const partnerActiveTab = normalizedPartnerPath === '/app/partner/listings'
+      ? 'listings'
+      : normalizedPartnerPath === '/app/partner/orders'
+      ? 'orders'
+      : normalizedPartnerPath === '/app/partner/earnings'
+      ? 'earnings'
+      : normalizedPartnerPath === '/app/partner/settings'
+      ? 'settings'
+      : 'dashboard';
+
+    const handlePartnerTabChange = (tabId: string) => {
+      switch (tabId) {
+        case 'listings':
+          navigate('/app/partner/listings');
+          break;
+        case 'orders':
+          navigate('/app/partner/orders');
+          break;
+        case 'earnings':
+          navigate('/app/partner/earnings');
+          break;
+        case 'settings':
+          navigate('/app/partner/settings');
+          break;
+        case 'dashboard':
+        default:
+          navigate('/app/partner/dashboard');
+          break;
+      }
+    };
+
     return (
       <PartnerLayout
-        activeTab={partnerTab}
-        onTabChange={setPartnerTab}
+        activeTab={partnerActiveTab}
+        onTabChange={handlePartnerTabChange}
         restaurantName={partnerRestaurant?.name || 'The Daily Dough Bakery'}
         branchName={partnerRestaurant?.branchName || 'North Gate Campus Plaza'}
         currentUser={currentUser}
@@ -561,21 +847,21 @@ export const App: React.FC = () => {
       >
         {toastContainer}
 
-        {partnerTab === 'listings' ? (
+        {partnerActiveTab === 'listings' ? (
           <PartnerListingsPage
             onOpenCreateDealModal={() => setIsPartnerCreateDealOpen(true)}
             onShowToast={addToast}
             refreshTrigger={partnerRefreshTrigger}
           />
-        ) : partnerTab === 'orders' ? (
+        ) : partnerActiveTab === 'orders' ? (
           <PartnerOrdersPage
             onOpenVerifyOtpModal={() => setIsPartnerVerifyOtpOpen(true)}
             onShowToast={addToast}
             refreshTrigger={partnerRefreshTrigger}
           />
-        ) : partnerTab === 'earnings' ? (
+        ) : partnerActiveTab === 'earnings' ? (
           <PartnerEarningsPage onShowToast={addToast} refreshTrigger={partnerRefreshTrigger} />
-        ) : partnerTab === 'settings' ? (
+        ) : partnerActiveTab === 'settings' ? (
           <PartnerSettingsPage
             restaurant={partnerRestaurant as any}
             onShowToast={addToast}
@@ -586,13 +872,13 @@ export const App: React.FC = () => {
             restaurant={partnerRestaurant as any}
             onOpenCreateDealModal={() => setIsPartnerCreateDealOpen(true)}
             onOpenVerifyOtpModal={() => setIsPartnerVerifyOtpOpen(true)}
-            onNavigateTab={(tab) => setPartnerTab(tab)}
+            onNavigateTab={handlePartnerTabChange}
             onShowToast={addToast}
             refreshTrigger={partnerRefreshTrigger}
           />
         )}
 
-        {/* Modals */}
+        {/* Partner Modals */}
         <CreateDealModal
           isOpen={isPartnerCreateDealOpen}
           onClose={() => setIsPartnerCreateDealOpen(false)}
@@ -619,77 +905,17 @@ export const App: React.FC = () => {
   }
 
   // ---------------------------------------------------------------------------
-  // 3. CUSTOMER PORTAL (Strictly Isolated)
+  // 4. CUSTOMER PORTAL
+  // Routes: /app/customer/dashboard, /app/customer/food-deals, /app/customer/orders,
+  //         /app/customer/profile, /app/customer/notifications
   // ---------------------------------------------------------------------------
-  if (currentPath === '/customer/login' || currentPath === '/login') {
-    return (
-      <>
-        {toastContainer}
-        <CustomerLoginPage
-          currentUser={currentUser?.role === 'CUSTOMER' ? currentUser : null}
-          onContinue={() => {
-            setIsGuestBrowsing(false);
-            navigate('/');
-          }}
-          onSwitchAccount={handleLogout}
-          onSuccess={(customerUser) => {
-            setCurrentUser(customerUser);
-            setIsGuestBrowsing(false);
-            // Restore any preserved pending deal from login redirect
-            const pendingStr = sessionStorage.getItem('savebite_pending_deal');
-            if (pendingStr) {
-              try {
-                const pending = JSON.parse(pendingStr);
-                if (!selectedDeal && pending.deal) {
-                  setSelectedDeal(pending.deal);
-                }
-              } catch {}
-            }
-            navigate('/');
-          }}
-          onNavigateToRegister={() => navigate('/customer/register')}
-          onNavigateToPartner={() => navigate('/partner/login')}
-          onNavigateToAdmin={() => navigate('/admin/login')}
-          onBrowseGuest={() => {
-            setIsGuestBrowsing(true);
-            navigate('/');
-          }}
-          onShowToast={addToast}
-        />
-      </>
-    );
-  }
 
-  if (currentPath === '/customer/register' || currentPath === '/register') {
-    return (
-      <>
-        {toastContainer}
-        <CustomerRegisterPage
-          onSuccess={(customerUser) => {
-            setCurrentUser(customerUser);
-            setIsGuestBrowsing(false);
-            // Restore any preserved pending deal from login redirect
-            const pendingStr = sessionStorage.getItem('savebite_pending_deal');
-            if (pendingStr) {
-              try {
-                const pending = JSON.parse(pendingStr);
-                if (!selectedDeal && pending.deal) {
-                  setSelectedDeal(pending.deal);
-                }
-              } catch {}
-            }
-            navigate('/');
-          }}
-          onNavigateToLogin={() => navigate('/customer/login')}
-          onShowToast={addToast}
-        />
-      </>
-    );
-  }
-
-  // If no authenticated session exists and not explicitly exploring as guest,
-  // display the customer login / landing screen asking for credentials
+  // If no authenticated session exists and user is not explicitly exploring as guest,
+  // show customer login with redirect memory
   if (!currentUser && !isGuestBrowsing) {
+    if (typeof window !== 'undefined' && currentPath.startsWith('/app/customer')) {
+      sessionStorage.setItem('savebite_redirect_path', currentPath);
+    }
     return (
       <>
         {toastContainer}
@@ -697,7 +923,8 @@ export const App: React.FC = () => {
           currentUser={null}
           onContinue={() => {
             setIsGuestBrowsing(false);
-            navigate('/');
+            const target = getRedirectPathForRole('CUSTOMER', '/app/customer/dashboard');
+            navigate(target);
           }}
           onSwitchAccount={handleLogout}
           onSuccess={(customerUser) => {
@@ -712,14 +939,15 @@ export const App: React.FC = () => {
                 }
               } catch {}
             }
-            navigate('/');
+            const target = getRedirectPathForRole('CUSTOMER', '/app/customer/dashboard');
+            navigate(target);
           }}
           onNavigateToRegister={() => navigate('/customer/register')}
           onNavigateToPartner={() => navigate('/partner/login')}
           onNavigateToAdmin={() => navigate('/admin/login')}
           onBrowseGuest={() => {
             setIsGuestBrowsing(true);
-            navigate('/');
+            navigate('/app/customer/food-deals');
           }}
           onShowToast={addToast}
         />
@@ -727,17 +955,53 @@ export const App: React.FC = () => {
     );
   }
 
-  // Standard Customer Experience (Role Isolated)
+  // Authenticated or Guest Customer Experience
   const isCustomer = currentUser?.role === 'CUSTOMER';
   const customerUser = isCustomer ? currentUser : null;
 
+  // Determine active customer section based on URL
+  const normalizedCustomerPath = currentPath === '/' || currentPath === '/app/customer' || currentPath === '/customer'
+    ? '/app/customer/dashboard'
+    : currentPath;
+
+  const customerActiveTab = normalizedCustomerPath === '/app/customer/food-deals'
+    ? 'food-deals'
+    : normalizedCustomerPath === '/app/customer/orders'
+    ? 'orders'
+    : normalizedCustomerPath === '/app/customer/profile'
+    ? 'profile'
+    : normalizedCustomerPath === '/app/customer/notifications'
+    ? 'notifications'
+    : 'dashboard';
+
+  const handleCustomerTabChange = (tabId: string) => {
+    setSelectedDeal(null);
+    switch (tabId) {
+      case 'food-deals':
+      case 'explore':
+        navigate('/app/customer/food-deals');
+        break;
+      case 'orders':
+        navigate('/app/customer/orders');
+        break;
+      case 'profile':
+      case 'account':
+        navigate('/app/customer/profile');
+        break;
+      case 'notifications':
+        navigate('/app/customer/notifications');
+        break;
+      case 'dashboard':
+      default:
+        navigate('/app/customer/dashboard');
+        break;
+    }
+  };
+
   return (
     <CustomerLayout
-      activeTab={customerTab}
-      onTabChange={(tabId) => {
-        setSelectedDeal(null);
-        setCustomerTab(tabId);
-      }}
+      activeTab={customerActiveTab}
+      onTabChange={handleCustomerTabChange}
       ordersBadgeCount={customerUser ? orders.filter((o) => o.orderStatus === 'CONFIRMED').length : 0}
       subtitle="Direct Restaurant Counter Pickup"
       onLogout={customerUser ? handleLogout : undefined}
@@ -745,12 +1009,13 @@ export const App: React.FC = () => {
       userName={customerUser?.fullName}
       onProfileClick={() => {
         if (customerUser) {
-          setIsAvatarModalOpen(true);
+          navigate('/app/customer/profile');
         } else {
           setIsGuestBrowsing(false);
           navigate('/customer/login');
         }
       }}
+      onNotificationsClick={() => navigate('/app/customer/notifications')}
     >
       {toastContainer}
 
@@ -784,7 +1049,23 @@ export const App: React.FC = () => {
           }}
           onShowToast={addToast}
         />
-      ) : customerTab === 'orders' ? (
+      ) : customerActiveTab === 'food-deals' ? (
+        <ExplorePage
+          onSelectDeal={(deal) => {
+            setSelectedDeal(deal);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onOpenAccount={() => {
+            if (customerUser) {
+              navigate('/app/customer/profile');
+            } else {
+              setIsGuestBrowsing(false);
+              navigate('/customer/login');
+            }
+          }}
+          onNavigate={(path) => navigate(path)}
+        />
+      ) : customerActiveTab === 'orders' ? (
         <OrdersPage
           orders={customerUser ? orders : []}
           currentUser={customerUser}
@@ -796,7 +1077,7 @@ export const App: React.FC = () => {
             setActivePassOrder(order);
             setIsPassModalOpen(true);
           }}
-          onExploreDeals={() => setCustomerTab('explore')}
+          onExploreDeals={() => navigate('/app/customer/food-deals')}
           onRedeemOrder={(orderId) => {
             setOrders((prev) =>
               prev.map((o) => (o.id === orderId ? { ...o, orderStatus: 'COMPLETED' } : o))
@@ -806,7 +1087,7 @@ export const App: React.FC = () => {
           onOrderHistoryCleared={handleOrderHistoryCleared}
           onShowToast={addToast}
         />
-      ) : customerTab === 'account' ? (
+      ) : customerActiveTab === 'profile' ? (
         <AccountPage
           currentUser={customerUser}
           onLogout={customerUser ? handleLogout : () => {
@@ -816,20 +1097,19 @@ export const App: React.FC = () => {
           onOpenAvatarSelector={() => setIsAvatarModalOpen(true)}
           onShowToast={addToast}
         />
+      ) : customerActiveTab === 'notifications' ? (
+        <CustomerNotificationsPage
+          onNavigate={(path) => navigate(path)}
+          onShowToast={addToast}
+        />
       ) : (
-        <ExplorePage
+        <DashboardPage
           onSelectDeal={(deal) => {
             setSelectedDeal(deal);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          onOpenAccount={() => {
-            if (customerUser) {
-              setCustomerTab('account');
-            } else {
-              setIsGuestBrowsing(false);
-              navigate('/customer/login');
-            }
-          }}
+          onShowPassModal={() => setIsPassModalOpen(true)}
+          onNavigate={(path) => navigate(path)}
         />
       )}
 
@@ -879,7 +1159,6 @@ export const App: React.FC = () => {
           }
         }}
       />
-
     </CustomerLayout>
   );
 };
