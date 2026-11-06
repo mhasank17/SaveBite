@@ -80,8 +80,8 @@ export interface PartnerEarnings {
 }
 
 const getPartnerAuthHeader = (): string => {
-  const token = localStorage.getItem('savebite_token') || 'test-partner-baker';
-  return `Bearer ${token}`;
+  const token = localStorage.getItem('savebite_token');
+  return token ? `Bearer ${token}` : '';
 };
 
 export const partnerApi = {
@@ -89,43 +89,26 @@ export const partnerApi = {
    * Fetch partner restaurant details & metrics
    */
   async getRestaurant(): Promise<PartnerRestaurant> {
-    try {
-      const res = await fetch('/api/v1/partner/restaurant', {
-        headers: { Authorization: getPartnerAuthHeader() },
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data) {
-          return json.data;
-        }
-      }
-    } catch {
-      // Fallback
+    const authHeader = getPartnerAuthHeader();
+    if (!authHeader) {
+      throw new Error('Unauthorized: No active partner session.');
     }
 
-    return {
-      id: 'demo-rest-daily-dough',
-      name: '[Demo] The Daily Dough Bakery (Sample Partner)',
-      branchName: 'Sandbox Outlet - Bandra West',
-      address: '100 Demo Street, Sandbox Sector 1',
-      city: 'Mumbai',
-      phone: '+910000000001',
-      hygieneGrade: 'Grade A',
-      licenseNumber: 'DEMO-FSSAI-00000000000001-SAMPLE',
-      kycStatus: 'APPROVED',
-      isStoreLive: true,
-      isDemo: true,
-      rating: 4.8,
-      reviewCount: 42,
-      metrics: {
-        activeListingsCount: 0,
-        todayOrdersCount: 0,
-        pendingPickupsCount: 0,
-        totalMealsRescued: 0,
-        totalRevenueInr: 0,
-        co2eSavedKg: 0,
-      },
-    };
+    const res = await fetch('/api/v1/partner/restaurant', {
+      headers: { Authorization: authHeader },
+    });
+
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => null);
+      throw new Error(errJson?.message || `Failed to fetch partner restaurant (${res.status})`);
+    }
+
+    const json = await res.json();
+    if (json.success && json.data) {
+      return json.data;
+    }
+
+    throw new Error('Invalid restaurant response from server.');
   },
 
   /**
@@ -328,22 +311,24 @@ export const partnerApi = {
    * Get partner earnings and payout schedule
    */
   async getEarnings(): Promise<PartnerEarnings> {
-    try {
-      const res = await fetch('/api/v1/partner/earnings', {
-        headers: { Authorization: getPartnerAuthHeader() },
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data) {
-          return json.data;
-        }
+    const authHeader = getPartnerAuthHeader();
+    if (!authHeader) {
+      throw new Error('Unauthorized: No active partner session.');
+    }
+
+    const res = await fetch('/api/v1/partner/earnings', {
+      headers: { Authorization: authHeader },
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
       }
-    } catch {
-      // Fallback
     }
 
     return {
-      restaurantId: 'demo-rest-daily-dough',
+      restaurantId: '',
       grossRevenueInr: 0,
       commissionPercent: 15,
       commissionDeductedInr: 0,
@@ -353,10 +338,10 @@ export const partnerApi = {
       totalOrdersCount: 0,
       salesBreakdown: [],
       bankAccount: {
-        bankName: 'HDFC Bank (Sandbox Test)',
-        accountNumberEnding: '4921',
-        ifscCode: 'HDFC0000001',
-        status: 'VERIFIED_SANDBOX',
+        bankName: 'Bank Account Not Linked',
+        accountNumberEnding: '----',
+        ifscCode: '------',
+        status: 'PENDING',
       },
       payoutSchedule: 'Weekly every Monday at 09:00 IST',
       recentPayouts: [],

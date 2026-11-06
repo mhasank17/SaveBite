@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import authService from '../services/authService';
+import { isTestEnvironment } from '../config/env';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -56,8 +57,8 @@ export const verifyAuth = async (
     return;
   }
 
-  // 2. In development / test environment, support test runner tokens
-  if (process.env.NODE_ENV !== 'production') {
+  // 2. In automated test environment only, support test runner tokens (e.g. test-admin-super, test-partner-baker, test-customer-sarah)
+  if (isTestEnvironment()) {
     if (token === 'invalid-token' || token.startsWith('invalid')) {
       res.status(401).json({
         success: false,
@@ -66,17 +67,21 @@ export const verifyAuth = async (
       return;
     }
 
-    const uid = token.startsWith('test-') || token.startsWith('cust-') || token.startsWith('user-')
-      ? token
-      : 'user-sarah';
-
-    req.user = {
-      uid,
-      email: `${uid}@savebite.in`,
-      role: token.includes('partner') ? 'PARTNER' : token.includes('admin') ? 'ADMIN' : 'CUSTOMER',
-    };
-    next();
-    return;
+    if (
+      token.startsWith('test-') ||
+      token.startsWith('cust-') ||
+      token.startsWith('user-') ||
+      token.startsWith('admin-')
+    ) {
+      const uid = token;
+      req.user = {
+        uid,
+        email: `${uid}@savebite.in`,
+        role: token.includes('partner') ? 'PARTNER' : token.includes('admin') ? 'ADMIN' : 'CUSTOMER',
+      };
+      next();
+      return;
+    }
   }
 
   res.status(401).json({

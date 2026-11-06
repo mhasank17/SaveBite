@@ -49,10 +49,22 @@ export const App: React.FC = () => {
   );
 
   // Authentication State
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => authApi.getUser());
-  const [partnerRestaurant, setPartnerRestaurant] = useState<PartnerRestaurantInfo | null>(() =>
-    authApi.getPartnerRestaurant()
-  );
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    const token = typeof window !== 'undefined' ? authApi.getToken() : null;
+    return token ? authApi.getUser() : null;
+  });
+  const [partnerRestaurant, setPartnerRestaurant] = useState<PartnerRestaurantInfo | null>(() => {
+    const token = typeof window !== 'undefined' ? authApi.getToken() : null;
+    return token ? authApi.getPartnerRestaurant() : null;
+  });
+
+  // Authentication initialization state (verifying token with backend on startup)
+  const [isAuthInitializing, setIsAuthInitializing] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && Boolean(authApi.getToken());
+  });
+
+  // Guest deal browsing toggle (only active if user explicitly clicks "Explore Deals as Guest")
+  const [isGuestBrowsing, setIsGuestBrowsing] = useState<boolean>(false);
 
   // Active sub-tabs per portal with persistent tab restoration
   const [customerTab, setCustomerTab] = useState<string>('explore');
@@ -126,22 +138,53 @@ export const App: React.FC = () => {
 
   // Check and refresh session on mount
   useEffect(() => {
+    const token = authApi.getToken();
+    if (!token) {
+      setIsAuthInitializing(false);
+      return;
+    }
+
     authApi
       .getMe()
       .then((data) => {
-        if (data) {
+        if (data && data.user) {
           setCurrentUser(data.user);
           if (data.restaurant) {
             setPartnerRestaurant(data.restaurant);
           }
+        } else {
+          setCurrentUser(null);
+          setPartnerRestaurant(null);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!authApi.getToken()) {
+          setCurrentUser(null);
+          setPartnerRestaurant(null);
+        }
+      })
+      .finally(() => {
+        setIsAuthInitializing(false);
+      });
   }, []);
 
-  // Refresh customer orders
+  // Role-based automatic redirection when visiting '/'
   useEffect(() => {
-    if (currentPath === '/' || currentPath.startsWith('/customer')) {
+    if (!isAuthInitializing && currentUser) {
+      if (currentUser.role === 'ADMIN' && currentPath === '/') {
+        navigate('/admin');
+      } else if (currentUser.role === 'PARTNER' && currentPath === '/') {
+        navigate('/partner');
+      }
+    }
+  }, [currentUser, currentPath, isAuthInitializing, navigate]);
+
+  // Refresh customer orders ONLY for authenticated customer users
+  useEffect(() => {
+    if (
+      currentUser?.role === 'CUSTOMER' &&
+      (currentPath === '/' || currentPath.startsWith('/customer'))
+    ) {
       api
         .getMyOrders()
         .then((backendOrders) => {
@@ -151,6 +194,9 @@ export const App: React.FC = () => {
           }
         })
         .catch(() => {});
+    } else if (!currentUser) {
+      setOrders([]);
+      setActivePassOrder(null);
     }
   }, [currentPath, currentUser]);
 
@@ -224,7 +270,11 @@ export const App: React.FC = () => {
     authApi.logout();
     setCurrentUser(null);
     setPartnerRestaurant(null);
+    setOrders([]);
+    setActivePassOrder(null);
     setSelectedDeal(null);
+    setCheckoutDeal(null);
+    setIsGuestBrowsing(false);
 
     if (prevRole === 'ADMIN') {
       addToast('info', 'SuperAdmin session terminated.', 'Signed Out');
@@ -254,6 +304,20 @@ export const App: React.FC = () => {
       ))}
     </div>
   );
+
+  // Session verification screen (only visible during token validation on startup)
+  if (isAuthInitializing) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-[#006030] flex items-center justify-center mb-4 shadow-xs">
+          <span className="material-symbols-outlined text-[30px] animate-spin">
+            progress_activity
+          </span>
+        </div>
+        <p className="text-sm font-semibold text-slate-600">Verifying SaveBite session...</p>
+      </div>
+    );
+  }
 
   // ---------------------------------------------------------------------------
   // 1. ADMIN PORTAL (Strictly Isolated)
@@ -563,10 +627,14 @@ export const App: React.FC = () => {
         {toastContainer}
         <CustomerLoginPage
           currentUser={currentUser?.role === 'CUSTOMER' ? currentUser : null}
-          onContinue={() => navigate('/')}
+          onContinue={() => {
+            setIsGuestBrowsing(false);
+            navigate('/');
+          }}
           onSwitchAccount={handleLogout}
           onSuccess={(customerUser) => {
             setCurrentUser(customerUser);
+            setIsGuestBrowsing(false);
             // Restore any preserved pending deal from login redirect
             const pendingStr = sessionStorage.getItem('savebite_pending_deal');
             if (pendingStr) {
@@ -582,6 +650,10 @@ export const App: React.FC = () => {
           onNavigateToRegister={() => navigate('/customer/register')}
           onNavigateToPartner={() => navigate('/partner/login')}
           onNavigateToAdmin={() => navigate('/admin/login')}
+          onBrowseGuest={() => {
+            setIsGuestBrowsing(true);
+            navigate('/');
+          }}
           onShowToast={addToast}
         />
       </>
@@ -595,6 +667,7 @@ export const App: React.FC = () => {
         <CustomerRegisterPage
           onSuccess={(customerUser) => {
             setCurrentUser(customerUser);
+            setIsGuestBrowsing(false);
             // Restore any preserved pending deal from login redirect
             const pendingStr = sessionStorage.getItem('savebite_pending_deal');
             if (pendingStr) {
@@ -608,6 +681,46 @@ export const App: React.FC = () => {
             navigate('/');
           }}
           onNavigateToLogin={() => navigate('/customer/login')}
+          onShowToast={addToast}
+        />
+      </>
+    );
+  }
+
+  // If no authenticated session exists and not explicitly exploring as guest,
+  // display the customer login / landing screen asking for credentials
+  if (!currentUser && !isGuestBrowsing) {
+    return (
+      <>
+        {toastContainer}
+        <CustomerLoginPage
+          currentUser={null}
+          onContinue={() => {
+            setIsGuestBrowsing(false);
+            navigate('/');
+          }}
+          onSwitchAccount={handleLogout}
+          onSuccess={(customerUser) => {
+            setCurrentUser(customerUser);
+            setIsGuestBrowsing(false);
+            const pendingStr = sessionStorage.getItem('savebite_pending_deal');
+            if (pendingStr) {
+              try {
+                const pending = JSON.parse(pendingStr);
+                if (!selectedDeal && pending.deal) {
+                  setSelectedDeal(pending.deal);
+                }
+              } catch {}
+            }
+            navigate('/');
+          }}
+          onNavigateToRegister={() => navigate('/customer/register')}
+          onNavigateToPartner={() => navigate('/partner/login')}
+          onNavigateToAdmin={() => navigate('/admin/login')}
+          onBrowseGuest={() => {
+            setIsGuestBrowsing(true);
+            navigate('/');
+          }}
           onShowToast={addToast}
         />
       </>
@@ -634,6 +747,7 @@ export const App: React.FC = () => {
         if (customerUser) {
           setIsAvatarModalOpen(true);
         } else {
+          setIsGuestBrowsing(false);
           navigate('/customer/login');
         }
       }}
@@ -646,12 +760,25 @@ export const App: React.FC = () => {
           deal={selectedDeal}
           currentUser={customerUser}
           onBack={() => setSelectedDeal(null)}
-          onRequireLogin={() => navigate('/customer/login')}
+          onRequireLogin={() => {
+            setIsGuestBrowsing(false);
+            navigate('/customer/login');
+          }}
           onReserveSuccess={(deal, quantity) => {
+            if (!customerUser) {
+              setIsGuestBrowsing(false);
+              navigate('/customer/login');
+              return;
+            }
             setCheckoutDeal({ deal, quantity, fulfillment: 'pickup' });
             setIsCheckoutOpen(true);
           }}
           onOpenCheckout={(deal, quantity) => {
+            if (!customerUser) {
+              setIsGuestBrowsing(false);
+              navigate('/customer/login');
+              return;
+            }
             setCheckoutDeal({ deal, quantity, fulfillment: 'pickup' });
             setIsCheckoutOpen(true);
           }}
@@ -661,7 +788,10 @@ export const App: React.FC = () => {
         <OrdersPage
           orders={customerUser ? orders : []}
           currentUser={customerUser}
-          onRequireLogin={() => navigate('/customer/login')}
+          onRequireLogin={() => {
+            setIsGuestBrowsing(false);
+            navigate('/customer/login');
+          }}
           onOpenPass={(order) => {
             setActivePassOrder(order);
             setIsPassModalOpen(true);
@@ -679,7 +809,10 @@ export const App: React.FC = () => {
       ) : customerTab === 'account' ? (
         <AccountPage
           currentUser={customerUser}
-          onLogout={customerUser ? handleLogout : () => navigate('/customer/login')}
+          onLogout={customerUser ? handleLogout : () => {
+            setIsGuestBrowsing(false);
+            navigate('/customer/login');
+          }}
           onOpenAvatarSelector={() => setIsAvatarModalOpen(true)}
           onShowToast={addToast}
         />
@@ -693,6 +826,7 @@ export const App: React.FC = () => {
             if (customerUser) {
               setCustomerTab('account');
             } else {
+              setIsGuestBrowsing(false);
               navigate('/customer/login');
             }
           }}

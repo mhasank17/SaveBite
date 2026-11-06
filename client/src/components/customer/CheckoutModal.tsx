@@ -26,7 +26,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('RAZORPAY_SANDBOX');
-  const [upiId, setUpiId] = useState('sarah@okhdfcbank');
+  const [upiId, setUpiId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -275,6 +275,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 type="text"
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
+                placeholder="yourname@upi"
                 className="flex-1 h-8 px-2.5 bg-surface-container-lowest rounded-lg border border-outline-variant/30 text-[12px] font-mono text-on-surface focus:outline-none"
               />
             </div>

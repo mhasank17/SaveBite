@@ -192,7 +192,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <h2 className="font-headline-md text-headline-md text-on-surface truncate font-bold">
-              Welcome back, Sarah
+              Welcome to SaveBite
             </h2>
             <span className="text-xl">👋</span>
           </div>

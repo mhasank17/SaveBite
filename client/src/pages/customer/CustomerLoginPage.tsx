@@ -13,6 +13,7 @@ export interface CustomerLoginPageProps {
   onNavigateToPartner: () => void;
   onNavigateToAdmin: () => void;
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
+  onBrowseGuest?: () => void;
 }
 
 export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
@@ -24,6 +25,7 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
   onNavigateToPartner,
   onNavigateToAdmin,
   onShowToast,
+  onBrowseGuest,
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,6 +84,30 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
   return (
     <div className="min-h-screen bg-[#F5F8F6] flex flex-col justify-center items-center px-4 py-8">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-[0_12px_40px_-10px_rgba(0,35,15,0.08)] border border-[#E1ECE4] ring-1 ring-[#006030]/5 p-8">
+        {/* Portal Switcher Tabs */}
+        <div className="flex rounded-xl bg-slate-100 p-1 mb-6 text-xs font-semibold">
+          <button
+            type="button"
+            className="flex-1 py-1.5 px-2 rounded-lg bg-white shadow-xs text-[#006030] font-bold transition-all text-center"
+          >
+            Customer
+          </button>
+          <button
+            type="button"
+            onClick={onNavigateToPartner}
+            className="flex-1 py-1.5 px-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center"
+          >
+            Partner
+          </button>
+          <button
+            type="button"
+            onClick={onNavigateToAdmin}
+            className="flex-1 py-1.5 px-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center"
+          >
+            SuperAdmin
+          </button>
+        </div>
+
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Logo className="h-9 mx-auto mb-4" />
@@ -229,6 +255,20 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
             </button>
           </p>
         </div>
+
+        {/* Explore as Guest Option */}
+        {onBrowseGuest && (
+          <div className="mt-4 pt-3 text-center border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onBrowseGuest}
+              className="text-xs font-semibold text-slate-500 hover:text-[#006030] inline-flex items-center gap-1 transition-colors"
+            >
+              <span>Explore Deals as Guest</span>
+              <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
+            </button>
+          </div>
+        )}
 
         {/* Other Portals Navigation */}
         <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col gap-2 text-center text-xs text-slate-400">

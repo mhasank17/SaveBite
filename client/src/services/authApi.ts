@@ -300,19 +300,24 @@ export const authApi = {
             return { ...json.data, token };
           }
         }
+      } else if (res.status === 401 || res.status === 403) {
+        // Explicitly rejected by backend (expired or invalid token)
+        this.logout();
+        return null;
       }
     } catch {
-      // Fallback to local storage cached user
-    }
-
-    const cachedUser = localStorage.getItem('savebite_user');
-    const cachedRest = localStorage.getItem('savebite_partner_restaurant');
-    if (cachedUser) {
-      return {
-        user: JSON.parse(cachedUser),
-        restaurant: cachedRest ? JSON.parse(cachedRest) : undefined,
-        token,
-      };
+      // True network error / offline fallback only
+      const cachedUser = localStorage.getItem('savebite_user');
+      const cachedRest = localStorage.getItem('savebite_partner_restaurant');
+      if (cachedUser) {
+        try {
+          return {
+            user: JSON.parse(cachedUser),
+            restaurant: cachedRest ? JSON.parse(cachedRest) : undefined,
+            token,
+          };
+        } catch {}
+      }
     }
 
     return null;
@@ -370,9 +375,15 @@ export const authApi = {
    */
   logout(): void {
     localStorage.removeItem('savebite_token');
+    localStorage.removeItem('savebite_auth_token');
     localStorage.removeItem('savebite_user');
     localStorage.removeItem('savebite_partner_restaurant');
     localStorage.removeItem('savebite_customer_addresses');
+    localStorage.removeItem('savebite_partner_tab');
+    sessionStorage.removeItem('savebite_pending_deal');
+    try {
+      sessionStorage.clear();
+    } catch {}
   },
 
   /**
