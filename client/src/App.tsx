@@ -302,7 +302,7 @@ export const App: React.FC = () => {
 
     if (prevRole === 'ADMIN') {
       addToast('info', 'Admin session terminated.', 'Signed Out');
-      navigate('/admin/login');
+      navigate('/secure-admin-access');
     } else if (prevRole === 'PARTNER') {
       addToast('info', 'Restaurant Partner session terminated.', 'Signed Out');
       navigate('/partner/login');
@@ -347,18 +347,117 @@ export const App: React.FC = () => {
   // AUTHENTICATION ROUTES (Login & Register)
   // ---------------------------------------------------------------------------
 
-  // Admin & SuperAdmin Login
+  // Redirect old public admin login paths to customer login to conceal administrative portals
   if (currentPath === '/admin/login' || currentPath === '/super-admin/login') {
-    const isSuperAdminLogin = currentPath.startsWith('/super-admin');
+    return (
+      <>
+        {toastContainer}
+        <CustomerLoginPage
+          currentUser={null}
+          onContinue={() => navigate('/app/customer/dashboard')}
+          onSwitchAccount={handleLogout}
+          onSuccess={(customerUser) => {
+            setCurrentUser(customerUser);
+            setIsGuestBrowsing(false);
+            navigate('/app/customer/dashboard');
+          }}
+          onNavigateToRegister={() => navigate('/customer/register')}
+          onNavigateToPartner={() => navigate('/partner/login')}
+          onBrowseGuest={() => {
+            setIsGuestBrowsing(true);
+            navigate('/app/customer/food-deals');
+          }}
+          onShowToast={addToast}
+        />
+      </>
+    );
+  }
+
+  // Dedicated unadvertised route for Admin and Super Admin login
+  if (currentPath === '/secure-admin-access' || currentPath === '/secure-admin-access/') {
+    // If already authenticated as ADMIN, redirect directly to appropriate dashboard
+    if (currentUser?.role === 'ADMIN') {
+      const isSuper = Boolean(
+        currentUser.isSuperAdmin ||
+        currentUser.email?.toLowerCase() === 'admin@savebite.in'
+      );
+      return (
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+          <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center mb-4">
+            <span className="material-symbols-outlined text-[32px]">verified_user</span>
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Active Administrator Session</h1>
+          <p className="text-slate-400 text-sm max-w-md mb-6">
+            Signed in as {currentUser.fullName} ({currentUser.email}).
+          </p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(isSuper ? '/app/super-admin/dashboard' : '/app/admin/dashboard')}
+              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+            >
+              Enter {isSuper ? 'SuperAdmin' : 'Admin'} Console
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // If currently authenticated as non-admin, notify with switch option
+    if (currentUser) {
+      return (
+        <>
+          {toastContainer}
+          <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
+            <div className="w-16 h-16 rounded-2xl bg-amber-900/60 text-amber-400 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Administrative Console Access</h1>
+            <p className="text-slate-400 text-sm max-w-md mb-6">
+              You are currently signed in as a {currentUser.role}. Please sign out to log in with administrative credentials.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+              >
+                Return to My Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm"
+              >
+                Sign Out to Switch
+              </button>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    // Unauthenticated: Render dedicated secure admin access login
     return (
       <>
         {toastContainer}
         <AdminLoginPage
           onSuccess={(adminUser) => {
             setCurrentUser(adminUser);
+            const isSuper = Boolean(
+              adminUser.isSuperAdmin ||
+              adminUser.email?.toLowerCase() === 'admin@savebite.in'
+            );
             const target = getRedirectPathForRole(
               'ADMIN',
-              isSuperAdminLogin ? '/app/super-admin/dashboard' : '/app/admin/dashboard'
+              isSuper ? '/app/super-admin/dashboard' : '/app/admin/dashboard'
             );
             navigate(target);
           }}
@@ -437,7 +536,6 @@ export const App: React.FC = () => {
           }}
           onNavigateToRegister={() => navigate('/customer/register')}
           onNavigateToPartner={() => navigate('/partner/login')}
-          onNavigateToAdmin={() => navigate('/admin/login')}
           onBrowseGuest={() => {
             setIsGuestBrowsing(true);
             navigate('/app/customer/food-deals');
@@ -483,60 +581,100 @@ export const App: React.FC = () => {
   //         /app/super-admin/settings
   // ---------------------------------------------------------------------------
   if (currentPath.startsWith('/app/super-admin') || currentPath.startsWith('/super-admin')) {
-    // Gate: Must be logged in as ADMIN
-    if (!currentUser || currentUser.role !== 'ADMIN') {
-      if (currentUser && currentUser.role !== 'ADMIN') {
-        return (
-          <>
-            {toastContainer}
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
-              <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-[32px]">shield_lock</span>
-              </div>
-              <h1 className="text-2xl font-bold mb-2">SuperAdmin Access Restricted</h1>
-              <p className="text-slate-400 text-sm max-w-md mb-6">
-                Your account role ({currentUser.role}) does not have root administrative clearance for the SuperAdmin Console.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
-                  className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm"
-                >
-                  Return to Authorized Portal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleLogout();
-                    navigate('/super-admin/login');
-                  }}
-                  className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
-                >
-                  Switch Account
-                </button>
-              </div>
-            </div>
-          </>
-        );
-      }
-
-      // Not authenticated: Save intended path & show admin login
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('savebite_redirect_path', currentPath);
-      }
+    // 1. Unauthenticated users cannot access protected routes, even if they know the URL
+    if (!currentUser) {
       return (
         <>
           {toastContainer}
-          <AdminLoginPage
-            onSuccess={(adminUser) => {
-              setCurrentUser(adminUser);
-              const target = getRedirectPathForRole('ADMIN', '/app/super-admin/dashboard');
-              navigate(target);
-            }}
-            onNavigateToCustomer={() => navigate('/app/customer/dashboard')}
-            onShowToast={addToast}
-          />
+          <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+            <div className="w-16 h-16 rounded-2xl bg-red-950/80 border border-red-800 text-red-400 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">403 Forbidden: Administrative Clearance Required</h1>
+            <p className="text-slate-400 text-sm max-w-md mb-6">
+              Direct access to this platform governance console is restricted to authorized platform personnel only.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/app/customer/dashboard')}
+              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+            >
+              Return to Homepage
+            </button>
+          </div>
+        </>
+      );
+    }
+
+    // 2. Customer or Partner role barrier
+    if (currentUser.role !== 'ADMIN') {
+      return (
+        <>
+          {toastContainer}
+          <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+            <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-[32px]">shield_lock</span>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">SuperAdmin Access Restricted</h1>
+            <p className="text-slate-400 text-sm max-w-md mb-6">
+              Your account role ({currentUser.role}) does not have administrative clearance for the SuperAdmin Console.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
+                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm"
+              >
+                Return to Authorized Portal
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    // 3. Regular Admin barrier: Admin cannot access Super Admin functionality
+    const isSuperAdminUser = Boolean(
+      currentUser.isSuperAdmin ||
+      currentUser.email?.toLowerCase() === 'admin@savebite.in'
+    );
+
+    if (!isSuperAdminUser) {
+      return (
+        <>
+          {toastContainer}
+          <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
+            <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-[32px]">shield_lock</span>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">SuperAdmin Clearance Required</h1>
+            <p className="text-slate-400 text-sm max-w-md mb-6">
+              Your administrator account ({currentUser.email}) has standard operations clearance. SuperAdmin master governance requires elevated root platform authorization.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/app/admin/dashboard')}
+                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm"
+              >
+                Return to Admin Console
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </>
       );
     }
@@ -583,60 +721,61 @@ export const App: React.FC = () => {
   //         /app/admin/settings
   // ---------------------------------------------------------------------------
   if (currentPath.startsWith('/app/admin') || currentPath.startsWith('/admin')) {
-    // Gate: Must be logged in as ADMIN
-    if (!currentUser || currentUser.role !== 'ADMIN') {
-      if (currentUser && currentUser.role !== 'ADMIN') {
-        return (
-          <>
-            {toastContainer}
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
-              <div className="w-16 h-16 rounded-2xl bg-red-900/60 text-red-400 flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
-              </div>
-              <h1 className="text-2xl font-bold mb-2">Access Restricted</h1>
-              <p className="text-slate-400 text-sm max-w-md mb-6">
-                Your account ({currentUser.role}) does not have administrative clearance for the Admin Console.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
-                >
-                  Return to Authorized Portal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleLogout();
-                    navigate('/admin/login');
-                  }}
-                  className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
-                >
-                  Switch to Admin Login
-                </button>
-              </div>
-            </div>
-          </>
-        );
-      }
-
-      // Not authenticated: Save intended path & show admin login
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('savebite_redirect_path', currentPath);
-      }
+    // 1. Unauthenticated users cannot access protected routes, even if they know the URL
+    if (!currentUser) {
       return (
         <>
           {toastContainer}
-          <AdminLoginPage
-            onSuccess={(adminUser) => {
-              setCurrentUser(adminUser);
-              const target = getRedirectPathForRole('ADMIN', '/app/admin/dashboard');
-              navigate(target);
-            }}
-            onNavigateToCustomer={() => navigate('/app/customer/dashboard')}
-            onShowToast={addToast}
-          />
+          <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
+            <div className="w-16 h-16 rounded-2xl bg-red-900/60 text-red-400 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">403 Forbidden: Administrative Clearance Required</h1>
+            <p className="text-slate-400 text-sm max-w-md mb-6">
+              Direct access to this platform console is restricted to authorized platform personnel only.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/app/customer/dashboard')}
+              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+            >
+              Return to Homepage
+            </button>
+          </div>
+        </>
+      );
+    }
+
+    // 2. Customer or Partner role barrier
+    if (currentUser.role !== 'ADMIN') {
+      return (
+        <>
+          {toastContainer}
+          <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
+            <div className="w-16 h-16 rounded-2xl bg-red-900/60 text-red-400 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Access Restricted</h1>
+            <p className="text-slate-400 text-sm max-w-md mb-6">
+              Your account ({currentUser.role}) does not have administrative clearance for the Admin Console.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+              >
+                Return to Authorized Portal
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </>
       );
     }
@@ -944,7 +1083,6 @@ export const App: React.FC = () => {
           }}
           onNavigateToRegister={() => navigate('/customer/register')}
           onNavigateToPartner={() => navigate('/partner/login')}
-          onNavigateToAdmin={() => navigate('/admin/login')}
           onBrowseGuest={() => {
             setIsGuestBrowsing(true);
             navigate('/app/customer/food-deals');

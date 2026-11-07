@@ -7,6 +7,7 @@ export interface AuthUser {
   phone?: string;
   role: UserRole;
   avatarUrl?: string;
+  isSuperAdmin?: boolean;
 }
 
 export interface AvatarOption {
@@ -258,16 +259,24 @@ export const authApi = {
   },
 
   /**
-   * Secure SuperAdmin Login (No registration endpoint)
+   * Secure Unadvertised Administrator Login (No public registration)
    */
   async loginAdmin(email: string, password: string): Promise<AuthResponse['data']> {
     const cleanEmail = email.trim();
     const cleanPassword = password.trim();
-    const res = await fetchSafe(`${API_BASE_URL}/auth/admin/login`, {
+    let res = await fetchSafe(`${API_BASE_URL}/auth/secure-admin-access/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: cleanEmail, password: cleanPassword }),
     });
+
+    if (res.status === 404) {
+      res = await fetchSafe(`${API_BASE_URL}/auth/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password: cleanPassword }),
+      });
+    }
 
     const json = await parseJsonResponse<AuthResponse>(res, 'Admin authentication failed.');
 

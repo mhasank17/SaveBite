@@ -11,6 +11,7 @@ export interface AuthTokenPayload {
   fullName: string;
   role: 'CUSTOMER' | 'PARTNER' | 'ADMIN';
   restaurantId?: string;
+  isSuperAdmin?: boolean;
   iat: number;
   exp: number;
 }
@@ -299,6 +300,7 @@ export class AuthService {
     fullName: string;
     role: 'CUSTOMER' | 'PARTNER' | 'ADMIN';
     restaurantId?: string;
+    isSuperAdmin?: boolean;
   }): string {
     const payload: AuthTokenPayload = {
       ...data,
@@ -811,11 +813,17 @@ export class AuthService {
       throw new Error('Invalid administrator credentials.');
     }
 
+    const isSuperAdmin =
+      user.email.toLowerCase() === (process.env.ADMIN_EMAIL || 'admin@savebite.in').toLowerCase() ||
+      user.email.toLowerCase().includes('super') ||
+      user.id.includes('super');
+
     const token = this.createToken({
       uid: user.id,
       email: user.email,
       fullName: user.fullName,
       role: 'ADMIN',
+      isSuperAdmin,
     });
 
     return { user, token };

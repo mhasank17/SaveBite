@@ -260,9 +260,14 @@ export class AuthController {
       const email = parsed.email.trim().toLowerCase() === 'admin' ? 'admin@savebite.in' : parsed.email.trim();
       const result = await authService.loginAdmin({ email, password: parsed.password });
 
+      const isSuper = Boolean(
+        result.user.email.toLowerCase() === (process.env.ADMIN_EMAIL || 'admin@savebite.in').toLowerCase() ||
+        result.user.email.toLowerCase().includes('super')
+      );
+
       res.status(200).json({
         success: true,
-        message: 'SuperAdmin authenticated successfully.',
+        message: isSuper ? 'SuperAdmin authenticated successfully.' : 'Administrator authenticated successfully.',
         data: {
           user: {
             id: result.user.id,
@@ -270,6 +275,7 @@ export class AuthController {
             fullName: result.user.fullName,
             role: result.user.role,
             avatarUrl: result.user.avatarUrl,
+            isSuperAdmin: isSuper,
           },
           token: result.token,
         },
@@ -315,6 +321,13 @@ export class AuthController {
         return;
       }
 
+      const isSuper = Boolean(
+        profile.user.role === 'ADMIN' &&
+        (profile.user.email.toLowerCase() === (process.env.ADMIN_EMAIL || 'admin@savebite.in').toLowerCase() ||
+         profile.user.email.toLowerCase().includes('super') ||
+         req.user.isSuperAdmin)
+      );
+
       res.status(200).json({
         success: true,
         data: {
@@ -325,6 +338,7 @@ export class AuthController {
             phone: profile.user.phone,
             role: profile.user.role,
             avatarUrl: profile.user.avatarUrl,
+            isSuperAdmin: isSuper,
           },
           restaurant: profile.restaurant,
         },

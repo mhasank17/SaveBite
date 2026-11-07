@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import adminController from '../controllers/adminController';
-import { verifyAuth, requireRole } from '../middlewares/authMiddleware';
+import { verifyAuth, requireRole, requireSuperAdmin } from '../middlewares/authMiddleware';
 
 const router = Router();
 
@@ -33,8 +33,8 @@ router.post('/settlements/pay', (req, res, next) => adminController.settleRestau
 router.get('/customers', (req, res, next) => adminController.getCustomers(req, res, next));
 router.get('/orders', (req, res, next) => adminController.getOrders(req, res, next));
 
-// 7. Governance & Audit Logs
-router.get('/audit-logs', (req, res, next) => adminController.getAuditLogs(req, res, next));
+// 7. Governance & Audit Logs (Restricted to SuperAdmin root platform authority)
+router.get('/audit-logs', requireSuperAdmin, (req, res, next) => adminController.getAuditLogs(req, res, next));
 
 // 9. Admin Profile & Account Governance
 router.get('/profile', (req, res, next) => adminController.getProfile(req, res, next));

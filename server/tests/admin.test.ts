@@ -485,4 +485,66 @@ describe('Phase 7: SuperAdmin Portal & Governance', () => {
     assert.equal(partnerRes.body.data.user.role, 'PARTNER');
     assert.ok(partnerRes.body.data.token);
   });
+
+  // 28. Admin cannot access SuperAdmin audit logs
+  it('28. should reject standard admin tokens from accessing SuperAdmin audit logs with 403 Forbidden', async () => {
+    const regularAdminAuth = 'Bearer test-admin-regular';
+    const res = await request(app)
+      .get('/api/v1/admin/audit-logs')
+      .set('Authorization', regularAdminAuth);
+
+    assert.equal(res.status, 403);
+    assert.equal(res.body.success, false);
+    assert.match(res.body.message, /SuperAdmin platform authority/i);
+  });
+
+  // 29. Regular admin rejected from dedicated SuperAdmin routes
+  it('29. should reject regular admin tokens from dedicated /api/v1/super-admin/telemetry with 403 Forbidden', async () => {
+    const regularAdminAuth = 'Bearer test-admin-regular';
+    const res = await request(app)
+      .get('/api/v1/super-admin/telemetry')
+      .set('Authorization', regularAdminAuth);
+
+    assert.equal(res.status, 403);
+    assert.equal(res.body.success, false);
+    assert.match(res.body.message, /SuperAdmin platform authority/i);
+  });
+
+  // 30. SuperAdmin allowed on dedicated SuperAdmin routes
+  it('30. should allow SuperAdmin tokens to access /api/v1/super-admin/telemetry with 200 OK', async () => {
+    const res = await request(app)
+      .get('/api/v1/super-admin/telemetry')
+      .set('Authorization', adminAuth);
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.success, true);
+    assert.ok(res.body.data);
+  });
+
+  // 31. Unadvertised secure admin login route verification
+  it('31. should support unadvertised secure administrator login route /api/v1/auth/secure-admin-access/login', async () => {
+    // Valid login
+    const res = await request(app)
+      .post('/api/v1/auth/secure-admin-access/login')
+      .send({
+        email: 'admin@savebite.in',
+        password: 'SuperAdmin@SaveBite2026!',
+      });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.success, true);
+    assert.equal(res.body.data.user.role, 'ADMIN');
+    assert.ok(res.body.data.token);
+
+    // Invalid credentials rejected
+    const invalidRes = await request(app)
+      .post('/api/v1/auth/secure-admin-access/login')
+      .send({
+        email: 'admin@savebite.in',
+        password: 'wrong-admin-password',
+      });
+
+    assert.equal(invalidRes.status, 401);
+    assert.equal(invalidRes.body.success, false);
+  });
 });

@@ -11,7 +11,7 @@ export interface CustomerLoginPageProps {
   onSuccess: (user: AuthUser) => void;
   onNavigateToRegister: () => void;
   onNavigateToPartner: () => void;
-  onNavigateToAdmin: () => void;
+  onNavigateToAdmin?: () => void;
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
   onBrowseGuest?: () => void;
 }
@@ -23,7 +23,7 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
   onSuccess,
   onNavigateToRegister,
   onNavigateToPartner,
-  onNavigateToAdmin,
+  onNavigateToAdmin: _onNavigateToAdmin,
   onShowToast,
   onBrowseGuest,
 }) => {
@@ -84,7 +84,7 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
   return (
     <div className="min-h-screen bg-[#F5F8F6] flex flex-col justify-center items-center px-4 py-8">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-[0_12px_40px_-10px_rgba(0,35,15,0.08)] border border-[#E1ECE4] ring-1 ring-[#006030]/5 p-8">
-        {/* Portal Switcher Tabs */}
+        {/* Portal Switcher Tabs (Customer & Partner only; Admin/SuperAdmin is strictly private) */}
         <div className="flex rounded-xl bg-slate-100 p-1 mb-6 text-xs font-semibold">
           <button
             type="button"
@@ -98,13 +98,6 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
             className="flex-1 py-1.5 px-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center"
           >
             Partner
-          </button>
-          <button
-            type="button"
-            onClick={onNavigateToAdmin}
-            className="flex-1 py-1.5 px-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all text-center"
-          >
-            SuperAdmin
           </button>
         </div>
 
@@ -270,7 +263,7 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
           </div>
         )}
 
-        {/* Other Portals Navigation */}
+        {/* Partner Portal Navigation */}
         <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col gap-2 text-center text-xs text-slate-400">
           <div>
             Are you a restaurant owner?{' '}
@@ -280,16 +273,6 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
               className="font-semibold text-orange-600 hover:underline"
             >
               Partner Portal →
-            </button>
-          </div>
-          <div>
-            Platform Administrator?{' '}
-            <button
-              type="button"
-              onClick={onNavigateToAdmin}
-              className="font-semibold text-slate-600 hover:underline"
-            >
-              SuperAdmin Login →
             </button>
           </div>
         </div>

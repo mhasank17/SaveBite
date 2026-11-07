@@ -4,6 +4,7 @@ import orderRoutes from './orderRoutes';
 import listingRoutes from './listingRoutes';
 import partnerRoutes from './partnerRoutes';
 import adminRoutes from './adminRoutes';
+import superAdminRoutes from './superAdminRoutes';
 import authRoutes from './authRoutes';
 
 const router = Router();
@@ -23,7 +24,10 @@ router.use('/orders', orderRoutes);
 // Restaurant Partner Portal (Phase 5)
 router.use('/partner', partnerRoutes);
 
-// SuperAdmin Portal (Phase 7)
+// Admin Portal (Phase 7)
 router.use('/admin', adminRoutes);
+
+// SuperAdmin Governance Portal (Root Authority)
+router.use('/super-admin', superAdminRoutes);
 
 export default router;

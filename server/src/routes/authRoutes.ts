@@ -12,8 +12,9 @@ router.post('/customer/login', (req, res, next) => authController.loginCustomer(
 router.post('/partner/register', (req, res, next) => authController.registerPartner(req, res, next));
 router.post('/partner/login', (req, res, next) => authController.loginPartner(req, res, next));
 
-// SuperAdmin Authentication (Secure login only; registration is strictly disallowed)
+// Administrator Authentication (Unadvertised secure login only; public registration is strictly disallowed)
 router.post('/admin/login', (req, res, next) => authController.loginAdmin(req, res, next));
+router.post('/secure-admin-access/login', (req, res, next) => authController.loginAdmin(req, res, next));
 
 // Secure Password Reset Flow (Time-limited, single-use, anti-enumeration)
 router.post('/forgot-password', (req, res, next) => authController.forgotPassword(req, res, next));
