@@ -210,11 +210,14 @@ export const App: React.FC = () => {
         .getMyOrders()
         .then((backendOrders) => {
           if (Array.isArray(backendOrders)) {
-            setOrders(backendOrders);
-            const active = backendOrders.find(
+            const genuineOrders = backendOrders.filter(
+              (o) => !o.isDemo && !o.dealTitle?.startsWith('[Demo]')
+            );
+            setOrders(genuineOrders);
+            const active = genuineOrders.find(
               (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'
             );
-            setActivePassOrder(active || backendOrders[0] || null);
+            setActivePassOrder(active || null);
           }
         })
         .catch(() => {});
@@ -228,11 +231,14 @@ export const App: React.FC = () => {
     try {
       const backendOrders = await api.getMyOrders();
       if (Array.isArray(backendOrders)) {
-        setOrders(backendOrders);
-        const active = backendOrders.find(
+        const genuineOrders = backendOrders.filter(
+          (o) => !o.isDemo && !o.dealTitle?.startsWith('[Demo]')
+        );
+        setOrders(genuineOrders);
+        const active = genuineOrders.find(
           (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'
         );
-        setActivePassOrder(active || backendOrders[0] || null);
+        setActivePassOrder(active || null);
       } else {
         setOrders((prev) =>
           prev.filter(

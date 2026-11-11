@@ -94,27 +94,29 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
 
   const currentOrder = liveOrder || order;
 
-  const displayOrderNumber = currentOrder ? currentOrder.orderNumber : pass?.orderNumber || '#8492';
+  if (!isOpen || (!currentOrder && !pass)) return null;
+
+  const displayOrderNumber = currentOrder ? currentOrder.orderNumber : pass?.orderNumber || '';
   const displayRestaurant = currentOrder
     ? currentOrder.restaurantName
     : pass?.restaurantName || 'Partner Kitchen';
   const displayRestaurantAddress = currentOrder?.restaurantAddress || pass?.restaurantAddress;
   const displayDealTitle = currentOrder
     ? currentOrder.dealTitle
-    : pass?.dealTitle || 'Evening Surplus Food Bag';
+    : pass?.dealTitle || 'Surplus Food Deal';
   const displayQuantity = currentOrder ? currentOrder.quantity : pass?.quantity || 1;
   const displayPickupWindow = currentOrder
-    ? currentOrder.pickupWindowText || 'Tonight, 8:00 PM – 9:00 PM'
-    : pass?.pickupWindow || 'Tonight, 8:00 PM – 9:00 PM';
+    ? currentOrder.pickupWindowText || 'Ready for Pickup'
+    : pass?.pickupWindow || 'Ready for Pickup';
   const rawOrderStatus = currentOrder ? currentOrder.orderStatus : pass?.orderStatus || 'CONFIRMED';
   const rawPaymentStatus = currentOrder ? currentOrder.paymentStatus : pass?.paymentStatus || 'SUCCESS';
-  const displayTotalPrice = currentOrder ? currentOrder.totalPriceInr : pass?.totalPriceInr || 149;
+  const displayTotalPrice = currentOrder ? currentOrder.totalPriceInr : pass?.totalPriceInr || 0;
   const displayPickupOtp =
-    currentOrder?.pickupOtp || pass?.pickupOtp || displayOrderNumber.replace('#', '') || '8492';
+    currentOrder?.pickupOtp || pass?.pickupOtp || displayOrderNumber.replace('#', '') || '';
   const displayQrToken =
     currentOrder?.qrSecretToken ||
     pass?.qrSecretToken ||
-    `SAVEBITE-PASS-${displayOrderNumber.replace('#', '')}-VERIFIED`;
+    (displayOrderNumber ? `SAVEBITE-PASS-${displayOrderNumber.replace('#', '')}-VERIFIED` : '');
 
   const isCompleted = rawOrderStatus === 'COMPLETED';
 

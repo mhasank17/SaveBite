@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../../components/common/Button';
-import { MOCK_COMMUNITY_STATS } from '../../data/mockDeals';
+import api from '../../services/api';
 import { formatINR } from '../../utils/formatters';
 import { AuthUser, DEFAULT_CARTOON_AVATARS } from '../../services/authApi';
 
@@ -21,6 +21,38 @@ export const AccountPage: React.FC<AccountPageProps> = ({
   onOpenAvatarSelector,
 }) => {
   const user = currentUser ?? userProp;
+
+  const [mealsSaved, setMealsSaved] = useState<number>(0);
+  const [moneySavedInr, setMoneySavedInr] = useState<number>(0);
+  const [co2eSavedKg, setCo2eSavedKg] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user) return;
+    api
+      .getMyOrders()
+      .then((myOrders) => {
+        if (Array.isArray(myOrders)) {
+          const genuineCompleted = myOrders.filter(
+            (o) =>
+              !o.isDemo &&
+              !o.dealTitle?.startsWith('[Demo]') &&
+              (o.orderStatus === 'COMPLETED' || o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP')
+          );
+          const completedOnly = genuineCompleted.filter((o) => o.orderStatus === 'COMPLETED');
+          const totalMeals = completedOnly.reduce((sum, o) => sum + (o.quantity || 1), 0);
+          const totalMoney = completedOnly.reduce((sum, o) => {
+            const orig = o.originalPriceInr || (o.dealPriceInr ? o.dealPriceInr * 2 : 0);
+            const deal = o.totalPriceInr || o.dealPriceInr || 0;
+            return sum + Math.max(0, orig - deal);
+          }, 0);
+
+          setMealsSaved(totalMeals);
+          setMoneySavedInr(totalMoney);
+          setCo2eSavedKg(Number((totalMeals * 1.8).toFixed(1)));
+        }
+      })
+      .catch(() => {});
+  }, [user]);
   // If no authenticated user, prompt to sign in
   if (!user) {
     return (
@@ -115,21 +147,21 @@ export const AccountPage: React.FC<AccountPageProps> = ({
         <div className="grid grid-cols-3 gap-3 pt-1">
           <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-3 flex flex-col items-center text-center">
             <span className="text-xl font-bold text-white">
-              {MOCK_COMMUNITY_STATS.mealsSavedUser}
+              {mealsSaved}
             </span>
             <span className="text-[11px] text-emerald-200 mt-0.5">Meals Rescued</span>
           </div>
 
           <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-3 flex flex-col items-center text-center">
             <span className="text-xl font-bold text-white">
-              {MOCK_COMMUNITY_STATS.co2ePreventedUserKg} kg
+              {co2eSavedKg} kg
             </span>
             <span className="text-[11px] text-emerald-200 mt-0.5">CO₂e Prevented</span>
           </div>
 
           <div className="bg-white/10 backdrop-blur-xs rounded-2xl p-3 flex flex-col items-center text-center">
             <span className="text-xl font-bold text-white">
-              {formatINR(MOCK_COMMUNITY_STATS.moneySavedUserInr)}
+              {formatINR(moneySavedInr)}
             </span>
             <span className="text-[11px] text-emerald-200 mt-0.5">Money Saved</span>
           </div>

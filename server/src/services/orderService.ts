@@ -16,38 +16,7 @@ export class OrderService {
   }
 
   private seedInitialOrders() {
-    // Seed sample orders for Sarah (cust-sarah)
-    const seedOrder: OrderItemDetails = {
-      id: 'ord-8492',
-      orderNumber: '#8492',
-      customerId: 'user-sarah',
-      restaurantId: 'rest-1',
-      restaurantName: 'The French Boulangerie & Patisserie',
-      restaurantAddress: '142 Saint-Denis Ave, Downtown West',
-      listingId: 'deal-1',
-      dealTitle: 'Evening Patisserie & Sourdough Selection',
-      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
-      quantity: 1,
-      unitPriceInr: 149,
-      subtotalInr: 149,
-      deliveryFeeInr: 0,
-      totalPriceInr: 149,
-      fulfillmentType: 'SELF_PICKUP',
-      orderStatus: 'READY_FOR_PICKUP',
-      paymentStatus: 'SUCCESS',
-      paymentMethod: 'RAZORPAY_SANDBOX',
-      razorpayOrderId: 'order_test_8492_initial',
-      razorpayPaymentId: 'pay_test_8492_initial',
-      razorpaySignature: 'rzp_test_valid_signature',
-      pickupOtp: '8492',
-      qrSecretToken: 'SAVEBITE-PASS-8492-VERIFIED-AUTH',
-      pickupWindowText: 'Tonight, 8:00 PM – 9:00 PM',
-      co2eSavingsKg: 1.8,
-      expiresAt: new Date(Date.now() + 3600000).toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    this.inMemoryOrders.set(seedOrder.id, seedOrder);
+    // Zero demo orders: real customer orders only
   }
 
   /**
@@ -497,6 +466,7 @@ export class OrderService {
         const dbOrders = await prisma.order.findMany({
           where: {
             OR: [{ customerId }, { customerId: resolvedCustomerId }],
+            isDemo: false,
           },
           include: { listing: true, restaurant: true },
           orderBy: { createdAt: 'desc' },
@@ -504,6 +474,7 @@ export class OrderService {
 
         if (dbOrders.length > 0) {
           const mappedDbOrders = dbOrders
+            .filter((o) => !o.isDemo && !o.listing?.title?.startsWith('[Demo]'))
             .filter((o) => this.isOrderVisibleToCustomer(o, customerId, resolvedCustomerId))
             .map((o) => ({
               id: o.id,
@@ -539,6 +510,7 @@ export class OrderService {
           const dbIds = new Set(dbOrders.map((o) => o.id));
           const memOrders = Array.from(this.inMemoryOrders.values())
             .filter((o) => !dbIds.has(o.id))
+            .filter((o) => !o.dealTitle?.startsWith('[Demo]'))
             .filter((o) => this.isCustomerOwner(o.customerId, customerId))
             .filter((o) => this.isOrderVisibleToCustomer(o, customerId, resolvedCustomerId));
 
@@ -552,6 +524,7 @@ export class OrderService {
     }
 
     return Array.from(this.inMemoryOrders.values())
+      .filter((o) => !o.dealTitle?.startsWith('[Demo]'))
       .filter((o) => this.isCustomerOwner(o.customerId, customerId))
       .filter((o) => this.isOrderVisibleToCustomer(o, customerId, resolvedCustomerId))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

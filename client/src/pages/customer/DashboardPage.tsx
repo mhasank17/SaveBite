@@ -95,22 +95,32 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     api.getMyOrders()
       .then((myOrders) => {
         if (myOrders && myOrders.length > 0) {
-          const active = myOrders.find(
-            (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'
+          const genuineOrders = myOrders.filter(
+            (o) => !o.isDemo && !o.dealTitle?.startsWith('[Demo]')
           );
-          setActiveOrder(active || null);
+          if (genuineOrders.length > 0) {
+            const active = genuineOrders.find(
+              (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'
+            );
+            setActiveOrder(active || null);
 
-          const completed = myOrders.filter((o) => o.orderStatus === 'COMPLETED');
-          const savedMeals = completed.reduce((sum, o) => sum + (o.quantity || 1), 0);
-          const savedMoney = completed.reduce((sum, o) => {
-            const orig = o.originalPriceInr || (o.dealPriceInr ? o.dealPriceInr * 2 : 0);
-            const deal = o.totalPriceInr || o.dealPriceInr || 0;
-            return sum + Math.max(0, orig - deal);
-          }, 0);
+            const completed = genuineOrders.filter((o) => o.orderStatus === 'COMPLETED');
+            const savedMeals = completed.reduce((sum, o) => sum + (o.quantity || 1), 0);
+            const savedMoney = completed.reduce((sum, o) => {
+              const orig = o.originalPriceInr || (o.dealPriceInr ? o.dealPriceInr * 2 : 0);
+              const deal = o.totalPriceInr || o.dealPriceInr || 0;
+              return sum + Math.max(0, orig - deal);
+            }, 0);
 
-          setMealsSaved(savedMeals);
-          setMoneySavedInr(savedMoney);
-          setCo2eSavedKg(Number((savedMeals * 1.8).toFixed(1)));
+            setMealsSaved(savedMeals);
+            setMoneySavedInr(savedMoney);
+            setCo2eSavedKg(Number((savedMeals * 1.8).toFixed(1)));
+          } else {
+            setActiveOrder(null);
+            setMealsSaved(0);
+            setMoneySavedInr(0);
+            setCo2eSavedKg(0);
+          }
         } else {
           setActiveOrder(null);
           setMealsSaved(0);

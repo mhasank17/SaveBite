@@ -96,6 +96,7 @@ export interface Order {
   orderStatus: OrderStatus;
   paymentMethod?: PaymentMethod;
   paymentStatus?: PaymentStatus;
+  isDemo?: boolean;
   pickupOtp: string; // 4-6 digit counter code
   qrSecretToken: string;
   pickupWindowText?: string;
