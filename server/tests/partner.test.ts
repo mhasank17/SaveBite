@@ -133,6 +133,34 @@ describe('Phase 5: Restaurant Partner Portal', () => {
       .set('Authorization', partnerAuth);
   });
 
+  // 6b. Create new food deal listing without description or dietary tags
+  it('6b. should allow partner to create a food deal listing without description or dietary notice', async () => {
+    const res = await request(app)
+      .post('/api/v1/partner/listings')
+      .set('Authorization', partnerAuth)
+      .send({
+        title: '[Demo] Quick Bread Loaf No Description',
+        categoryId: 'demo-cat-bakery',
+        originalPriceInr: 300,
+        surplusPriceInr: 99,
+        totalQuantity: 3,
+        pickupStartTime: '17:00',
+        pickupEndTime: '19:00',
+      });
+
+    assert.equal(res.status, 201);
+    assert.equal(res.body.success, true);
+    assert.ok(res.body.data.id);
+    assert.equal(res.body.data.title, '[Demo] Quick Bread Loaf No Description');
+    assert.equal(res.body.data.description, '');
+    assert.equal(res.body.data.totalQuantity, 3);
+
+    // Clean up
+    await request(app)
+      .delete(`/api/v1/partner/listings/${res.body.data.id}`)
+      .set('Authorization', partnerAuth);
+  });
+
   // 7. Update listing quantity and pricing
   it('7. should allow partner to update available quantity or pricing of an existing listing', async () => {
     const res = await request(app)

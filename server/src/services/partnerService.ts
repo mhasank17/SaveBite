@@ -38,7 +38,7 @@ export interface PartnerRestaurantRecord {
 
 export interface PartnerListingInput {
   title: string;
-  description: string;
+  description?: string;
   categoryId: string;
   imageUrl?: string;
   originalPriceInr: number;
@@ -408,7 +408,7 @@ export class PartnerService {
             restaurantId,
             categoryId: input.categoryId,
             title: input.title,
-            description: input.description,
+            description: input.description?.trim() || '',
             imageUrl:
               input.imageUrl ||
               getFoodFallbackImageUrl({ title: input.title, categoryId: input.categoryId }),
@@ -460,7 +460,7 @@ export class PartnerService {
       categoryId: input.categoryId,
       categoryName: 'Artisan Bakery',
       title: input.title,
-      description: input.description,
+      description: input.description?.trim() || '',
       imageUrl:
         input.imageUrl ||
         getFoodFallbackImageUrl({ title: input.title, categoryId: input.categoryId }),

@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 const CreateListingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long'),
-  description: z.string().min(5, 'Description must be at least 5 characters long'),
+  description: z.string().optional().default(''),
   categoryId: z.string().min(1, 'Category is required'),
   imageUrl: z.string().min(1).optional(),
   originalPriceInr: z.number().positive('Original price must be positive'),
@@ -21,7 +21,7 @@ const CreateListingSchema = z.object({
 
 const UpdateListingSchema = z.object({
   title: z.string().min(3).optional(),
-  description: z.string().min(5).optional(),
+  description: z.string().optional(),
   categoryId: z.string().min(1).optional(),
   imageUrl: z.string().min(1).optional(),
   originalPriceInr: z.number().positive().optional(),

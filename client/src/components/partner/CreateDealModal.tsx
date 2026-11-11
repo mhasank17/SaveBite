@@ -7,7 +7,7 @@ import { handleImageError } from '../../utils/foodImages';
 export interface DealItemForEdit {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   categoryId?: string;
   category?: { name: string; id?: string };
   imageUrl?: string;
@@ -86,7 +86,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
   const [pickupEndTime, setPickupEndTime] = useState('21:30');
   const [imageUrl, setImageUrl] = useState(CATEGORY_PRESET_IMAGES.meal[0]);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
-  const [dietaryTag, setDietaryTag] = useState('Vegetarian Friendly');
   const [loading, setLoading] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
@@ -147,7 +146,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
       setPickupEndTime('21:30');
       setImageUrl(CATEGORY_PRESET_IMAGES.meal[0]);
       setCustomImageUrl(null);
-      setDietaryTag('Vegetarian Friendly');
     }
   }, [isOpen, dealToEdit]);
 
@@ -220,8 +218,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim()) {
-      onShowToast('error', 'Please enter a title and description for the deal offer.', 'Missing Fields');
+    if (!title.trim()) {
+      onShowToast('error', 'Please enter a title for the deal offer.', 'Missing Title');
       return;
     }
     if (surplusPriceInr >= originalPriceInr) {
@@ -241,7 +239,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         totalQuantity,
         pickupStartTime,
         pickupEndTime,
-        dietaryTags: [dietaryTag, 'Fresh Today'].filter(Boolean),
         co2eSavingsKg: 1.8,
       };
 
@@ -317,17 +314,19 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="deal-desc" className="text-label-sm font-bold text-on-surface">
-            Description
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="deal-desc" className="text-label-sm font-bold text-on-surface">
+              Description
+            </label>
+            <span className="text-[11px] text-on-surface-variant font-medium">Optional</span>
+          </div>
           <textarea
             id="deal-desc"
-            required
             rows={2}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe the freshly prepared food items and portions included in this deal."
-            className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface focus:outline-none focus:border-primary"
+            placeholder="Optional details about portions, fresh preparation, or pickup notes."
+            className="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-xl text-sm text-on-surface focus:outline-none focus:border-primary transition-colors"
           />
         </div>
 
@@ -494,29 +493,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
           </div>
         </div>
 
-        {/* Dietary Tag */}
-        <div className="flex flex-col gap-1.5">
-          <label className="text-label-sm font-bold text-on-surface">Dietary Notice</label>
-          <div className="flex flex-wrap gap-1.5">
-            {['Vegetarian Friendly', '100% Pure Veg', 'Freshly Prepared', 'Freshly Baked', 'Nut-Free', 'Chef Special'].map((tag) => (
-              <button
-                type="button"
-                key={tag}
-                onClick={() => setDietaryTag(tag)}
-                className={`px-2.5 py-1 rounded-full text-xs transition-all ${
-                  dietaryTag === tag
-                    ? 'bg-secondary text-on-secondary font-bold'
-                    : 'bg-surface-container-low text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 pt-3">
+        <div className="flex items-center gap-3 pt-2">
           <Button variant="outline" fullWidth onClick={onClose} disabled={loading}>
             Cancel
           </Button>

@@ -179,7 +179,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         return (
           deal.title.toLowerCase().includes(q) ||
           deal.restaurantName.toLowerCase().includes(q) ||
-          deal.description.toLowerCase().includes(q)
+          (deal.description || '').toLowerCase().includes(q)
         );
       }
 

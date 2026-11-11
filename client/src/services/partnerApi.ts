@@ -25,7 +25,7 @@ export interface PartnerRestaurant {
 
 export interface CreateListingData {
   title: string;
-  description: string;
+  description?: string;
   categoryId: string;
   imageUrl?: string;
   originalPriceInr: number;
