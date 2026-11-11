@@ -6,6 +6,7 @@ import DealCardSkeleton from '../../components/deals/DealCardSkeleton';
 import FiltersBottomSheet, { FilterCriteria } from '../../components/customer/FiltersBottomSheet';
 import api from '../../services/api';
 import { getFoodFallbackImageUrl } from '../../utils/foodImages';
+import { parseDealPickupWindow, getDeterministicDistance } from '../../utils/formatters';
 
 export interface ExplorePageProps {
   onSelectDeal: (deal: FoodDeal) => void;
@@ -52,7 +53,12 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
       if (backendDeals && backendDeals.length > 0) {
         // Display active live partner deals directly from backend
         const validDeals = backendDeals.filter((d: any) => {
-          if (d.status === 'EXPIRED' || (typeof d.availableQuantity === 'number' && d.availableQuantity <= 0)) {
+          if (
+            d.status === 'EXPIRED' ||
+            d.status === 'PAUSED' ||
+            d.status === 'SOLD_OUT' ||
+            (typeof d.availableQuantity === 'number' && d.availableQuantity <= 0)
+          ) {
             return false;
           }
           if (Array.isArray(d.dietaryTags) && d.dietaryTags.includes('SYSTEM_DEMO_RECORD_V1')) {
@@ -61,13 +67,18 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
           return true;
         });
 
-        // Map live partner deals
+        // Map live partner deals with actual pickup window and dynamic nearby distance
         const mapped: FoodDeal[] = validDeals.map((d: any) => {
           const cleanRestaurantName = (d.restaurantName || 'Partner Kitchen')
             .replace(/^\[Demo\]\s*/i, '')
             .replace(/\s*\(Unverified Sample Partner\)/i, '')
             .trim();
           const cleanTitle = (d.title || 'Food Deal').replace(/^\[Demo\]\s*/i, '').trim();
+          const pickupWindow = parseDealPickupWindow(d);
+          const distanceKm =
+            typeof d.distanceKm === 'number' && d.distanceKm > 0
+              ? d.distanceKm
+              : getDeterministicDistance(d.restaurantId || d.id || cleanRestaurantName);
 
           return {
             ...d,
@@ -88,14 +99,11 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
             savingsInr:
               d.savingsInr ??
               Math.max(0, (d.originalPriceInr || 450) - (d.dealPriceInr ?? d.surplusPriceInr ?? 149)),
-            distanceKm: d.distanceKm ?? 1.2,
-            pickupWindow: d.pickupWindow ?? {
-              date: 'Today',
-              startTime: '19:00',
-              endTime: '21:00',
-              displayText: d.pickupWindowText || 'Tonight, 7:00 PM – 9:00 PM',
-              expiresInSeconds: 3200,
-            },
+            distanceKm,
+            pickupStartTime: pickupWindow.startTime,
+            pickupEndTime: pickupWindow.endTime,
+            pickupWindowText: pickupWindow.displayText,
+            pickupWindow,
             dietaryTags: Array.isArray(d.dietaryTags)
               ? d.dietaryTags.filter((t: string) => t !== 'Demo Record' && t !== 'SYSTEM_DEMO_RECORD_V1')
               : ['Freshly Prepared'],
@@ -117,9 +125,13 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
     fetchDeals();
   }, []);
 
-  // Filter deals client-side
+  // Filter deals client-side based on active availability and criteria
   const filteredDeals = useMemo(() => {
     return deals.filter((deal) => {
+      // Must be active and available
+      if (deal.status !== 'ACTIVE') return false;
+      if (typeof deal.availableQuantity === 'number' && deal.availableQuantity <= 0) return false;
+
       // 1. Distance filter
       if (deal.distanceKm > filterCriteria.maxDistanceKm) return false;
 
@@ -179,7 +191,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
         if (hoursLeft > filterCriteria.pickupWindowHours) return false;
       }
 
-      // 6. Dietary tags
+      // 5. Dietary tags
       if (filterCriteria.dietaryTags.length > 0) {
         const dealTags = (deal.dietaryTags || []).map((t) => t.toLowerCase());
         const matchesAll = filterCriteria.dietaryTags.every((st) =>
@@ -188,7 +200,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
         if (!matchesAll) return false;
       }
 
-      // 7. Search query filter
+      // 6. Search query filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesTitle = deal.title?.toLowerCase().includes(q);
@@ -201,18 +213,81 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
     });
   }, [deals, filterCriteria, selectedCategory, searchQuery]);
 
-  // Section 1: "NEAR YOU" (sorted by distance ascending)
-  const nearYouDeals = useMemo(() => {
-    return [...filteredDeals].sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [filteredDeals]);
+  // Threshold for "closing time approaching": within 3.5 hours (12,600 seconds)
+  const CLOSING_SOON_THRESHOLD_SECONDS = 3.5 * 3600;
 
-  // Section 2: "PICKUP NOW" (ending soon, sorted by expiresInSeconds ascending)
-  const pickupNowDeals = useMemo(() => {
-    return [...filteredDeals].sort(
-      (a, b) =>
-        (a.pickupWindow?.expiresInSeconds || 9999) -
-        (b.pickupWindow?.expiresInSeconds || 9999)
+  // Deduplicated Section Partitioning:
+  // - "Pickup Tonight": deals whose pickup closing time is approaching tonight, sorted by earliest closing
+  // - "Meals Near You": available food deals from nearby restaurants, sorted by distance ascending
+  // - Strictly avoids displaying the same food deal in both sections!
+  const { nearYouDeals, pickupNowDeals } = useMemo(() => {
+    if (filteredDeals.length === 0) {
+      return { nearYouDeals: [], pickupNowDeals: [] };
+    }
+
+    // 1. Candidate deals whose pickup closing time is approaching
+    const approachingCandidates = filteredDeals.filter(
+      (d) => (d.pickupWindow?.expiresInSeconds ?? 99999) <= CLOSING_SOON_THRESHOLD_SECONDS
     );
+
+    // 2. Candidate deals whose pickup closing time is later
+    const laterCandidates = filteredDeals.filter(
+      (d) => (d.pickupWindow?.expiresInSeconds ?? 99999) > CLOSING_SOON_THRESHOLD_SECONDS
+    );
+
+    // Case A: Both approaching closing deals and later deals exist
+    if (approachingCandidates.length > 0 && laterCandidates.length > 0) {
+      // Pickup Tonight gets all approaching deals, sorted by earliest closing urgency
+      const pickupTonight = [...approachingCandidates].sort(
+        (a, b) =>
+          (a.pickupWindow?.expiresInSeconds ?? 99999) -
+          (b.pickupWindow?.expiresInSeconds ?? 99999)
+      );
+      const pickupTonightIds = new Set(pickupTonight.map((d) => d.id));
+
+      // Meals Near You gets remaining available deals (strictly excluding any in Pickup Tonight), sorted by distance
+      const nearYou = [...laterCandidates]
+        .filter((d) => !pickupTonightIds.has(d.id))
+        .sort((a, b) => a.distanceKm - b.distanceKm);
+
+      return { nearYouDeals: nearYou, pickupNowDeals: pickupTonight };
+    }
+
+    // Case B: ALL available deals have approaching closing times (all <= 3.5 hours)
+    if (approachingCandidates.length > 0 && laterCandidates.length === 0) {
+      if (approachingCandidates.length >= 3) {
+        // Multi-deal pool: split most urgent earliest-closing deals to Pickup Tonight,
+        // and remaining available deals to Meals Near You (sorted by distance)
+        const sortedByUrgency = [...approachingCandidates].sort(
+          (a, b) =>
+            (a.pickupWindow?.expiresInSeconds ?? 99999) -
+            (b.pickupWindow?.expiresInSeconds ?? 99999)
+        );
+        const urgentCount = Math.ceil(sortedByUrgency.length / 2);
+        const pickupTonight = sortedByUrgency.slice(0, urgentCount);
+        const pickupTonightIds = new Set(pickupTonight.map((d) => d.id));
+
+        const nearYou = sortedByUrgency
+          .slice(urgentCount)
+          .filter((d) => !pickupTonightIds.has(d.id))
+          .sort((a, b) => a.distanceKm - b.distanceKm);
+
+        return { nearYouDeals: nearYou, pickupNowDeals: pickupTonight };
+      }
+
+      // 1 or 2 deals: all belong to Pickup Tonight; no different deals exist for Meals Near You
+      const pickupTonight = [...approachingCandidates].sort(
+        (a, b) =>
+          (a.pickupWindow?.expiresInSeconds ?? 99999) -
+          (b.pickupWindow?.expiresInSeconds ?? 99999)
+      );
+      return { nearYouDeals: [], pickupNowDeals: pickupTonight };
+    }
+
+    // Case C: NO deals have approaching closing times (all deals close > 3.5 hours away)
+    // All available deals belong to Meals Near You (sorted by distance)
+    const nearYou = [...filteredDeals].sort((a, b) => a.distanceKm - b.distanceKm);
+    return { nearYouDeals: nearYou, pickupNowDeals: [] };
   }, [filteredDeals]);
 
   const hasActiveFilters =
@@ -390,7 +465,7 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
                   <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                 </button>
                 <h3 className="font-bold text-sm md:text-base tracking-wider text-slate-800 uppercase">
-                  {viewAllSection === 'near_you' ? 'NEAR YOU' : 'PICKUP NOW'} (
+                  {viewAllSection === 'near_you' ? 'MEALS NEAR YOU' : 'PICKUP TONIGHT'} (
                   {viewAllSection === 'near_you' ? nearYouDeals.length : pickupNowDeals.length})
                 </h3>
               </div>
@@ -472,26 +547,59 @@ export const ExplorePage: React.FC<ExplorePageProps> = ({
             ) : (
               <>
                 {/* Section 1: "MEALS NEAR YOU" (Swipeable & Draggable Food Deal Carousel) */}
-                <FoodDealCarousel
-                  title="MEALS NEAR YOU"
-                  subtitle="Partner kitchens ready for quick counter pickup"
-                  deals={nearYouDeals}
-                  onSelectDeal={onSelectDeal}
-                  onViewAll={() => setViewAllSection('near_you')}
-                  testId="meals-near-you-carousel"
-                />
+                {nearYouDeals.length > 0 ? (
+                  <FoodDealCarousel
+                    title="MEALS NEAR YOU"
+                    subtitle="Partner kitchens ready for quick counter pickup"
+                    deals={nearYouDeals}
+                    onSelectDeal={onSelectDeal}
+                    onViewAll={() => setViewAllSection('near_you')}
+                    testId="meals-near-you-carousel"
+                  />
+                ) : pickupNowDeals.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-xs md:text-sm font-bold tracking-wider text-slate-500 uppercase">
+                      MEALS NEAR YOU
+                    </h3>
+                    <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex items-center gap-3 text-xs text-slate-600">
+                      <span className="material-symbols-outlined text-[20px] text-slate-400">storefront</span>
+                      <p>
+                        All current available meals are closing soon — check <strong className="text-slate-800">Pickup Tonight</strong> below!
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
 
                 {/* Section 2: "PICKUP TONIGHT" (Swipeable & Draggable Food Deal Carousel) */}
-                <FoodDealCarousel
-                  title="PICKUP TONIGHT"
-                  badge="Ending soon"
-                  subtitle="Last surplus meals reserved before kitchen closing"
-                  deals={pickupNowDeals}
-                  onSelectDeal={onSelectDeal}
-                  onViewAll={() => setViewAllSection('pickup_now')}
-                  className="pt-2"
-                  testId="pickup-tonight-carousel"
-                />
+                {pickupNowDeals.length > 0 ? (
+                  <FoodDealCarousel
+                    title="PICKUP TONIGHT"
+                    badge="Ending soon"
+                    subtitle="Last surplus meals reserved before kitchen closing"
+                    deals={pickupNowDeals}
+                    onSelectDeal={onSelectDeal}
+                    onViewAll={() => setViewAllSection('pickup_now')}
+                    className="pt-2"
+                    testId="pickup-tonight-carousel"
+                  />
+                ) : nearYouDeals.length > 0 ? (
+                  <div className="flex flex-col gap-2 pt-2">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="text-xs md:text-sm font-bold tracking-wider text-slate-500 uppercase">
+                        PICKUP TONIGHT
+                      </h3>
+                      <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200">
+                        Ending soon
+                      </span>
+                    </div>
+                    <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl flex items-center gap-3 text-xs text-slate-600">
+                      <span className="material-symbols-outlined text-[20px] text-[#006030]">schedule</span>
+                      <p>
+                        No meals closing immediately. All partner kitchens are open for evening reservations above!
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
               </>
             )}
           </>

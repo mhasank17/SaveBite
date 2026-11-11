@@ -46,6 +46,9 @@ export interface FoodDeal {
   totalQuantity: number;
   availableQuantity: number;
   claimedQuantity: number;
+  pickupStartTime?: string;
+  pickupEndTime?: string;
+  pickupWindowText?: string;
   pickupWindow: {
     date: string;
     startTime: string; // e.g. "20:00"

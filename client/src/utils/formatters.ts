@@ -106,3 +106,129 @@ export const formatPickupWindow = (startTime: string, endTime: string, prefix = 
 
   return `${prefix}, ${formatTime(startTime)} – ${formatTime(endTime)}`;
 };
+
+export interface ParsedPickupWindow {
+  date: string;
+  startTime: string;
+  endTime: string;
+  displayText: string;
+  expiresInSeconds: number;
+}
+
+/**
+ * Computes actual pickup window and remaining seconds until pickup closing time.
+ * Handles 24-hour ("19:00", "21:30") and 12-hour ("7:00 PM", "9:30 PM") formats,
+ * window strings ("19:00 – 21:30", "Tonight, 8:00 PM – 9:00 PM"), and explicit expiresInSeconds.
+ */
+export const parseDealPickupWindow = (deal: {
+  pickupStartTime?: string;
+  pickupEndTime?: string;
+  pickupWindowText?: string;
+  pickupWindow?: {
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+    displayText?: string;
+    expiresInSeconds?: number;
+  };
+}): ParsedPickupWindow => {
+  let startTime = deal.pickupStartTime || deal.pickupWindow?.startTime || '';
+  let endTime = deal.pickupEndTime || deal.pickupWindow?.endTime || '';
+  const windowText = deal.pickupWindowText || deal.pickupWindow?.displayText || '';
+
+  // Extract from windowText if startTime or endTime is not directly given
+  if ((!startTime || !endTime) && windowText) {
+    const m24 = windowText.match(/(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/);
+    if (m24) {
+      if (!startTime) startTime = m24[1];
+      if (!endTime) endTime = m24[2];
+    } else {
+      const m12 = windowText.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?)\s*[-–—]\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+      if (m12) {
+        if (!startTime) startTime = m12[1].trim();
+        if (!endTime) endTime = m12[2].trim();
+      }
+    }
+  }
+
+  if (!startTime) startTime = '19:00';
+  if (!endTime) endTime = '21:30';
+
+  const parseHM = (timeStr: string) => {
+    const isPM = /pm/i.test(timeStr);
+    const isAM = /am/i.test(timeStr);
+    const clean = timeStr.replace(/[^0-9:]/g, '');
+    const parts = clean.split(':').map(Number);
+    let h = parts[0] || 0;
+    const m = parts[1] || 0;
+    if (isPM && h < 12) h += 12;
+    if (isAM && h === 12) h = 0;
+    return { hours: h, minutes: m };
+  };
+
+  const startHM = parseHM(startTime);
+  const endHM = parseHM(endTime);
+
+  const now = new Date();
+  const closingDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    endHM.hours,
+    endHM.minutes,
+    0
+  );
+
+  let expiresInSeconds = Math.floor((closingDate.getTime() - now.getTime()) / 1000);
+
+  // If closing was earlier today (or past midnight) but deal is active, look at next pickup window cycle
+  if (expiresInSeconds <= 0) {
+    const nextClosing = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      endHM.hours,
+      endHM.minutes,
+      0
+    );
+    expiresInSeconds = Math.floor((nextClosing.getTime() - now.getTime()) / 1000);
+  }
+
+  // If deal had an explicit valid positive expiresInSeconds, respect it
+  if (typeof deal.pickupWindow?.expiresInSeconds === 'number' && deal.pickupWindow.expiresInSeconds > 0) {
+    expiresInSeconds = deal.pickupWindow.expiresInSeconds;
+  }
+
+  const to12h = (hm: { hours: number; minutes: number }) => {
+    const period = hm.hours >= 12 ? 'PM' : 'AM';
+    const h12 = hm.hours % 12 === 0 ? 12 : hm.hours % 12;
+    return `${h12}:${String(hm.minutes).padStart(2, '0')} ${period}`;
+  };
+
+  const displayText =
+    windowText && (windowText.includes('PM') || windowText.includes('AM'))
+      ? windowText
+      : `Tonight, ${to12h(startHM)} – ${to12h(endHM)}`;
+
+  return {
+    date: 'Today',
+    startTime,
+    endTime,
+    displayText,
+    expiresInSeconds: Math.max(0, expiresInSeconds),
+  };
+};
+
+/**
+ * Deterministically generates a realistic nearby distance (0.4 km - 3.8 km)
+ * based on a unique restaurant / listing identifier when distanceKm is not provided.
+ */
+export const getDeterministicDistance = (id: string): number => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
+  }
+  const positive = Math.abs(hash);
+  return Math.round((((positive % 35) + 4) / 10) * 10) / 10;
+};

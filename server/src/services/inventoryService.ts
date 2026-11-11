@@ -19,6 +19,9 @@ export interface ListingInventoryRecord {
   deliveryFeeInr: number;
   co2eSavingsKg: number;
   status: 'ACTIVE' | 'PAUSED' | 'SOLD_OUT' | 'EXPIRED';
+  pickupStartTime?: string;
+  pickupEndTime?: string;
+  pickupDate?: Date | string;
   pickupWindowText: string;
   kycStatus?: string;
   hygieneGrade?: string;
@@ -443,6 +446,9 @@ export class InventoryService {
             deliveryFeeInr: 0,
             co2eSavingsKg: Number(dbListing.co2eSavingsKg),
             status: dbListing.status as any,
+            pickupStartTime: dbListing.pickupStartTime,
+            pickupEndTime: dbListing.pickupEndTime,
+            pickupDate: dbListing.pickupDate,
             pickupWindowText: `${dbListing.pickupStartTime} - ${dbListing.pickupEndTime}`,
             kycStatus: dbListing.restaurant.kycStatus,
             hygieneGrade: isDemo ? 'Demo / Uninspected' : dbListing.restaurant.hygieneGrade,
@@ -539,6 +545,9 @@ export class InventoryService {
               deliveryFeeInr: 0,
               co2eSavingsKg: Number(l.co2eSavingsKg),
               status: l.status as any,
+              pickupStartTime: l.pickupStartTime,
+              pickupEndTime: l.pickupEndTime,
+              pickupDate: l.pickupDate,
               pickupWindowText: `${l.pickupStartTime} - ${l.pickupEndTime}`,
               kycStatus: l.restaurant.kycStatus,
               hygieneGrade: isDemo ? 'Demo / Uninspected' : l.restaurant.hygieneGrade,

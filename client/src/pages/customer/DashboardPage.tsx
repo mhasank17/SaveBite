@@ -5,7 +5,7 @@ import EmptyState from '../../components/common/EmptyState';
 import { FoodDeal, Order } from '../../types';
 import api from '../../services/api';
 import { getFoodFallbackImageUrl } from '../../utils/foodImages';
-import { formatINR } from '../../utils/formatters';
+import { formatINR, parseDealPickupWindow, getDeterministicDistance } from '../../utils/formatters';
 
 export interface DashboardPageProps {
   onSelectDeal: (deal: FoodDeal) => void;
@@ -48,6 +48,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               .replace(/\s*\(Unverified Sample Partner\)/i, '')
               .trim();
             const cleanTitle = (d.title || 'Food Deal').replace(/^\[Demo\]\s*/i, '').trim();
+            const pickupWindow = parseDealPickupWindow(d);
+            const distanceKm =
+              typeof d.distanceKm === 'number' && d.distanceKm > 0
+                ? d.distanceKm
+                : getDeterministicDistance(d.restaurantId || d.id || cleanRestaurantName);
 
             return {
               ...d,
@@ -68,14 +73,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               savingsInr:
                 d.savingsInr ??
                 Math.max(0, (d.originalPriceInr || 450) - (d.dealPriceInr ?? d.surplusPriceInr ?? 149)),
-              distanceKm: d.distanceKm ?? 1.2,
-              pickupWindow: d.pickupWindow ?? {
-                date: 'Today',
-                startTime: '19:00',
-                endTime: '21:00',
-                displayText: d.pickupWindowText || 'Tonight, 7:00 PM – 9:00 PM',
-                expiresInSeconds: 3200,
-              },
+              distanceKm,
+              pickupStartTime: pickupWindow.startTime,
+              pickupEndTime: pickupWindow.endTime,
+              pickupWindowText: pickupWindow.displayText,
+              pickupWindow,
               dietaryTags: Array.isArray(d.dietaryTags)
                 ? d.dietaryTags.filter((t: string) => t !== 'Demo Record' && t !== 'SYSTEM_DEMO_RECORD_V1')
                 : ['Freshly Prepared'],
