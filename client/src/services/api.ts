@@ -110,6 +110,23 @@ export const api = {
   },
 
   /**
+   * Fetch a single order by ID with latest database status
+   */
+  getOrderById: async (orderId: string): Promise<Order> => {
+    const res = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || `Failed to fetch order '${orderId}'`);
+    }
+
+    return data.data;
+  },
+
+  /**
    * Clear eligible completed order history for the authenticated customer
    */
   clearOrderHistory: async (): Promise<{

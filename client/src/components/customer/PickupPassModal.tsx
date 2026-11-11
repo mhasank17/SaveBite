@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
-import Badge from '../common/Badge';
 import { Order } from '../../types';
 import { formatINR } from '../../utils/formatters';
 import QrCodeView from '../common/QrCodeView';
+import api from '../../services/api';
 
 export interface PickupPassModalProps {
   isOpen: boolean;
@@ -13,6 +13,7 @@ export interface PickupPassModalProps {
   pass?: {
     orderNumber: string;
     restaurantName: string;
+    restaurantAddress?: string;
     dealTitle: string;
     pickupWindow: string;
     quantity: number;
@@ -22,6 +23,7 @@ export interface PickupPassModalProps {
     orderStatus?: string;
     paymentStatus?: string;
   } | null;
+  onOrderStatusChange?: (updatedOrder: Order) => void;
 }
 
 export const PickupPassModal: React.FC<PickupPassModalProps> = ({
@@ -29,44 +31,133 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
   onClose,
   order,
   pass,
+  onOrderStatusChange,
 }) => {
-  const displayOrderNumber = order ? order.orderNumber : pass?.orderNumber || '#8492';
-  const displayRestaurant = order ? order.restaurantName : pass?.restaurantName || 'The Daily Dough Bakery';
-  const displayDealTitle = order ? order.dealTitle : pass?.dealTitle || 'Evening Patisserie & Bakery Bag';
-  const displayQuantity = order ? order.quantity : pass?.quantity || 1;
-  const displayPickupWindow = order
-    ? order.pickupWindowText || 'Tonight, 8:00 PM – 9:00 PM'
+  const [liveOrder, setLiveOrder] = useState<Order | null>(order || null);
+
+  // Sync state when order prop changes
+  useEffect(() => {
+    if (order) {
+      setLiveOrder(order);
+    }
+  }, [order]);
+
+  // Automatic real-time status update from backend database
+  // Opening/viewing the pass NEVER marks the order as completed (read-only GET)
+  // Polls while open to automatically update pass state when verified in Partner Portal
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const targetOrderId = liveOrder?.id || order?.id;
+    if (!targetOrderId) return;
+
+    let isMounted = true;
+
+    const fetchLatestOrderStatus = async () => {
+      try {
+        const freshOrder = await api.getOrderById(targetOrderId);
+        if (isMounted && freshOrder) {
+          setLiveOrder((prev) => {
+            if (
+              !prev ||
+              prev.orderStatus !== freshOrder.orderStatus ||
+              prev.paymentStatus !== freshOrder.paymentStatus
+            ) {
+              if (onOrderStatusChange) {
+                onOrderStatusChange(freshOrder);
+              }
+              return freshOrder;
+            }
+            return prev;
+          });
+        }
+      } catch {
+        // Silently catch background refresh hiccups
+      }
+    };
+
+    // 1. Immediate fetch on modal open to ensure latest database information
+    fetchLatestOrderStatus();
+
+    // 2. Poll every 3 seconds while modal is open until order completes
+    const intervalId = setInterval(() => {
+      if (liveOrder?.orderStatus !== 'COMPLETED') {
+        fetchLatestOrderStatus();
+      }
+    }, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [isOpen, liveOrder?.id, liveOrder?.orderStatus, order?.id, onOrderStatusChange]);
+
+  const currentOrder = liveOrder || order;
+
+  const displayOrderNumber = currentOrder ? currentOrder.orderNumber : pass?.orderNumber || '#8492';
+  const displayRestaurant = currentOrder
+    ? currentOrder.restaurantName
+    : pass?.restaurantName || 'Partner Kitchen';
+  const displayRestaurantAddress = currentOrder?.restaurantAddress || pass?.restaurantAddress;
+  const displayDealTitle = currentOrder
+    ? currentOrder.dealTitle
+    : pass?.dealTitle || 'Evening Surplus Food Bag';
+  const displayQuantity = currentOrder ? currentOrder.quantity : pass?.quantity || 1;
+  const displayPickupWindow = currentOrder
+    ? currentOrder.pickupWindowText || 'Tonight, 8:00 PM – 9:00 PM'
     : pass?.pickupWindow || 'Tonight, 8:00 PM – 9:00 PM';
-  const displayOrderStatus = order ? order.orderStatus : pass?.orderStatus || 'CONFIRMED';
-  const displayPaymentStatus = order ? order.paymentStatus : pass?.paymentStatus || 'SUCCESS';
-  const displayTotalPrice = order ? order.totalPriceInr : pass?.totalPriceInr || 149;
-  const displayPickupOtp = order?.pickupOtp || pass?.pickupOtp || displayOrderNumber.replace('#', '') || '8492';
+  const rawOrderStatus = currentOrder ? currentOrder.orderStatus : pass?.orderStatus || 'CONFIRMED';
+  const rawPaymentStatus = currentOrder ? currentOrder.paymentStatus : pass?.paymentStatus || 'SUCCESS';
+  const displayTotalPrice = currentOrder ? currentOrder.totalPriceInr : pass?.totalPriceInr || 149;
+  const displayPickupOtp =
+    currentOrder?.pickupOtp || pass?.pickupOtp || displayOrderNumber.replace('#', '') || '8492';
   const displayQrToken =
-    order?.qrSecretToken ||
+    currentOrder?.qrSecretToken ||
     pass?.qrSecretToken ||
     `SAVEBITE-PASS-${displayOrderNumber.replace('#', '')}-VERIFIED`;
 
-  const isCompleted = displayOrderStatus === 'COMPLETED';
+  const isCompleted = rawOrderStatus === 'COMPLETED';
+
+  // 1. Show PAID instead of PENDING PAYMENT when payment is confirmed
+  const isPaid =
+    rawPaymentStatus === 'SUCCESS' ||
+    rawOrderStatus === 'CONFIRMED' ||
+    rawOrderStatus === 'READY_FOR_PICKUP' ||
+    rawOrderStatus === 'COMPLETED';
+
+  // Order status badge label
+  const getOrderStatusLabel = (status: string) => {
+    switch (status) {
+      case 'CONFIRMED':
+        return 'Confirmed';
+      case 'READY_FOR_PICKUP':
+        return 'Ready for Pickup';
+      case 'COMPLETED':
+        return 'Collected';
+      case 'PENDING_PAYMENT':
+        return 'Awaiting Payment';
+      case 'CANCELLED':
+        return 'Cancelled';
+      default:
+        return status.replace(/_/g, ' ');
+    }
+  };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        isCompleted
-          ? 'Meal Collected & Verified'
-          : 'Active Counter Pickup Pass'
-      }
+      title={isCompleted ? 'Meal Collected & Verified' : 'Active Counter Pickup Pass'}
       subtitle={
         isCompleted
-          ? 'This order has already been verified and collected at the counter'
+          ? 'This order has been verified and collected at the partner kitchen counter'
           : 'Present this digital pass at the restaurant counter upon arrival'
       }
       variant="center"
       footer={
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-1.5 text-on-surface-variant font-label-sm text-[11px]">
-            <span className="material-symbols-outlined text-[16px] text-primary">verified</span>
+            <span className="material-symbols-outlined text-[16px] text-[#006030]">verified</span>
             <span>Counter Pickup Protected</span>
           </div>
           <Button variant="primary" size="sm" onClick={onClose}>
@@ -75,53 +166,95 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
         </div>
       }
     >
-      <div className="flex flex-col gap-space-md max-h-[75vh] overflow-y-auto pr-1">
+      <div className="flex flex-col gap-3.5 max-h-[75vh] overflow-y-auto pr-0.5">
         
-        {/* Pass Header Banner */}
+        {/* Pass Header Banner - Forest Green Stitch Design */}
         <div
-          className={`p-4 rounded-2xl text-on-primary shadow-md relative overflow-hidden flex flex-col gap-3 ${
+          className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl text-white shadow-md relative overflow-hidden flex flex-col gap-3.5 transition-all ${
             isCompleted
-              ? 'bg-gradient-to-br from-secondary to-secondary-container'
-              : 'bg-gradient-to-br from-primary to-primary-container'
+              ? 'bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#1b4332]'
+              : 'bg-gradient-to-br from-[#006030] via-[#005229] to-[#004020]'
           }`}
         >
-          <div className="flex items-center justify-between z-10">
-            <span className="font-label-sm text-[11px] uppercase tracking-wider bg-on-primary/15 px-2.5 py-0.5 rounded-full font-bold">
-              {isCompleted
-                ? 'Collected at Counter'
-                : 'Counter Pickup Active'}
+          {/* Subtle Decorative Ambient Spark */}
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
+
+          {/* Row 1: Status Badges - Horizontally aligned with consistent spacing & no overlapping */}
+          <div className="flex flex-wrap items-center gap-2 z-10 w-full">
+            {/* 1. Fulfillment Type Badge */}
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider bg-white/15 backdrop-blur-xs text-white px-2.5 py-1 rounded-full shrink-0 border border-white/20 shadow-2xs">
+              <span className="material-symbols-outlined text-[14px]">storefront</span>
+              <span>{isCompleted ? 'Collected at Counter' : 'Counter Pickup Active'}</span>
             </span>
-            <div className="flex items-center gap-1.5">
-              <Badge variant={isCompleted ? 'verified' : 'live'} pulseDot={!isCompleted} pulseColor="primary">
-                {displayOrderStatus.replace(/_/g, ' ')}
-              </Badge>
-              <span className="text-[10px] font-bold uppercase bg-on-primary/20 text-on-primary px-2 py-0.5 rounded-full">
-                {displayPaymentStatus}
+
+            {/* 2. Order Status Badge */}
+            <span
+              className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 shadow-2xs ${
+                isCompleted
+                  ? 'bg-emerald-950/70 text-emerald-200 border border-emerald-400/30'
+                  : 'bg-white/20 text-white border border-white/25'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isCompleted ? 'bg-emerald-400' : 'bg-emerald-300 animate-pulse'
+                }`}
+              />
+              <span>{getOrderStatusLabel(rawOrderStatus)}</span>
+            </span>
+
+            {/* 3. Payment Status Badge: Shows PAID when confirmed, otherwise PENDING PAYMENT */}
+            <span
+              className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 shadow-2xs ${
+                isPaid
+                  ? 'bg-emerald-400 text-emerald-950 font-extrabold border border-emerald-300'
+                  : 'bg-amber-400 text-amber-950 font-extrabold border border-amber-300'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px] font-bold">
+                {isPaid ? 'check_circle' : 'schedule'}
               </span>
-            </div>
+              <span>{isPaid ? 'PAID' : 'PENDING PAYMENT'}</span>
+            </span>
           </div>
 
-          <div className="flex flex-col z-10">
-            <h3 className="font-headline-sm text-headline-sm font-bold text-on-primary">
+          {/* Row 2: Restaurant Name & Deal Title - Positioned clearly below badges with dedicated spacing */}
+          <div className="flex flex-col z-10 pt-1 pb-0.5">
+            <span className="text-[10px] text-emerald-200/80 font-bold uppercase tracking-widest">
+              Partner Kitchen
+            </span>
+            <h3 className="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-snug break-words">
               {displayRestaurant}
             </h3>
-            <p className="font-body-sm text-body-sm text-on-primary-container mt-0.5">
-              {displayDealTitle} ({displayQuantity} {displayQuantity > 1 ? 'portions' : 'portion'})
+            <p className="text-xs sm:text-sm text-emerald-100/90 mt-1 line-clamp-2 leading-relaxed">
+              {displayDealTitle} •{' '}
+              <span className="font-semibold text-white">
+                {displayQuantity} {displayQuantity > 1 ? 'portions' : 'portion'}
+              </span>
             </p>
+            {displayRestaurantAddress && (
+              <div className="flex items-center gap-1 text-[11px] text-emerald-200/75 mt-1.5 truncate">
+                <span className="material-symbols-outlined text-[13px] shrink-0">location_on</span>
+                <span className="truncate">{displayRestaurantAddress}</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-on-primary/20 z-10">
-            <div className="flex flex-col">
-              <span className="font-label-sm text-[10px] text-on-primary/70 uppercase">
+          {/* Row 3: Pickup Window & Order ID */}
+          <div className="flex items-center justify-between pt-2.5 border-t border-white/20 z-10 gap-3">
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] text-emerald-200/80 uppercase tracking-wider font-semibold">
                 Pickup Window
               </span>
-              <span className="font-label-md text-label-md font-bold text-on-primary">
+              <span className="text-xs sm:text-sm font-bold text-white truncate">
                 {displayPickupWindow}
               </span>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="font-label-sm text-[10px] text-on-primary/70 uppercase">Order ID</span>
-              <span className="font-headline-sm text-headline-sm font-mono font-bold text-secondary-fixed">
+            <div className="flex flex-col items-end shrink-0">
+              <span className="text-[10px] text-emerald-200/80 uppercase tracking-wider font-semibold">
+                Order ID
+              </span>
+              <span className="font-mono text-base sm:text-lg font-extrabold text-amber-300 tracking-wider">
                 {displayOrderNumber}
               </span>
             </div>
@@ -129,24 +262,27 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
         </div>
 
         {/* Check-in HUD: QR Code + 4-Digit OTP */}
-        <div className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant/30 flex flex-col items-center text-center gap-3">
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-slate-50 border border-slate-200/80 flex flex-col items-center text-center gap-3.5 shadow-xs">
           <div className="flex items-center justify-between w-full px-1">
-            <span className="font-label-sm text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">
+            <span className="text-[11px] text-slate-500 uppercase tracking-wider font-bold">
               Counter Pickup Verification
             </span>
-            <span className="font-label-sm text-[11px] text-primary font-bold">
+            <span className="text-[12px] text-[#006030] font-extrabold">
               Total Paid: {formatINR(displayTotalPrice)}
             </span>
           </div>
 
           {/* SVG QR Code */}
-          <div className="relative">
-            <QrCodeView value={displayQrToken} size={150} showValue={false} />
+          <div className="relative p-2.5 bg-white rounded-2xl shadow-xs border border-slate-200/60">
+            <QrCodeView value={displayQrToken} size={160} showValue={false} />
             {isCompleted && (
-              <div className="absolute inset-0 bg-surface/90 backdrop-blur-xs rounded-2xl flex flex-col items-center justify-center gap-1 text-secondary font-bold">
-                <span className="material-symbols-outlined text-[48px]">check_circle</span>
-                <span className="text-xs uppercase tracking-wider">
-                  Collected
+              <div className="absolute inset-0 bg-white/95 backdrop-blur-xs rounded-2xl flex flex-col items-center justify-center gap-1.5 text-emerald-700 font-bold">
+                <span className="material-symbols-outlined text-[44px] text-emerald-600">check_circle</span>
+                <span className="text-xs uppercase tracking-wider font-extrabold">
+                  Verified & Collected
+                </span>
+                <span className="text-[10px] text-slate-500 font-normal">
+                  Order completed at counter
                 </span>
               </div>
             )}
@@ -154,34 +290,49 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
 
           {/* 4-Digit OTP Section */}
           <div className="flex flex-col items-center gap-1.5 w-full">
-            <span className="text-xs text-on-surface-variant font-medium">
-              Show this 4-digit code to counter staff:
+            <span className="text-xs text-slate-600 font-semibold">
+              Show 4-digit OTP to counter staff:
             </span>
-            <div className="px-6 py-2 rounded-2xl bg-surface-container-lowest border-2 border-primary/40 shadow-xs flex items-center justify-center">
-              <span className="font-mono text-3xl font-extrabold tracking-widest text-primary">
+            <div
+              className={`px-7 py-2.5 rounded-2xl bg-white border-2 shadow-xs flex items-center justify-center transition-all ${
+                isCompleted
+                  ? 'border-slate-300 bg-slate-100'
+                  : 'border-[#006030] ring-4 ring-emerald-50'
+              }`}
+            >
+              <span
+                className={`font-mono text-3xl sm:text-4xl font-extrabold tracking-widest ${
+                  isCompleted ? 'text-slate-400 line-through' : 'text-[#006030]'
+                }`}
+              >
                 {displayPickupOtp}
               </span>
             </div>
-            <span className="text-[10px] text-on-surface-variant mt-0.5">
-              Secure single-use verification PIN • Guards against unauthorized collection
+            <span className="text-[11px] text-slate-500 mt-0.5">
+              {isCompleted
+                ? 'PIN verified by partner kitchen • Meal collected'
+                : 'Secure counter code • Valid until verified at pickup counter'}
             </span>
           </div>
         </div>
 
         {/* Safety & Store Instructions */}
-        <div className="p-3 bg-primary-fixed/20 rounded-xl border border-primary/20 flex items-start gap-2.5">
-          <span className="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">
+        <div className="p-3.5 bg-emerald-50/80 rounded-xl border border-emerald-200/60 flex items-start gap-2.5 text-left">
+          <span className="material-symbols-outlined text-[#006030] text-[20px] shrink-0 mt-0.5">
             storefront
           </span>
           <div className="flex flex-col min-w-0">
-            <span className="font-label-sm text-label-sm text-primary font-bold">
-              Counter Pickup
+            <span className="text-xs font-bold text-[#006030]">
+              Direct Restaurant Counter Pickup
             </span>
-            <span className="font-body-sm text-[12px] text-on-surface-variant leading-relaxed">
-              Order confirmed and paid. Ready for counter pickup during the scheduled window.
+            <span className="text-[11px] text-slate-600 leading-relaxed mt-0.5">
+              {isCompleted
+                ? 'Your order has been verified and collected. Thank you for rescuing surplus food with SaveBite!'
+                : 'Present this pass or mention your 4-digit OTP at the counter. The kitchen staff will verify and hand over your meal.'}
             </span>
           </div>
         </div>
+
       </div>
     </Modal>
   );

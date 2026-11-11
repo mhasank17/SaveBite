@@ -9,7 +9,7 @@ import { formatINR, parseDealPickupWindow, getDeterministicDistance } from '../.
 
 export interface DashboardPageProps {
   onSelectDeal: (deal: FoodDeal) => void;
-  onShowPassModal: () => void;
+  onShowPassModal: (order?: Order | null) => void;
   onNavigate?: (path: string) => void;
 }
 
@@ -242,7 +242,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
           <button
             type="button"
-            onClick={onShowPassModal}
+            onClick={() => onShowPassModal(activeOrder)}
             className="shrink-0 bg-surface-container-lowest text-primary font-bold font-label-md text-label-md px-3.5 py-2 rounded-xl shadow-xs hover:bg-surface-container-low active:scale-95 transition-all z-10"
           >
             View Pass

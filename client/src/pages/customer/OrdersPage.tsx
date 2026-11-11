@@ -22,7 +22,7 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
   orders,
   onOpenPass,
   onExploreDeals,
-  onRedeemOrder,
+  onRedeemOrder: _onRedeemOrder,
   onOrderHistoryCleared,
   onShowToast,
   currentUser,
@@ -279,15 +279,6 @@ export const OrdersPage: React.FC<OrdersPageProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {isActive && onRedeemOrder && (
-                      <button
-                        type="button"
-                        onClick={() => onRedeemOrder(order.id)}
-                        className="h-9 px-3 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-[12px] font-bold transition-all shrink-0 border border-outline-variant/30"
-                      >
-                        Redeem
-                      </button>
-                    )}
                     <button
                       type="button"
                       onClick={() => onOpenPass(order)}

@@ -211,7 +211,10 @@ export const App: React.FC = () => {
         .then((backendOrders) => {
           if (Array.isArray(backendOrders)) {
             setOrders(backendOrders);
-            setActivePassOrder(backendOrders[0] || null);
+            const active = backendOrders.find(
+              (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'
+            );
+            setActivePassOrder(active || backendOrders[0] || null);
           }
         })
         .catch(() => {});
@@ -226,7 +229,10 @@ export const App: React.FC = () => {
       const backendOrders = await api.getMyOrders();
       if (Array.isArray(backendOrders)) {
         setOrders(backendOrders);
-        setActivePassOrder(backendOrders[0] || null);
+        const active = backendOrders.find(
+          (o) => o.orderStatus === 'CONFIRMED' || o.orderStatus === 'READY_FOR_PICKUP'
+        );
+        setActivePassOrder(active || backendOrders[0] || null);
       } else {
         setOrders((prev) =>
           prev.filter(
@@ -1246,7 +1252,10 @@ export const App: React.FC = () => {
             setSelectedDeal(deal);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          onShowPassModal={() => setIsPassModalOpen(true)}
+          onShowPassModal={(order) => {
+            if (order) setActivePassOrder(order);
+            setIsPassModalOpen(true);
+          }}
           onNavigate={(path) => navigate(path)}
         />
       )}
@@ -1279,6 +1288,12 @@ export const App: React.FC = () => {
         isOpen={isPassModalOpen}
         onClose={() => setIsPassModalOpen(false)}
         order={activePassOrder}
+        onOrderStatusChange={(updatedOrder) => {
+          setActivePassOrder(updatedOrder);
+          setOrders((prev) =>
+            prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+          );
+        }}
       />
 
       {/* Avatar Selector Modal */}

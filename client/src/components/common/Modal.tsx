@@ -46,7 +46,9 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-space-md"
+      className={`fixed inset-0 z-50 flex items-center justify-center ${
+        isBottomSheet ? 'p-0 md:p-space-md' : 'p-3.5 sm:p-4 md:p-space-md'
+      }`}
       role="dialog"
       aria-modal="true"
     >
