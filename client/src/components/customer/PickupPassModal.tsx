@@ -154,6 +154,7 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
           : 'Present this digital pass at the restaurant counter upon arrival'
       }
       variant="center"
+      maxWidth="lg"
       footer={
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-1.5 text-on-surface-variant font-label-sm text-[11px]">
@@ -166,11 +167,12 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
         </div>
       }
     >
-      <div className="flex flex-col gap-3.5 max-h-[75vh] overflow-y-auto pr-0.5">
+      {/* Non-scrolling vertical stack: single scrollbar handled solely by Modal */}
+      <div className="flex flex-col gap-4 w-full">
         
-        {/* Pass Header Banner - Forest Green Stitch Design */}
+        {/* Pass Header Banner - Forest Green Stitch Design with ample padding, spacing, and zero clipping */}
         <div
-          className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl text-white shadow-md relative overflow-hidden flex flex-col gap-3.5 transition-all ${
+          className={`p-5 sm:p-6 rounded-2xl sm:rounded-3xl text-white shadow-md relative overflow-hidden flex flex-col gap-4 sm:gap-4.5 transition-all shrink-0 w-full ${
             isCompleted
               ? 'bg-gradient-to-br from-[#1b4332] via-[#2d6a4f] to-[#1b4332]'
               : 'bg-gradient-to-br from-[#006030] via-[#005229] to-[#004020]'
@@ -180,16 +182,16 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
           <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
 
           {/* Row 1: Status Badges - Horizontally aligned with consistent spacing & no overlapping */}
-          <div className="flex flex-wrap items-center gap-2 z-10 w-full">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 z-10 w-full">
             {/* 1. Fulfillment Type Badge */}
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider bg-white/15 backdrop-blur-xs text-white px-2.5 py-1 rounded-full shrink-0 border border-white/20 shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider bg-white/15 backdrop-blur-xs text-white px-3 py-1.5 rounded-full shrink-0 border border-white/20 shadow-2xs">
               <span className="material-symbols-outlined text-[14px]">storefront</span>
               <span>{isCompleted ? 'Collected at Counter' : 'Counter Pickup Active'}</span>
             </span>
 
             {/* 2. Order Status Badge */}
             <span
-              className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 shadow-2xs ${
+              className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shrink-0 shadow-2xs ${
                 isCompleted
                   ? 'bg-emerald-950/70 text-emerald-200 border border-emerald-400/30'
                   : 'bg-white/20 text-white border border-white/25'
@@ -205,7 +207,7 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
 
             {/* 3. Payment Status Badge: Shows PAID when confirmed, otherwise PENDING PAYMENT */}
             <span
-              className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 shadow-2xs ${
+              className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shrink-0 shadow-2xs ${
                 isPaid
                   ? 'bg-emerald-400 text-emerald-950 font-extrabold border border-emerald-300'
                   : 'bg-amber-400 text-amber-950 font-extrabold border border-amber-300'
@@ -218,43 +220,43 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
             </span>
           </div>
 
-          {/* Row 2: Restaurant Name & Deal Title - Positioned clearly below badges with dedicated spacing */}
-          <div className="flex flex-col z-10 pt-1 pb-0.5">
-            <span className="text-[10px] text-emerald-200/80 font-bold uppercase tracking-widest">
+          {/* Row 2: Restaurant Name & Deal Details - Positioned clearly below badges with dedicated spacing */}
+          <div className="flex flex-col z-10 pt-1.5 pb-1 gap-1">
+            <span className="text-[11px] text-emerald-200/90 font-bold uppercase tracking-widest">
               Partner Kitchen
             </span>
-            <h3 className="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-snug break-words">
+            <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug break-words">
               {displayRestaurant}
             </h3>
-            <p className="text-xs sm:text-sm text-emerald-100/90 mt-1 line-clamp-2 leading-relaxed">
+            <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed break-words">
               {displayDealTitle} •{' '}
               <span className="font-semibold text-white">
                 {displayQuantity} {displayQuantity > 1 ? 'portions' : 'portion'}
               </span>
             </p>
             {displayRestaurantAddress && (
-              <div className="flex items-center gap-1 text-[11px] text-emerald-200/75 mt-1.5 truncate">
-                <span className="material-symbols-outlined text-[13px] shrink-0">location_on</span>
-                <span className="truncate">{displayRestaurantAddress}</span>
+              <div className="flex items-start gap-1.5 text-xs text-emerald-200/85 mt-0.5">
+                <span className="material-symbols-outlined text-[15px] shrink-0 mt-0.5">location_on</span>
+                <span className="break-words leading-tight">{displayRestaurantAddress}</span>
               </div>
             )}
           </div>
 
           {/* Row 3: Pickup Window & Order ID */}
-          <div className="flex items-center justify-between pt-2.5 border-t border-white/20 z-10 gap-3">
+          <div className="flex items-center justify-between pt-3.5 border-t border-white/20 z-10 gap-3">
             <div className="flex flex-col min-w-0">
-              <span className="text-[10px] text-emerald-200/80 uppercase tracking-wider font-semibold">
+              <span className="text-[10px] sm:text-[11px] text-emerald-200/90 uppercase tracking-wider font-semibold">
                 Pickup Window
               </span>
-              <span className="text-xs sm:text-sm font-bold text-white truncate">
+              <span className="text-xs sm:text-sm font-bold text-white break-words">
                 {displayPickupWindow}
               </span>
             </div>
-            <div className="flex flex-col items-end shrink-0">
-              <span className="text-[10px] text-emerald-200/80 uppercase tracking-wider font-semibold">
+            <div className="flex flex-col items-end shrink-0 pl-2">
+              <span className="text-[10px] sm:text-[11px] text-emerald-200/90 uppercase tracking-wider font-semibold">
                 Order ID
               </span>
-              <span className="font-mono text-base sm:text-lg font-extrabold text-amber-300 tracking-wider">
+              <span className="font-mono text-base sm:text-lg font-black text-amber-300 tracking-wider">
                 {displayOrderNumber}
               </span>
             </div>
@@ -262,7 +264,7 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
         </div>
 
         {/* Check-in HUD: QR Code + 4-Digit OTP */}
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-slate-50 border border-slate-200/80 flex flex-col items-center text-center gap-3.5 shadow-xs">
+        <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-slate-50 border border-slate-200/80 flex flex-col items-center text-center gap-4 shadow-xs shrink-0 w-full">
           <div className="flex items-center justify-between w-full px-1">
             <span className="text-[11px] text-slate-500 uppercase tracking-wider font-bold">
               Counter Pickup Verification
@@ -289,19 +291,19 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
           </div>
 
           {/* 4-Digit OTP Section */}
-          <div className="flex flex-col items-center gap-1.5 w-full">
-            <span className="text-xs text-slate-600 font-semibold">
+          <div className="flex flex-col items-center gap-2 w-full">
+            <span className="text-xs sm:text-sm text-slate-600 font-semibold">
               Show 4-digit OTP to counter staff:
             </span>
             <div
-              className={`px-7 py-2.5 rounded-2xl bg-white border-2 shadow-xs flex items-center justify-center transition-all ${
+              className={`px-8 py-3 rounded-2xl bg-white border-2 shadow-xs flex items-center justify-center transition-all ${
                 isCompleted
                   ? 'border-slate-300 bg-slate-100'
                   : 'border-[#006030] ring-4 ring-emerald-50'
               }`}
             >
               <span
-                className={`font-mono text-3xl sm:text-4xl font-extrabold tracking-widest ${
+                className={`font-mono text-3xl sm:text-4xl font-black tracking-widest ${
                   isCompleted ? 'text-slate-400 line-through' : 'text-[#006030]'
                 }`}
               >
@@ -317,15 +319,15 @@ export const PickupPassModal: React.FC<PickupPassModalProps> = ({
         </div>
 
         {/* Safety & Store Instructions */}
-        <div className="p-3.5 bg-emerald-50/80 rounded-xl border border-emerald-200/60 flex items-start gap-2.5 text-left">
-          <span className="material-symbols-outlined text-[#006030] text-[20px] shrink-0 mt-0.5">
+        <div className="p-4 bg-emerald-50/80 rounded-xl sm:rounded-2xl border border-emerald-200/60 flex items-start gap-3 text-left shrink-0 w-full">
+          <span className="material-symbols-outlined text-[#006030] text-[22px] shrink-0 mt-0.5">
             storefront
           </span>
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-bold text-[#006030]">
               Direct Restaurant Counter Pickup
             </span>
-            <span className="text-[11px] text-slate-600 leading-relaxed mt-0.5">
+            <span className="text-[11px] sm:text-xs text-slate-600 leading-relaxed mt-0.5">
               {isCompleted
                 ? 'Your order has been verified and collected. Thank you for rescuing surplus food with SaveBite!'
                 : 'Present this pass or mention your 4-digit OTP at the counter. The kitchen staff will verify and hand over your meal.'}

@@ -72,12 +72,12 @@ export const Modal: React.FC<ModalProps> = ({
         <div className="flex items-center justify-between p-space-md border-b border-outline-variant/30 shrink-0">
           <div className="flex flex-col min-w-0 pr-2">
             {title && (
-              <h3 className="font-headline-sm text-headline-sm text-on-surface font-bold truncate">
+              <h3 className="font-headline-sm text-base sm:text-headline-sm text-on-surface font-bold break-words">
                 {title}
               </h3>
             )}
             {subtitle && (
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 truncate">
+              <p className="font-body-sm text-xs sm:text-body-sm text-on-surface-variant mt-0.5 break-words">
                 {subtitle}
               </p>
             )}
@@ -93,8 +93,8 @@ export const Modal: React.FC<ModalProps> = ({
           </button>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="p-space-md overflow-y-auto flex-1">{children}</div>
+        {/* Scrollable Body - Single vertical scroll container */}
+        <div className="p-space-md overflow-y-auto flex-1 overscroll-contain">{children}</div>
 
         {/* Optional Footer */}
         {footer && (
