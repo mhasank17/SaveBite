@@ -72,7 +72,7 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'REFUNDED';
 
-export type PaymentMethod = 'RAZORPAY_SANDBOX' | 'UPI' | 'CARD' | 'NETBANKING';
+export type PaymentMethod = 'RAZORPAY_SANDBOX' | 'CARD' | 'NETBANKING';
 export type PaymentStatus = 'INITIATED' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 
 export interface Order {

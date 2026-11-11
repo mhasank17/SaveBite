@@ -474,7 +474,7 @@ export const MOCK_ORDERS: Order[] = [
     totalPriceInr: 149,
     fulfillmentType: 'SELF_PICKUP',
     orderStatus: 'READY_FOR_PICKUP',
-    paymentMethod: 'UPI',
+    paymentMethod: 'RAZORPAY_SANDBOX',
     paymentStatus: 'SUCCESS',
     pickupOtp: '8492',
     qrSecretToken: 'SAVEBITE-PASS-8492-VERIFIED-AUTH',

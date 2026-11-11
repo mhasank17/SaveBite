@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
-import { FoodDeal, Order, PaymentMethod } from '../../types';
+import { FoodDeal, Order } from '../../types';
 import { formatINR } from '../../utils/formatters';
 import api from '../../services/api';
 import { getFoodFallbackImageUrl, handleImageError } from '../../utils/foodImages';
@@ -25,8 +25,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [quantity, setQuantity] = useState(initialQuantity);
 
   // Payment State
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('RAZORPAY_SANDBOX');
-  const [upiId, setUpiId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -211,75 +209,35 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           </div>
         </div>
 
-        {/* Payment Method Selector */}
+        {/* Payment & Reservation Details */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="font-label-md text-label-md font-bold text-on-surface">
-              Select Payment Method (INR Test Sandbox)
+              Payment & Confirmation
             </span>
             <span className="font-label-sm text-[11px] text-primary font-bold bg-primary-fixed/30 px-2 py-0.5 rounded-full">
-              Test Mode
+              Test Sandbox
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {/* Razorpay Sandbox Option */}
-            <button
-              type="button"
-              disabled={isProcessing}
-              onClick={() => setPaymentMethod('RAZORPAY_SANDBOX')}
-              className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
-                paymentMethod === 'RAZORPAY_SANDBOX'
-                  ? 'bg-primary-fixed/20 border-primary text-primary font-bold shadow-xs'
-                  : 'bg-surface-container-lowest border-outline-variant/30 text-on-surface hover:bg-surface-container-low'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">
-                verified
-              </span>
-              <div className="flex flex-col min-w-0">
-                <span className="font-label-md text-[13px] font-bold">Razorpay Test Gateway</span>
-                <span className="font-body-sm text-[11px] text-on-surface-variant">
-                  Mock UPI / Cards / Netbanking
-                </span>
-              </div>
-            </button>
-
-            {/* Simulated UPI Sandbox */}
-            <button
-              type="button"
-              disabled={isProcessing}
-              onClick={() => setPaymentMethod('UPI')}
-              className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
-                paymentMethod === 'UPI'
-                  ? 'bg-primary-fixed/20 border-primary text-primary font-bold shadow-xs'
-                  : 'bg-surface-container-lowest border-outline-variant/30 text-on-surface hover:bg-surface-container-low'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">
-                qr_code_scanner
-              </span>
-              <div className="flex flex-col min-w-0">
-                <span className="font-label-md text-[13px] font-bold">UPI / Campus Student Pay</span>
-                <span className="font-body-sm text-[11px] text-on-surface-variant">
-                  Instant Virtual UPI Handle
-                </span>
-              </div>
-            </button>
-          </div>
-
-          {paymentMethod === 'UPI' && (
-            <div className="p-2.5 bg-surface-container-low rounded-xl border border-outline-variant/20 flex items-center gap-2">
-              <span className="font-label-sm text-[11px] text-on-surface-variant font-medium">Student UPI VPA:</span>
-              <input
-                type="text"
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-                placeholder="yourname@upi"
-                className="flex-1 h-8 px-2.5 bg-surface-container-lowest rounded-lg border border-outline-variant/30 text-[12px] font-mono text-on-surface focus:outline-none"
-              />
+          <div className="p-3.5 bg-surface-container-low rounded-xl border border-outline-variant/30 flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary-fixed/40 text-primary flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[22px]">verified_user</span>
             </div>
-          )}
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="font-title-md text-[13px] font-bold text-on-surface">
+                  Razorpay Secure Test Gateway
+                </span>
+                <span className="font-label-sm text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded-full">
+                  Zero Fee Sandbox
+                </span>
+              </div>
+              <span className="font-body-sm text-[11px] text-on-surface-variant mt-0.5">
+                Instant digital reservation. Your counter pickup pass and 4-digit code will be generated immediately upon confirmation.
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Bill Breakdown Card */}
