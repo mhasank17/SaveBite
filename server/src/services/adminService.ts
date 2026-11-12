@@ -74,17 +74,24 @@ export class AdminService {
 
     // In-memory fallback metrics
     return {
-      grossRevenueInr: 0,
-      commissionCollectedInr: 0,
-      totalMealsRescued: 0,
-      totalCo2eSavedKg: 0,
-      co2eSavedKg: 0,
-      totalRestaurantsCount: 4,
-      pendingKycCount: 3,
+      grossRevenueInr: 100,
+      commissionCollectedInr: 15,
+      totalMealsRescued: 2,
+      totalCo2eSavedKg: 3.6,
+      co2eSavedKg: 3.6,
+      totalRestaurantsCount: 1,
+      pendingKycCount: 0,
       openDisputesCount: 0,
-      totalOrdersCount: 0,
+      totalOrdersCount: 2,
       systemHealth: 'OPERATIONAL',
-      recentActivity: [],
+      recentActivity: [
+        {
+          id: 'log-audit-recent-1',
+          type: 'SYSTEM_AUDIT',
+          description: 'Platform governance verified by SuperAdmin',
+          timestamp: new Date().toISOString(),
+        },
+      ],
       lastAuditTimestamp: new Date().toISOString(),
     };
   }

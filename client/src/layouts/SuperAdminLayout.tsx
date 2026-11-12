@@ -18,7 +18,6 @@ export interface SuperAdminLayoutProps {
 
 export const SUPER_ADMIN_NAV_LINKS = [
   { path: '/app/super-admin/dashboard', label: 'Master Telemetry', icon: 'dashboard' },
-  { path: '/app/super-admin/admins', label: 'Admins & Roles', icon: 'admin_panel_settings' },
   { path: '/app/super-admin/partners', label: 'Partners & KYC', icon: 'verified' },
   { path: '/app/super-admin/customers', label: 'Customers', icon: 'group' },
   { path: '/app/super-admin/orders', label: 'Orders & GMV', icon: 'receipt_long' },
@@ -72,10 +71,6 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
         portal="admin"
         title="SaveBite Admin"
         subtitle="SuperAdmin Master Console"
-        unreadNotifications={7}
-        onNotificationClick={() => {
-          if (onNavigate) onNavigate('/app/super-admin/dashboard');
-        }}
         onLogout={onLogout}
         userName={currentUser?.fullName || 'Root SuperAdmin'}
         userEmail={currentUser?.email || 'admin@savebite.in'}

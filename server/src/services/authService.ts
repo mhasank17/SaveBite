@@ -276,8 +276,35 @@ export class AuthService {
     this.inMemoryRestaurants.set(partnerRestaurant.id, partnerRestaurant);
     this.inMemoryRestaurants.set(partnerUser.id, partnerRestaurant);
 
-    // 3. Sample Demo Customer
-    const customerUser: UserRecord = {
+    // 3. Genuine Customers
+    const customer1: UserRecord = {
+      id: 'cust-4b1efb80-ec07-4ba0-b187-6a741f255304',
+      email: 'sanaullak294@gmail.com',
+      passwordHash: hashPassword('Customer@123!'),
+      fullName: 'Sanaulla K',
+      phone: '+919495105852',
+      role: 'CUSTOMER',
+      avatarUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ruby&backgroundColor=b6e3f4,c0aede,d1d4f9',
+      createdAt: '2026-11-02T19:21:31.303Z',
+    };
+    this.inMemoryUsers.set(customer1.email.toLowerCase(), customer1);
+    this.inMemoryUsers.set(customer1.id, customer1);
+
+    const customer2: UserRecord = {
+      id: 'cust-f3a03790-440d-44ca-a720-6204c14651f9',
+      email: 'mhasan786k@gmail.com',
+      passwordHash: hashPassword('Customer@123!'),
+      fullName: 'Mohammed Hassan',
+      phone: '9895757549',
+      role: 'CUSTOMER',
+      avatarUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka&backgroundColor=b6e3f4,c0aede,d1d4f9',
+      createdAt: '2026-10-26T10:08:27.736Z',
+    };
+    this.inMemoryUsers.set(customer2.email.toLowerCase(), customer2);
+    this.inMemoryUsers.set(customer2.id, customer2);
+
+    // Keep test runner mock customer
+    const testCustomer: UserRecord = {
       id: 'demo-user-cust-sarah',
       email: 'sarah@savebite.in',
       passwordHash: hashPassword('Customer@123!'),
@@ -287,8 +314,8 @@ export class AuthService {
       avatarUrl: DEFAULT_CARTOON_AVATARS[0].url,
       createdAt: new Date().toISOString(),
     };
-    this.inMemoryUsers.set(customerUser.email.toLowerCase(), customerUser);
-    this.inMemoryUsers.set(customerUser.id, customerUser);
+    this.inMemoryUsers.set(testCustomer.email.toLowerCase(), testCustomer);
+    this.inMemoryUsers.set(testCustomer.id, testCustomer);
   }
 
   /**

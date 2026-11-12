@@ -49,7 +49,6 @@ import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
 // Super Admin Pages
 import SuperAdminDashboardPage from './pages/super-admin/SuperAdminDashboardPage';
-import SuperAdminAdminsPage from './pages/super-admin/SuperAdminAdminsPage';
 import SuperAdminPartnersPage from './pages/super-admin/SuperAdminPartnersPage';
 import SuperAdminCustomersPage from './pages/super-admin/SuperAdminCustomersPage';
 import SuperAdminOrdersPage from './pages/super-admin/SuperAdminOrdersPage';
@@ -690,9 +689,7 @@ export const App: React.FC = () => {
       >
         {toastContainer}
 
-        {normalizedSuperPath === '/app/super-admin/admins' ? (
-          <SuperAdminAdminsPage onShowToast={addToast} />
-        ) : normalizedSuperPath === '/app/super-admin/partners' ? (
+        {normalizedSuperPath === '/app/super-admin/partners' ? (
           <SuperAdminPartnersPage onShowToast={addToast} />
         ) : normalizedSuperPath === '/app/super-admin/customers' ? (
           <SuperAdminCustomersPage onShowToast={addToast} />

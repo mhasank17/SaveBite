@@ -72,11 +72,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         portal="admin"
         title="SaveBite Admin"
         subtitle="SuperAdmin Console"
-        unreadNotifications={7}
-        onNotificationClick={() => {
-          if (onNavigate) onNavigate('/app/admin/dashboard');
-          else if (onTabChange) onTabChange('overview');
-        }}
         onLogout={onLogout}
         userName={currentUser?.fullName || 'Campus SuperAdmin'}
         userEmail={currentUser?.email || 'admin@savebite.in'}

@@ -206,8 +206,8 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Section: Notification & User Avatar */}
         <div className="flex items-center gap-space-xs shrink-0">
-          {/* Notification Button (Excluded completely for Partner portal) */}
-          {portal !== 'partner' && (
+          {/* Notification Button (Only displayed for Customer portal) */}
+          {portal === 'customer' && (
             <button
               type="button"
               aria-label="Notifications"

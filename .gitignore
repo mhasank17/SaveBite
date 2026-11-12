@@ -46,6 +46,8 @@ uploads/
 
 # SaveBite sensitive files
 server/.admin-credentials.json
+server/backups/
+backups/
 .env
 .env.*
 !.env.example
