@@ -9,6 +9,7 @@ export interface VerifyOtpModalProps {
   onClose: () => void;
   onVerificationSuccess: (orderData: any) => void;
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
+  initialCode?: string;
 }
 
 function playBeep() {
@@ -37,6 +38,7 @@ export const VerifyOtpModal: React.FC<VerifyOtpModalProps> = ({
   onClose,
   onVerificationSuccess,
   onShowToast,
+  initialCode,
 }) => {
   const [mode, setMode] = useState<'otp' | 'qr'>('otp');
   const [otp, setOtp] = useState('');
@@ -48,6 +50,18 @@ export const VerifyOtpModal: React.FC<VerifyOtpModalProps> = ({
     title: string;
     message: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (isOpen && initialCode) {
+      if (/^\d{4}$/.test(initialCode)) {
+        setMode('otp');
+        setOtp(initialCode);
+      } else {
+        setMode('qr');
+        setQrToken(initialCode);
+      }
+    }
+  }, [isOpen, initialCode]);
 
   // QR Camera State
   const [cameraStatus, setCameraStatus] = useState<
@@ -122,11 +136,19 @@ export const VerifyOtpModal: React.FC<VerifyOtpModalProps> = ({
         setVerifiedOrder(result);
         stopCamera();
         onVerificationSuccess(result);
-        onShowToast(
-          'success',
-          result.message || `Order ${result.orderNumber} successfully verified & collected!`,
-          'Pickup Verified 🎉'
-        );
+        if (result.alreadyVerified || result.alreadyCompleted) {
+          onShowToast(
+            'info',
+            result.message || `Order ${result.orderNumber} is already collected & verified.`,
+            'Already Collected'
+          );
+        } else {
+          onShowToast(
+            'success',
+            result.message || `Order ${result.orderNumber} successfully verified & collected!`,
+            'Pickup Verified 🎉'
+          );
+        }
       } catch (err: any) {
         const msg = err.message || 'Verification failed. Please check the code.';
         if (msg.includes('Unauthorized') || msg.includes('another restaurant')) {
@@ -143,7 +165,12 @@ export const VerifyOtpModal: React.FC<VerifyOtpModalProps> = ({
             title: 'Already Collected',
             message: msg,
           });
-          onShowToast('error', 'Order has already been collected.', 'Duplicate Pass');
+          onShowToast('info', 'Order has already been collected & verified.', 'Already Collected');
+          onVerificationSuccess({
+            orderNumber: tokenToVerify.startsWith('#') ? tokenToVerify : `#${tokenToVerify}`,
+            alreadyVerified: true,
+            alreadyCompleted: true,
+          });
         } else if (msg.includes('Expired')) {
           setErrorFeedback({
             type: 'expired',

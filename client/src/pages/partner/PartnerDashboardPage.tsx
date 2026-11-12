@@ -6,7 +6,7 @@ import partnerApi, { PartnerRestaurant } from '../../services/partnerApi';
 export interface PartnerDashboardPageProps {
   restaurant: PartnerRestaurant | null;
   onOpenCreateDealModal: () => void;
-  onOpenVerifyOtpModal: () => void;
+  onOpenVerifyOtpModal: (code?: string) => void;
   onNavigateTab: (tabId: string) => void;
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
   refreshTrigger?: number;
@@ -270,7 +270,7 @@ export const PartnerDashboardPage: React.FC<PartnerDashboardPageProps> = ({
 
         <button
           type="button"
-          onClick={onOpenVerifyOtpModal}
+          onClick={() => onOpenVerifyOtpModal()}
           className="p-4 rounded-2xl bg-secondary text-on-secondary font-bold shadow-sm hover:bg-secondary/95 transition-all flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">

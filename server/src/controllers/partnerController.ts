@@ -364,6 +364,7 @@ export class PartnerController {
       res.status(statusCode).json({
         success: false,
         message: error.message || 'Failed to verify pickup OTP.',
+        data: error.data || null,
       });
     }
   }

@@ -743,7 +743,16 @@ export class PartnerService {
     if (isDatabaseConfigured()) {
       try {
         const orders = await prisma.order.findMany({
-          where: { restaurantId },
+          where: {
+            OR: [
+              { restaurantId },
+              { restaurant: { id: restaurantId } },
+              { restaurant: { ownerUserId: restaurantId } },
+              ...(restaurantId === 'demo-rest-daily-dough' || restaurantId === 'demo-user-partner-baker'
+                ? [{ restaurantId: 'demo-rest-daily-dough' }]
+                : []),
+            ],
+          },
           include: {
             customer: true,
             listing: true,
@@ -752,25 +761,34 @@ export class PartnerService {
         });
 
         if (orders.length > 0 || !isTestEnvironment()) {
-          return orders.map((o) => ({
-            id: o.id,
-            orderNumber: o.orderNumber,
-            customerName: o.customer.fullName,
-            customerEmail: o.customer.email,
-            customerPhone: o.customer.phone || undefined,
-            listingTitle: o.listing.title,
-            quantity: o.quantity,
-            totalPriceInr: Number(o.totalPriceInr),
-            fulfillmentType: o.fulfillmentType,
-            orderStatus: o.orderStatus,
-            paymentStatus: o.paymentStatus,
-            pickupOtp: o.pickupOtp,
-            qrSecretToken: o.qrSecretToken,
-            pickupWindowText: `${o.listing.pickupStartTime} – ${o.listing.pickupEndTime}`,
-            expiresAt: o.expiresAt.toISOString(),
-            completedAt: o.completedAt?.toISOString(),
-            createdAt: o.createdAt.toISOString(),
-          }));
+          return orders.map((o) => {
+            const isCompleted = o.orderStatus === 'COMPLETED' || Boolean(o.completedAt);
+            const status = isCompleted ? 'COMPLETED' : o.orderStatus;
+            const pickupWindow = o.listing ? `${o.listing.pickupStartTime} – ${o.listing.pickupEndTime}` : 'Tonight';
+
+            return {
+              id: o.id,
+              orderNumber: o.orderNumber,
+              customerName: o.customer?.fullName || 'Anonymous Customer',
+              customerEmail: o.customer?.email || '',
+              customerPhone: o.customer?.phone || undefined,
+              listingTitle: o.listing?.title || 'Food Deal',
+              dealTitle: o.listing?.title || 'Food Deal',
+              quantity: o.quantity,
+              totalPriceInr: Number(o.totalPriceInr),
+              fulfillmentType: o.fulfillmentType,
+              orderStatus: status,
+              paymentStatus: o.paymentStatus,
+              pickupOtp: o.pickupOtp,
+              qrSecretToken: o.qrSecretToken,
+              pickupWindowText: pickupWindow,
+              pickupWindow: pickupWindow,
+              expiresAt: o.expiresAt.toISOString(),
+              completedAt: o.completedAt?.toISOString(),
+              createdAt: o.createdAt.toISOString(),
+              placedAt: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+          });
         }
       } catch {
         // Fall back
@@ -841,6 +859,8 @@ export class PartnerService {
     const searchConditions: any[] = [];
     if (cleanOtp) {
       searchConditions.push({ pickupOtp: cleanOtp });
+      searchConditions.push({ orderNumber: cleanOtp });
+      searchConditions.push({ orderNumber: `#${cleanOtp.replace(/^#/, '')}` });
     }
     if (cleanQr) {
       searchConditions.push({ qrSecretToken: cleanQr });
@@ -879,7 +899,12 @@ export class PartnerService {
 
         if (order) {
           // 1. Authorization check: Order must belong to this partner's restaurant
-          if (order.restaurantId !== restaurantId) {
+          const isBelongsToRestaurant =
+            order.restaurantId === restaurantId ||
+            order.restaurant?.ownerUserId === restaurantId ||
+            (restaurantId === 'demo-rest-daily-dough' && order.restaurantId === 'demo-rest-daily-dough');
+
+          if (!isBelongsToRestaurant) {
             const err: any = new Error(
               'Unauthorized partner: This order belongs to another restaurant. You cannot verify orders for other partners.'
             );
@@ -887,12 +912,31 @@ export class PartnerService {
             throw err;
           }
 
-          // 2. Duplicate verification check: Already collected orders cannot be verified again
-          if (order.orderStatus === 'COMPLETED') {
+          // 2. Duplicate verification check: Already collected orders return 409 with completed details
+          if (order.orderStatus === 'COMPLETED' || order.completedAt) {
+            if (order.orderStatus !== 'COMPLETED') {
+              await prisma.order.update({
+                where: { id: order.id },
+                data: { orderStatus: 'COMPLETED' },
+              });
+              order.orderStatus = 'COMPLETED';
+            }
             const err: any = new Error(
               `Duplicate verification: Order ${order.orderNumber} has already been verified and collected.`
             );
             err.statusCode = 409;
+            err.data = {
+              alreadyVerified: true,
+              alreadyCompleted: true,
+              orderId: order.id,
+              orderNumber: order.orderNumber,
+              customerName: order.customer?.fullName || 'Customer',
+              dealTitle: order.listing?.title || 'Food Deal',
+              quantity: order.quantity,
+              totalPriceInr: Number(order.totalPriceInr),
+              completedAt: (order.completedAt || new Date()).toISOString(),
+              message: `Order ${order.orderNumber} is already verified and collected.`,
+            };
             throw err;
           }
 
@@ -985,11 +1029,24 @@ export class PartnerService {
         throw err;
       }
 
-      if (matched.orderStatus === 'COMPLETED') {
+      if (matched.orderStatus === 'COMPLETED' || matched.completedAt) {
+        matched.orderStatus = 'COMPLETED';
         const err: any = new Error(
           `Duplicate verification: Order ${matched.orderNumber} has already been verified and collected.`
         );
         err.statusCode = 409;
+        err.data = {
+          alreadyVerified: true,
+          alreadyCompleted: true,
+          orderId: matched.id,
+          orderNumber: matched.orderNumber,
+          customerName: matched.customerName || 'Customer',
+          dealTitle: matched.dealTitle,
+          quantity: matched.quantity,
+          totalPriceInr: matched.totalPriceInr,
+          completedAt: matched.completedAt || new Date().toISOString(),
+          message: `Order ${matched.orderNumber} is already verified and collected.`,
+        };
         throw err;
       }
 

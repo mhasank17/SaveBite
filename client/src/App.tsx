@@ -98,6 +98,7 @@ export const App: React.FC = () => {
   // Partner Modals
   const [isPartnerCreateDealOpen, setIsPartnerCreateDealOpen] = useState(false);
   const [isPartnerVerifyOtpOpen, setIsPartnerVerifyOtpOpen] = useState(false);
+  const [partnerVerifyInitialCode, setPartnerVerifyInitialCode] = useState<string | undefined>(undefined);
 
   // Toast System
   const [toasts, setToasts] = useState<
@@ -1005,7 +1006,10 @@ export const App: React.FC = () => {
           />
         ) : partnerActiveTab === 'orders' ? (
           <PartnerOrdersPage
-            onOpenVerifyOtpModal={() => setIsPartnerVerifyOtpOpen(true)}
+            onOpenVerifyOtpModal={(code?: string) => {
+              setPartnerVerifyInitialCode(code);
+              setIsPartnerVerifyOtpOpen(true);
+            }}
             onShowToast={addToast}
             refreshTrigger={partnerRefreshTrigger}
           />
@@ -1021,7 +1025,10 @@ export const App: React.FC = () => {
           <PartnerDashboardPage
             restaurant={partnerRestaurant as any}
             onOpenCreateDealModal={() => setIsPartnerCreateDealOpen(true)}
-            onOpenVerifyOtpModal={() => setIsPartnerVerifyOtpOpen(true)}
+            onOpenVerifyOtpModal={(code?: string) => {
+              setPartnerVerifyInitialCode(code);
+              setIsPartnerVerifyOtpOpen(true);
+            }}
             onNavigateTab={handlePartnerTabChange}
             onShowToast={addToast}
             refreshTrigger={partnerRefreshTrigger}
@@ -1042,7 +1049,11 @@ export const App: React.FC = () => {
 
         <VerifyOtpModal
           isOpen={isPartnerVerifyOtpOpen}
-          onClose={() => setIsPartnerVerifyOtpOpen(false)}
+          initialCode={partnerVerifyInitialCode}
+          onClose={() => {
+            setIsPartnerVerifyOtpOpen(false);
+            setPartnerVerifyInitialCode(undefined);
+          }}
           onVerificationSuccess={(orderData) => {
             refreshPartnerRestaurant();
             setPartnerRefreshTrigger((prev) => prev + 1);

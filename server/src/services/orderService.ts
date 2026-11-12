@@ -241,7 +241,6 @@ export class OrderService {
     order.paymentStatus = 'SUCCESS';
     order.razorpayPaymentId = razorpayPaymentId;
     order.razorpaySignature = razorpaySignature;
-    order.completedAt = new Date().toISOString();
     order.updatedAt = new Date().toISOString();
 
     await this.updateStoredOrder(order);

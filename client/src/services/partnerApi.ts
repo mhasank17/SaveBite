@@ -282,11 +282,11 @@ export const partnerApi = {
    * Verify customer Pickup OTP or QR code token at counter
    */
   async verifyPickup(
-    param: string | { pickupOtp?: string; qrSecretToken?: string }
+    param: string | { pickupOtp?: string; qrSecretToken?: string; orderId?: string }
   ): Promise<any> {
     const payload =
       typeof param === 'string'
-        ? param.startsWith('SAVEBITE-PASS') || param.length > 4
+        ? param.startsWith('SAVEBITE-PASS') || param.length > 4 || param.startsWith('#')
           ? { qrSecretToken: param }
           : { pickupOtp: param }
         : param;
@@ -301,6 +301,16 @@ export const partnerApi = {
     });
 
     const json = await res.json();
+    if (res.status === 409 && (json.message?.includes('already been verified') || json.data?.alreadyVerified)) {
+      return {
+        ...(json.data || {}),
+        alreadyVerified: true,
+        alreadyCompleted: true,
+        orderNumber: json.data?.orderNumber || (typeof param === 'string' ? param : param.qrSecretToken || param.pickupOtp),
+        message: json.message || 'Order has already been verified and collected.',
+      };
+    }
+
     if (!res.ok || !json.success) {
       throw new Error(json.message || 'Verification failed. Please check the code.');
     }

@@ -20,7 +20,7 @@ export interface PartnerOrderSummary {
 }
 
 export interface PartnerOrdersPageProps {
-  onOpenVerifyOtpModal: () => void;
+  onOpenVerifyOtpModal: (initialCode?: string) => void;
   onShowToast: (type: 'success' | 'error' | 'info', message: string, title?: string) => void;
   refreshTrigger?: number;
 }
@@ -39,7 +39,15 @@ export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
     try {
       const data = await partnerApi.getOrders();
       if (data && data.length > 0) {
-        setOrders(data);
+        setOrders(
+          data.map((o: any) => ({
+            ...o,
+            dealTitle: o.dealTitle || o.listingTitle || 'Food Deal',
+            placedAt: o.placedAt || (o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'),
+            pickupWindow: o.pickupWindow || o.pickupWindowText || 'Tonight',
+            orderStatus: o.orderStatus === 'COMPLETED' || o.completedAt ? 'COMPLETED' : o.orderStatus,
+          }))
+        );
       } else {
         setOrders([]);
       }
@@ -94,7 +102,7 @@ export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
           <Button
             variant="primary"
             size="md"
-            onClick={onOpenVerifyOtpModal}
+            onClick={() => onOpenVerifyOtpModal()}
             leftIcon={<span className="material-symbols-outlined text-[20px]">pin</span>}
           >
             Verify Pickup OTP
@@ -170,7 +178,7 @@ export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
               : `No orders matching status "${filter}".`
           }
           actionText="Verify Counter OTP"
-          onAction={onOpenVerifyOtpModal}
+          onAction={() => onOpenVerifyOtpModal()}
         />
       ) : (
         <div className="flex flex-col gap-3">
@@ -246,7 +254,7 @@ export const PartnerOrdersPage: React.FC<PartnerOrdersPageProps> = ({
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={onOpenVerifyOtpModal}
+                      onClick={() => onOpenVerifyOtpModal(order.pickupOtp || order.orderNumber)}
                       leftIcon={<span className="material-symbols-outlined text-[16px]">pin</span>}
                     >
                       Verify Pass
