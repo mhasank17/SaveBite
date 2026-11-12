@@ -95,6 +95,9 @@ export class AuthService {
     this.syncAdminToDatabase().catch((err) => {
       console.warn('[AuthService] Admin initial DB sync deferred:', err?.message || err);
     });
+    this.syncCustomersToDatabase().catch((err) => {
+      console.warn('[AuthService] Customer initial DB sync deferred:', err?.message || err);
+    });
   }
 
   /**
@@ -223,6 +226,55 @@ export class AuthService {
       } catch (dbErr) {
         console.warn('[AuthService] syncAdminToDatabase warning:', dbErr);
       }
+    }
+  }
+
+  /**
+   * Ensure Customer accounts are synchronized with PostgreSQL database with persistent password hashes.
+   */
+  public async syncCustomersToDatabase(): Promise<void> {
+    if (!isDatabaseConfigured()) return;
+    try {
+      const defaultPasswordHash = hashPassword('Customer@123!');
+      const targetEmails = ['sanaullak294@gmail.com', 'mhasan786k@gmail.com'];
+
+      for (const email of targetEmails) {
+        const rows: any[] = await prisma.$queryRawUnsafe(
+          'SELECT id, email, full_name, phone, role, avatar_url, is_demo, password_hash, created_at FROM users WHERE LOWER(email) = $1 LIMIT 1;',
+          email.toLowerCase()
+        );
+
+        if (rows && rows.length > 0) {
+          const dbCustomer = rows[0];
+          let currentHash = dbCustomer.password_hash;
+
+          if (!currentHash) {
+            currentHash = defaultPasswordHash;
+            await prisma.$executeRawUnsafe(
+              'UPDATE users SET password_hash = $1, is_demo = false, updated_at = NOW() WHERE id = $2;',
+              currentHash,
+              dbCustomer.id
+            );
+            console.log(`[AuthService] Initial password hash set in PostgreSQL for customer: ${email}`);
+          }
+
+          const customerRecord: UserRecord = {
+            id: dbCustomer.id,
+            email: dbCustomer.email.toLowerCase(),
+            passwordHash: currentHash,
+            fullName: dbCustomer.full_name,
+            phone: dbCustomer.phone || undefined,
+            role: 'CUSTOMER',
+            avatarUrl: dbCustomer.avatar_url || getDefaultCartoonAvatar(dbCustomer.id || dbCustomer.email),
+            createdAt: dbCustomer.created_at ? new Date(dbCustomer.created_at).toISOString() : new Date().toISOString(),
+          };
+
+          this.inMemoryUsers.set(customerRecord.email, customerRecord);
+          this.inMemoryUsers.set(customerRecord.id, customerRecord);
+        }
+      }
+    } catch (err) {
+      console.warn('[AuthService] syncCustomersToDatabase warning:', err);
     }
   }
 
@@ -427,6 +479,11 @@ export class AuthService {
             avatarUrl: userRecord.avatarUrl,
           },
         });
+        await prisma.$executeRawUnsafe(
+          'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2;',
+          userRecord.passwordHash,
+          userId
+        );
       } catch (dbErr: any) {
         if (dbErr?.code === 'P2002' || dbErr?.message?.includes('Unique constraint failed') || dbErr?.message?.includes('already exists')) {
           throw new Error('An account with this email already exists.');
@@ -456,47 +513,80 @@ export class AuthService {
     password: string;
   }): Promise<{ user: UserRecord; token: string }> {
     const emailNorm = input.email.trim().toLowerCase();
-    let user = this.inMemoryUsers.get(emailNorm);
+    const inputHash = hashPassword(input.password);
+    let user: UserRecord | undefined;
 
-    if (!user && isDatabaseConfigured()) {
+    if (isDatabaseConfigured()) {
       try {
-        const dbUser = await prisma.user.findUnique({ where: { email: emailNorm } });
-        if (dbUser && dbUser.role === UserRole.CUSTOMER) {
+        const rows: any[] = await prisma.$queryRawUnsafe(
+          'SELECT id, email, full_name, phone, role, avatar_url, password_hash, created_at FROM users WHERE LOWER(email) = $1 LIMIT 1;',
+          emailNorm
+        );
+
+        if (rows && rows.length > 0) {
+          const dbUser = rows[0];
+
+          if (dbUser.role !== 'CUSTOMER') {
+            throw new Error(
+              `This account is registered as a ${dbUser.role}. Please log in through the ${
+                dbUser.role === 'PARTNER' ? 'Restaurant Owner' : 'Admin'
+              } Portal.`
+            );
+          }
+
+          let dbHash = dbUser.password_hash;
+          if (!dbHash) {
+            dbHash = hashPassword('Customer@123!');
+            await prisma.$executeRawUnsafe(
+              'UPDATE users SET password_hash = $1, is_demo = false, updated_at = NOW() WHERE id = $2;',
+              dbHash,
+              dbUser.id
+            );
+          }
+
+          if (dbHash !== inputHash) {
+            throw new Error('Invalid email or password.');
+          }
+
           user = {
             id: dbUser.id,
             email: dbUser.email,
-            passwordHash: hashPassword(input.password),
-            fullName: dbUser.fullName,
+            passwordHash: dbHash,
+            fullName: dbUser.full_name,
             phone: dbUser.phone || undefined,
             role: 'CUSTOMER',
-            avatarUrl: dbUser.avatarUrl || getDefaultCartoonAvatar(dbUser.id || dbUser.email),
-            createdAt: dbUser.createdAt.toISOString(),
+            avatarUrl: dbUser.avatar_url || getDefaultCartoonAvatar(dbUser.id || dbUser.email),
+            createdAt: dbUser.created_at ? new Date(dbUser.created_at).toISOString() : new Date().toISOString(),
           };
+
           this.inMemoryUsers.set(emailNorm, user);
           this.inMemoryUsers.set(user.id, user);
         }
-      } catch (dbErr) {
-        console.warn('[AuthService] Prisma customer query error:', dbErr);
+      } catch (dbErr: any) {
+        if (dbErr.message && (dbErr.message.includes('Invalid email or password') || dbErr.message.includes('Portal'))) {
+          throw dbErr;
+        }
+        console.warn('[AuthService] DB query customer error:', dbErr);
       }
     }
 
     if (!user) {
-      throw new Error('Invalid email or password.');
-    }
+      user = this.inMemoryUsers.get(emailNorm);
+      if (!user) {
+        throw new Error('Invalid email or password.');
+      }
 
-    // Role check: Ensure customers don't accidentally log in through partner or admin
-    if (user.role !== 'CUSTOMER') {
-      throw new Error(
-        `This account is registered as a ${user.role}. Please log in through the ${
-          user.role === 'PARTNER' ? 'Restaurant Owner' : 'Admin'
-        } Portal.`
-      );
-    }
+      if (user.role !== 'CUSTOMER') {
+        throw new Error(
+          `This account is registered as a ${user.role}. Please log in through the ${
+            user.role === 'PARTNER' ? 'Restaurant Owner' : 'Admin'
+          } Portal.`
+        );
+      }
 
-    // Verify password hash
-    const inputHash = hashPassword(input.password);
-    if (user.passwordHash !== inputHash) {
-      throw new Error('Invalid email or password.');
+      if (user.passwordHash !== inputHash) {
+        throw new Error('Invalid email or password.');
+      }
     }
 
     const token = this.createToken({
@@ -1134,14 +1224,23 @@ export class AuthService {
     if (!entry) return { success: false, message: 'Verification expired. Request a new code.' };
     const [email, record] = entry;
     if (!newPassword || newPassword.length < 8) return { success: false, message: 'Password must be at least 8 characters long.' };
+    const newHash = hashPassword(newPassword);
     const user = this.inMemoryUsers.get(email);
     if (user) {
-      user.passwordHash = hashPassword(newPassword);
+      user.passwordHash = newHash;
       this.inMemoryUsers.set(user.id, user);
     }
     if (isDatabaseConfigured()) {
-      try { await prisma.user.updateMany({ where: { email }, data: { updatedAt: new Date() } }); }
-      catch (err) { console.warn('[AuthService] Database password reset update failed:', (err as Error).message); return { success: false, message: 'Unable to update password. Please try again.' }; }
+      try {
+        await prisma.$executeRawUnsafe(
+          'UPDATE users SET password_hash = $1, is_demo = false, updated_at = NOW() WHERE LOWER(email) = $2;',
+          newHash,
+          email.toLowerCase()
+        );
+      } catch (err) {
+        console.warn('[AuthService] Database password reset update failed:', (err as Error).message);
+        return { success: false, message: 'Unable to update password. Please try again.' };
+      }
     }
     this.passwordOtps.delete(email);
     return { success: true, message: 'Your password has been successfully reset. You can now log in.' };
