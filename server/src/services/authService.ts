@@ -235,10 +235,12 @@ export class AuthService {
   public async syncCustomersToDatabase(): Promise<void> {
     if (!isDatabaseConfigured()) return;
     try {
-      const defaultPasswordHash = hashPassword('Customer@123!');
-      const targetEmails = ['sanaullak294@gmail.com', 'mhasan786k@gmail.com'];
+      const targetCustomerHashes: Record<string, string> = {
+        'sanaullak294@gmail.com': hashPassword('Sana@852'),
+        'mhasan786k@gmail.com': hashPassword('hassan@786'),
+      };
 
-      for (const email of targetEmails) {
+      for (const [email, expectedHash] of Object.entries(targetCustomerHashes)) {
         const rows: any[] = await prisma.$queryRawUnsafe(
           'SELECT id, email, full_name, phone, role, avatar_url, is_demo, password_hash, created_at FROM users WHERE LOWER(email) = $1 LIMIT 1;',
           email.toLowerCase()
@@ -248,14 +250,13 @@ export class AuthService {
           const dbCustomer = rows[0];
           let currentHash = dbCustomer.password_hash;
 
-          if (!currentHash) {
-            currentHash = defaultPasswordHash;
+          if (currentHash !== expectedHash) {
+            currentHash = expectedHash;
             await prisma.$executeRawUnsafe(
               'UPDATE users SET password_hash = $1, is_demo = false, updated_at = NOW() WHERE id = $2;',
               currentHash,
               dbCustomer.id
             );
-            console.log(`[AuthService] Initial password hash set in PostgreSQL for customer: ${email}`);
           }
 
           const customerRecord: UserRecord = {
@@ -332,7 +333,7 @@ export class AuthService {
     const customer1: UserRecord = {
       id: 'cust-4b1efb80-ec07-4ba0-b187-6a741f255304',
       email: 'sanaullak294@gmail.com',
-      passwordHash: hashPassword('Customer@123!'),
+      passwordHash: hashPassword('Sana@852'),
       fullName: 'Sanaulla K',
       phone: '+919495105852',
       role: 'CUSTOMER',
@@ -345,7 +346,7 @@ export class AuthService {
     const customer2: UserRecord = {
       id: 'cust-f3a03790-440d-44ca-a720-6204c14651f9',
       email: 'mhasan786k@gmail.com',
-      passwordHash: hashPassword('Customer@123!'),
+      passwordHash: hashPassword('hassan@786'),
       fullName: 'Mohammed Hassan',
       phone: '9895757549',
       role: 'CUSTOMER',
@@ -513,7 +514,8 @@ export class AuthService {
     password: string;
   }): Promise<{ user: UserRecord; token: string }> {
     const emailNorm = input.email.trim().toLowerCase();
-    const inputHash = hashPassword(input.password);
+    const trimmedPassword = input.password.trim();
+    const inputHash = hashPassword(trimmedPassword);
     let user: UserRecord | undefined;
 
     if (isDatabaseConfigured()) {
@@ -534,17 +536,8 @@ export class AuthService {
             );
           }
 
-          let dbHash = dbUser.password_hash;
-          if (!dbHash) {
-            dbHash = hashPassword('Customer@123!');
-            await prisma.$executeRawUnsafe(
-              'UPDATE users SET password_hash = $1, is_demo = false, updated_at = NOW() WHERE id = $2;',
-              dbHash,
-              dbUser.id
-            );
-          }
-
-          if (dbHash !== inputHash) {
+          const dbHash = dbUser.password_hash;
+          if (!dbHash || dbHash !== inputHash) {
             throw new Error('Invalid email or password.');
           }
 

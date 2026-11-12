@@ -169,7 +169,7 @@ export const authApi = {
     const res = await fetchSafe(`${API_BASE_URL}/auth/customer/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: email.trim(), password: password.trim() }),
     });
 
     const json = await parseJsonResponse<AuthResponse>(res, 'Login failed.');

@@ -43,7 +43,7 @@ export const CustomerLoginPage: React.FC<CustomerLoginPageProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = email.trim();
-    const cleanPassword = password;
+    const cleanPassword = password.trim();
 
     if (!cleanEmail) {
       setError('Please enter your email address.');
