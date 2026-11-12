@@ -35,13 +35,11 @@ const PARTNER_TABS: NavItem[] = [
 ];
 
 const ADMIN_TABS: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { id: 'partners', label: 'Partners', icon: 'verified' },
-  { id: 'customers', label: 'Customers', icon: 'group' },
-  { id: 'food-deals', label: 'Deals', icon: 'inventory_2' },
-  { id: 'orders', label: 'Orders', icon: 'receipt_long' },
-  { id: 'reports', label: 'Reports', icon: 'monitoring' },
-  { id: 'settings', label: 'Settings', icon: 'settings' },
+  { id: 'overview', label: 'Overview', icon: 'dashboard' },
+  { id: 'vendors', label: 'Vendors', icon: 'storefront', badgeCount: 5, badgeColor: 'secondary' },
+  { id: 'listings', label: 'Listings', icon: 'inventory_2' },
+  { id: 'disputes', label: 'Disputes', icon: 'gavel', badgeCount: 3, badgeColor: 'error' },
+  { id: 'payouts', label: 'Payouts', icon: 'account_balance_wallet' },
 ];
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -51,18 +49,24 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ordersBadgeCount,
   className = '',
 }) => {
-  // Normalize activeTab for backward compatibility
+  // Normalize activeTab for backward and cross-route compatibility
   const normalizedActiveTab =
-    activeTab === 'explore'
+    portal === 'admin'
+      ? activeTab === 'dashboard' || activeTab === '/app/admin/dashboard' || activeTab === '/app/super-admin/dashboard'
+        ? 'overview'
+        : activeTab === 'partners' || activeTab === '/app/admin/partners' || activeTab === '/app/super-admin/partners'
+        ? 'vendors'
+        : activeTab === 'food-deals' || activeTab === '/app/admin/food-deals'
+        ? 'listings'
+        : activeTab === 'disputes' || activeTab === '/app/admin/disputes' || activeTab === '/app/super-admin/disputes'
+        ? 'disputes'
+        : activeTab === 'payouts' || activeTab === '/app/admin/payouts' || activeTab === '/app/super-admin/payouts'
+        ? 'payouts'
+        : activeTab
+      : activeTab === 'explore'
       ? 'food-deals'
       : activeTab === 'account'
       ? 'profile'
-      : activeTab === 'overview'
-      ? 'dashboard'
-      : activeTab === 'vendors'
-      ? 'partners'
-      : activeTab === 'listings' && portal === 'admin'
-      ? 'food-deals'
       : activeTab;
 
   const customerTabsWithCount = CUSTOMER_TABS.map((tab) =>

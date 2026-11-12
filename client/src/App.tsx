@@ -41,7 +41,10 @@ import AdminVendorsPage from './pages/admin/AdminVendorsPage';
 import AdminCustomersPage from './pages/admin/AdminCustomersPage';
 import AdminOrdersPage from './pages/admin/AdminOrdersPage';
 import AdminListingsPage from './pages/admin/AdminListingsPage';
+import AdminDisputesPage from './pages/admin/AdminDisputesPage';
+import AdminPayoutsPage from './pages/admin/AdminPayoutsPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
+import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
 // Super Admin Pages
@@ -359,34 +362,13 @@ export const App: React.FC = () => {
   // AUTHENTICATION ROUTES (Login & Register)
   // ---------------------------------------------------------------------------
 
-  // Redirect old public admin login paths to customer login to conceal administrative portals
-  if (currentPath === '/admin/login' || currentPath === '/super-admin/login') {
-    return (
-      <>
-        {toastContainer}
-        <CustomerLoginPage
-          currentUser={null}
-          onContinue={() => navigate('/app/customer/dashboard')}
-          onSwitchAccount={handleLogout}
-          onSuccess={(customerUser) => {
-            setCurrentUser(customerUser);
-            setIsGuestBrowsing(false);
-            navigate('/app/customer/dashboard');
-          }}
-          onNavigateToRegister={() => navigate('/customer/register')}
-          onNavigateToPartner={() => navigate('/partner/login')}
-          onBrowseGuest={() => {
-            setIsGuestBrowsing(true);
-            navigate('/app/customer/food-deals');
-          }}
-          onShowToast={addToast}
-        />
-      </>
-    );
-  }
-
-  // Dedicated unadvertised route for Admin and Super Admin login
-  if (currentPath === '/secure-admin-access' || currentPath === '/secure-admin-access/') {
+  // Admin & SuperAdmin Authentication Routes
+  if (
+    currentPath === '/admin/login' ||
+    currentPath === '/super-admin/login' ||
+    currentPath === '/secure-admin-access' ||
+    currentPath === '/secure-admin-access/'
+  ) {
     // If already authenticated as ADMIN, redirect directly to appropriate dashboard
     if (currentUser?.role === 'ADMIN') {
       const isSuper = Boolean(
@@ -394,26 +376,26 @@ export const App: React.FC = () => {
         currentUser.email?.toLowerCase() === 'admin@savebite.in'
       );
       return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
-          <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center mb-4">
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-900">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-[#006030] flex items-center justify-center mb-4 shadow-xs">
             <span className="material-symbols-outlined text-[32px]">verified_user</span>
           </div>
           <h1 className="text-2xl font-bold mb-2">Active Administrator Session</h1>
-          <p className="text-slate-400 text-sm max-w-md mb-6">
+          <p className="text-slate-600 text-sm max-w-md mb-6">
             Signed in as {currentUser.fullName} ({currentUser.email}).
           </p>
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => navigate(isSuper ? '/app/super-admin/dashboard' : '/app/admin/dashboard')}
-              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+              className="px-6 py-2.5 bg-[#006030] hover:bg-[#004d26] text-white rounded-xl font-bold text-sm shadow-xs"
             >
               Enter {isSuper ? 'SuperAdmin' : 'Admin'} Console
             </button>
             <button
               type="button"
               onClick={handleLogout}
-              className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm"
+              className="px-6 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl font-bold text-sm"
             >
               Sign Out
             </button>
@@ -427,26 +409,26 @@ export const App: React.FC = () => {
       return (
         <>
           {toastContainer}
-          <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
-            <div className="w-16 h-16 rounded-2xl bg-amber-900/60 text-amber-400 flex items-center justify-center mb-4">
+          <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-900">
+            <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
             </div>
             <h1 className="text-2xl font-bold mb-2">Administrative Console Access</h1>
-            <p className="text-slate-400 text-sm max-w-md mb-6">
+            <p className="text-slate-600 text-sm max-w-md mb-6">
               You are currently signed in as a {currentUser.role}. Please sign out to log in with administrative credentials.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+                className="px-6 py-2.5 bg-[#006030] hover:bg-[#004d26] text-white rounded-xl font-bold text-sm"
               >
                 Return to My Dashboard
               </button>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm"
+                className="px-6 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl font-bold text-sm"
               >
                 Sign Out to Switch
               </button>
@@ -463,6 +445,7 @@ export const App: React.FC = () => {
         <AdminLoginPage
           onSuccess={(adminUser) => {
             setCurrentUser(adminUser);
+            setIsGuestBrowsing(false);
             const isSuper = Boolean(
               adminUser.isSuperAdmin ||
               adminUser.email?.toLowerCase() === 'admin@savebite.in'
@@ -598,20 +581,20 @@ export const App: React.FC = () => {
       return (
         <>
           {toastContainer}
-          <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
-            <div className="w-16 h-16 rounded-2xl bg-red-950/80 border border-red-800 text-red-400 flex items-center justify-center mb-4">
+          <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-900">
+            <div className="w-16 h-16 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
             </div>
             <h1 className="text-2xl font-bold mb-2">403 Forbidden: Administrative Clearance Required</h1>
-            <p className="text-slate-400 text-sm max-w-md mb-6">
+            <p className="text-slate-600 text-sm max-w-md mb-6">
               Direct access to this platform governance console is restricted to authorized platform personnel only.
             </p>
             <button
               type="button"
-              onClick={() => navigate('/app/customer/dashboard')}
-              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+              onClick={() => navigate('/admin/login')}
+              className="px-6 py-2.5 bg-[#006030] hover:bg-[#004d26] text-white rounded-xl font-bold text-sm shadow-xs"
             >
-              Return to Homepage
+              Sign In as SuperAdmin
             </button>
           </div>
         </>
@@ -623,26 +606,26 @@ export const App: React.FC = () => {
       return (
         <>
           {toastContainer}
-          <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
-            <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center mb-4">
+          <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-900">
+            <div className="w-16 h-16 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-[32px]">shield_lock</span>
             </div>
             <h1 className="text-2xl font-bold mb-2">SuperAdmin Access Restricted</h1>
-            <p className="text-slate-400 text-sm max-w-md mb-6">
+            <p className="text-slate-600 text-sm max-w-md mb-6">
               Your account role ({currentUser.role}) does not have administrative clearance for the SuperAdmin Console.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
-                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm"
+                className="px-6 py-2.5 bg-[#006030] hover:bg-[#004d26] text-white rounded-xl font-bold text-sm shadow-xs"
               >
                 Return to Authorized Portal
               </button>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
+                className="px-6 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl font-bold text-sm transition-all"
               >
                 Sign Out
               </button>
@@ -662,26 +645,26 @@ export const App: React.FC = () => {
       return (
         <>
           {toastContainer}
-          <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center text-white">
-            <div className="w-16 h-16 rounded-2xl bg-purple-950/80 border border-purple-800 text-purple-400 flex items-center justify-center mb-4">
+          <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-900">
+            <div className="w-16 h-16 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-[32px]">shield_lock</span>
             </div>
             <h1 className="text-2xl font-bold mb-2">SuperAdmin Clearance Required</h1>
-            <p className="text-slate-400 text-sm max-w-md mb-6">
+            <p className="text-slate-600 text-sm max-w-md mb-6">
               Your administrator account ({currentUser.email}) has standard operations clearance. SuperAdmin master governance requires elevated root platform authorization.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => navigate('/app/admin/dashboard')}
-                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-sm"
+                className="px-6 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold text-sm shadow-xs"
               >
                 Return to Admin Console
               </button>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
+                className="px-6 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl font-bold text-sm transition-all"
               >
                 Sign Out
               </button>
@@ -715,8 +698,14 @@ export const App: React.FC = () => {
           <SuperAdminCustomersPage onShowToast={addToast} />
         ) : normalizedSuperPath === '/app/super-admin/orders' ? (
           <SuperAdminOrdersPage onShowToast={addToast} />
+        ) : normalizedSuperPath === '/app/super-admin/disputes' ? (
+          <AdminDisputesPage onShowToast={addToast} />
+        ) : normalizedSuperPath === '/app/super-admin/payouts' ? (
+          <AdminPayoutsPage onShowToast={addToast} />
         ) : normalizedSuperPath === '/app/super-admin/reports' ? (
           <SuperAdminReportsPage onShowToast={addToast} />
+        ) : normalizedSuperPath === '/app/super-admin/audit-logs' ? (
+          <AdminAuditLogsPage onShowToast={addToast} />
         ) : normalizedSuperPath === '/app/super-admin/settings' ? (
           <SuperAdminSettingsPage currentUser={currentUser} onShowToast={addToast} onLogout={handleLogout} />
         ) : (
@@ -729,7 +718,8 @@ export const App: React.FC = () => {
   // ---------------------------------------------------------------------------
   // 2. ADMIN PORTAL (Strictly Role-Protected: ADMIN only)
   // Routes: /app/admin/dashboard, /app/admin/partners, /app/admin/customers,
-  //         /app/admin/food-deals, /app/admin/orders, /app/admin/reports,
+  //         /app/admin/food-deals, /app/admin/orders, /app/admin/disputes,
+  //         /app/admin/payouts, /app/admin/reports, /app/admin/audit-logs,
   //         /app/admin/settings
   // ---------------------------------------------------------------------------
   if (currentPath.startsWith('/app/admin') || currentPath.startsWith('/admin')) {
@@ -738,20 +728,20 @@ export const App: React.FC = () => {
       return (
         <>
           {toastContainer}
-          <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
-            <div className="w-16 h-16 rounded-2xl bg-red-900/60 text-red-400 flex items-center justify-center mb-4">
+          <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-900">
+            <div className="w-16 h-16 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
             </div>
             <h1 className="text-2xl font-bold mb-2">403 Forbidden: Administrative Clearance Required</h1>
-            <p className="text-slate-400 text-sm max-w-md mb-6">
+            <p className="text-slate-600 text-sm max-w-md mb-6">
               Direct access to this platform console is restricted to authorized platform personnel only.
             </p>
             <button
               type="button"
-              onClick={() => navigate('/app/customer/dashboard')}
-              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+              onClick={() => navigate('/admin/login')}
+              className="px-6 py-2.5 bg-[#006030] hover:bg-[#004d26] text-white rounded-xl font-bold text-sm shadow-xs"
             >
-              Return to Homepage
+              Sign In as Administrator
             </button>
           </div>
         </>
@@ -763,26 +753,26 @@ export const App: React.FC = () => {
       return (
         <>
           {toastContainer}
-          <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
-            <div className="w-16 h-16 rounded-2xl bg-red-900/60 text-red-400 flex items-center justify-center mb-4">
+          <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center text-slate-900">
+            <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-[32px]">gpp_bad</span>
             </div>
             <h1 className="text-2xl font-bold mb-2">Access Restricted</h1>
-            <p className="text-slate-400 text-sm max-w-md mb-6">
+            <p className="text-slate-600 text-sm max-w-md mb-6">
               Your account ({currentUser.role}) does not have administrative clearance for the Admin Console.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => navigate(currentUser.role === 'PARTNER' ? '/app/partner/dashboard' : '/app/customer/dashboard')}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm"
+                className="px-6 py-2.5 bg-[#006030] hover:bg-[#004d26] text-white rounded-xl font-bold text-sm shadow-xs"
               >
                 Return to Authorized Portal
               </button>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="px-6 py-2.5 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-xl font-bold text-sm transition-all"
+                className="px-6 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl font-bold text-sm transition-all"
               >
                 Sign Out
               </button>
@@ -814,10 +804,16 @@ export const App: React.FC = () => {
           navigate('/app/admin/orders');
           break;
         case 'disputes':
+          navigate('/app/admin/disputes');
+          break;
         case 'payouts':
+          navigate('/app/admin/payouts');
+          break;
         case 'reports':
-        case 'audit':
           navigate('/app/admin/reports');
+          break;
+        case 'audit':
+          navigate('/app/admin/audit-logs');
           break;
         case 'settings':
           navigate('/app/admin/settings');
@@ -839,17 +835,23 @@ export const App: React.FC = () => {
       >
         {toastContainer}
 
-        {normalizedAdminPath === '/app/admin/partners' ? (
+        {normalizedAdminPath === '/app/admin/partners' || normalizedAdminPath === '/admin/vendors' ? (
           <AdminVendorsPage onShowToast={addToast} />
-        ) : normalizedAdminPath === '/app/admin/customers' ? (
+        ) : normalizedAdminPath === '/app/admin/customers' || normalizedAdminPath === '/admin/customers' ? (
           <AdminCustomersPage onShowToast={addToast} />
-        ) : normalizedAdminPath === '/app/admin/food-deals' ? (
+        ) : normalizedAdminPath === '/app/admin/food-deals' || normalizedAdminPath === '/admin/listings' ? (
           <AdminListingsPage onShowToast={addToast} />
-        ) : normalizedAdminPath === '/app/admin/orders' ? (
+        ) : normalizedAdminPath === '/app/admin/orders' || normalizedAdminPath === '/admin/orders' ? (
           <AdminOrdersPage onShowToast={addToast} />
+        ) : normalizedAdminPath === '/app/admin/disputes' || normalizedAdminPath === '/admin/disputes' ? (
+          <AdminDisputesPage onShowToast={addToast} />
+        ) : normalizedAdminPath === '/app/admin/payouts' || normalizedAdminPath === '/admin/payouts' ? (
+          <AdminPayoutsPage onShowToast={addToast} />
         ) : normalizedAdminPath === '/app/admin/reports' ? (
           <AdminReportsPage onShowToast={addToast} onNavigateTab={(path) => navigate(path)} />
-        ) : normalizedAdminPath === '/app/admin/settings' ? (
+        ) : normalizedAdminPath === '/app/admin/audit-logs' || normalizedAdminPath === '/admin/audit' ? (
+          <AdminAuditLogsPage onShowToast={addToast} />
+        ) : normalizedAdminPath === '/app/admin/settings' || normalizedAdminPath === '/admin/settings' ? (
           <AdminSettingsPage currentUser={currentUser} onShowToast={addToast} onLogout={handleLogout} />
         ) : (
           <AdminOverviewPage onNavigateTab={handleAdminOverviewNavigate} onShowToast={addToast} />

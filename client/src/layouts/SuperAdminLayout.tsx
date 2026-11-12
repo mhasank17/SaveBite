@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Header from '../components/common/Header';
+import BottomNav from '../components/common/BottomNav';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import { AuthUser } from '../services/authApi';
 import AdminEditProfileModal from '../components/admin/AdminEditProfileModal';
@@ -16,13 +17,16 @@ export interface SuperAdminLayoutProps {
 }
 
 export const SUPER_ADMIN_NAV_LINKS = [
-  { path: '/app/super-admin/dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { path: '/app/super-admin/admins', label: 'Admins', icon: 'admin_panel_settings' },
-  { path: '/app/super-admin/partners', label: 'Partners', icon: 'storefront' },
+  { path: '/app/super-admin/dashboard', label: 'Master Telemetry', icon: 'dashboard' },
+  { path: '/app/super-admin/admins', label: 'Admins & Roles', icon: 'admin_panel_settings' },
+  { path: '/app/super-admin/partners', label: 'Partners & KYC', icon: 'verified' },
   { path: '/app/super-admin/customers', label: 'Customers', icon: 'group' },
-  { path: '/app/super-admin/orders', label: 'Orders', icon: 'receipt_long' },
-  { path: '/app/super-admin/reports', label: 'Reports', icon: 'monitoring' },
-  { path: '/app/super-admin/settings', label: 'Settings', icon: 'settings' },
+  { path: '/app/super-admin/orders', label: 'Orders & GMV', icon: 'receipt_long' },
+  { path: '/app/super-admin/disputes', label: 'Disputes & Refunds', icon: 'gavel' },
+  { path: '/app/super-admin/payouts', label: 'Settlements', icon: 'payments' },
+  { path: '/app/super-admin/reports', label: 'Financial Audit', icon: 'monitoring' },
+  { path: '/app/super-admin/audit-logs', label: 'Audit Logs', icon: 'history' },
+  { path: '/app/super-admin/settings', label: 'System Controls', icon: 'tune' },
 ];
 
 export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
@@ -37,14 +41,41 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
+  const handleBottomTabChange = (tabId: string) => {
+    if (!onNavigate) return;
+    switch (tabId) {
+      case 'overview':
+        onNavigate('/app/super-admin/dashboard');
+        break;
+      case 'vendors':
+        onNavigate('/app/super-admin/partners');
+        break;
+      case 'listings':
+        onNavigate('/app/admin/food-deals');
+        break;
+      case 'disputes':
+        onNavigate('/app/super-admin/disputes');
+        break;
+      case 'payouts':
+        onNavigate('/app/super-admin/payouts');
+        break;
+      default:
+        onNavigate('/app/super-admin/dashboard');
+        break;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 font-body text-slate-100 flex flex-col antialiased">
+    <div className="min-h-screen bg-slate-50 font-body text-slate-900 flex flex-col antialiased">
       {/* SuperAdmin Top Header */}
       <Header
         portal="admin"
-        title="SaveBite Governance"
+        title="SaveBite Admin"
         subtitle="SuperAdmin Master Console"
-        unreadNotifications={0}
+        unreadNotifications={7}
+        onNotificationClick={() => {
+          if (onNavigate) onNavigate('/app/super-admin/dashboard');
+        }}
         onLogout={onLogout}
         userName={currentUser?.fullName || 'Root SuperAdmin'}
         userEmail={currentUser?.email || 'admin@savebite.in'}
@@ -53,8 +84,8 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
         onChangePassword={() => setIsChangePasswordOpen(true)}
       />
 
-      {/* SuperAdmin Navigation Bar */}
-      <div className="fixed top-16 md:top-20 inset-x-0 z-40 bg-slate-900 border-b border-slate-800 shadow-md">
+      {/* SuperAdmin Horizontal Navigation Bar */}
+      <div className="fixed top-16 md:top-20 inset-x-0 z-40 bg-white border-b border-slate-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between overflow-x-auto py-2 no-scrollbar">
           <div className="flex items-center gap-1.5 shrink-0">
             {SUPER_ADMIN_NAV_LINKS.map((item) => {
@@ -70,8 +101,8 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
                   }}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
                     isActive
-                      ? 'bg-purple-600 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      ? 'bg-purple-700 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
                   <span className="material-symbols-outlined text-[16px]">{item.icon}</span>
@@ -81,21 +112,29 @@ export const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
             })}
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 pl-4 border-l border-slate-800 text-xs font-bold text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="hidden lg:flex items-center gap-2 pl-4 border-l border-slate-200 text-xs font-bold text-emerald-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Root Clearance Active</span>
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full pt-32 md:pt-36 pb-20 bg-slate-950 text-slate-100">
+      <main className="flex-1 w-full pt-32 md:pt-36 pb-24 bg-slate-50 text-slate-900">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <ErrorBoundary fallbackTitle="SuperAdmin Section Error">
             {children}
           </ErrorBoundary>
         </div>
       </main>
+
+      {/* Bottom Navigation for Mobile and Responsive Viewports */}
+      <BottomNav
+        portal="admin"
+        activeTab={activePath}
+        onTabChange={handleBottomTabChange}
+        className="md:hidden"
+      />
 
       {/* Profile & Password Modals */}
       <AdminEditProfileModal

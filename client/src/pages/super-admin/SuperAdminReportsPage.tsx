@@ -78,18 +78,20 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
   if (loading) return <LoadingState message="Compiling SuperAdmin governance records..." />;
 
   const grossGMV = metrics?.grossRevenueInr || 48250;
-  const platformMargin = metrics?.commissionCollectedInr || 7237;
+  const platformMargin = metrics?.commissionCollectedInr || Math.round(grossGMV * 0.15);
 
   return (
-    <div className="flex flex-col gap-6 pb-12">
-      {/* Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="flex flex-col gap-6 pb-16">
+      {/* Header (Light Themed) */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="material-symbols-outlined text-purple-400 text-3xl">monitoring</span>
-            <h1 className="text-2xl font-bold text-white">SuperAdmin Master Governance Reports</h1>
+            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold shrink-0">
+              <span className="material-symbols-outlined text-[24px]">monitoring</span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">SuperAdmin Master Governance Reports</h1>
           </div>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-600 text-sm mt-1">
             Auditing campus marketplace GMV, partner bank transfers, compliance records, and security logs.
           </p>
         </div>
@@ -97,7 +99,7 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
         <button
           type="button"
           onClick={() => handleExportCSV(activeTab)}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+          className="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5"
         >
           <span className="material-symbols-outlined text-[18px]">download</span>
           Export Report CSV
@@ -105,7 +107,7 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
         {[
           { id: 'financial', label: 'Financial & GMV Audit' },
           { id: 'settlements', label: 'Partner Bank Settlements' },
@@ -117,8 +119,8 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === tab.id
-                ? 'bg-purple-600 text-white shadow-xs'
-                : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                ? 'bg-purple-700 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             {tab.label}
@@ -126,38 +128,38 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
         ))}
       </div>
 
-      {/* Financial Section */}
+      {/* Financial Section (Light Themed) */}
       {activeTab === 'financial' && (
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-bold text-white mb-4">University Platform Financial Balance Sheet</h2>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-base font-bold text-slate-900 mb-4">University Platform Financial Balance Sheet</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold text-xs uppercase">
+                <tr className="border-b border-slate-200 bg-slate-50 text-slate-600 font-semibold text-xs uppercase tracking-wider">
                   <th className="py-3 px-4">Financial Flow Category</th>
                   <th className="py-3 px-4">Audited Amount</th>
                   <th className="py-3 px-4">Platform Margin</th>
                   <th className="py-3 px-4">Disbursement Ratio</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                <tr>
-                  <td className="py-3.5 px-4 font-bold text-white">Gross Marketplace Revenue (GMV)</td>
-                  <td className="py-3.5 px-4 font-semibold text-white">{formatINR(grossGMV)}</td>
-                  <td className="py-3.5 px-4 font-semibold text-emerald-400">{formatINR(platformMargin)} (15%)</td>
-                  <td className="py-3.5 px-4 text-xs font-bold text-purple-400">100% Retained & Tracked</td>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tr className="hover:bg-slate-50/80">
+                  <td className="py-3.5 px-4 font-bold text-slate-900">Gross Marketplace Revenue (GMV)</td>
+                  <td className="py-3.5 px-4 font-semibold text-slate-900">{formatINR(grossGMV)}</td>
+                  <td className="py-3.5 px-4 font-semibold text-emerald-700">{formatINR(platformMargin)} (15%)</td>
+                  <td className="py-3.5 px-4 text-xs font-bold text-purple-700">100% Retained & Tracked</td>
                 </tr>
-                <tr>
-                  <td className="py-3.5 px-4 font-bold text-white">Partner Kitchen Net Settlements</td>
-                  <td className="py-3.5 px-4 font-semibold text-white">{formatINR(grossGMV - platformMargin)}</td>
-                  <td className="py-3.5 px-4 text-slate-500">—</td>
-                  <td className="py-3.5 px-4 text-xs font-bold text-emerald-400">85% Paid to Merchants</td>
+                <tr className="hover:bg-slate-50/80">
+                  <td className="py-3.5 px-4 font-bold text-slate-900">Partner Kitchen Net Settlements</td>
+                  <td className="py-3.5 px-4 font-semibold text-slate-900">{formatINR(grossGMV - platformMargin)}</td>
+                  <td className="py-3.5 px-4 text-slate-400">—</td>
+                  <td className="py-3.5 px-4 text-xs font-bold text-emerald-700">85% Paid to Merchants</td>
                 </tr>
-                <tr>
-                  <td className="py-3.5 px-4 font-bold text-white">Estimated GST / Campus Compliance Reserve</td>
-                  <td className="py-3.5 px-4 font-semibold text-white">{formatINR(Math.round(platformMargin * 0.18))}</td>
-                  <td className="py-3.5 px-4 text-slate-500">—</td>
-                  <td className="py-3.5 px-4 text-xs font-bold text-slate-400">Statutory Tax Account</td>
+                <tr className="hover:bg-slate-50/80">
+                  <td className="py-3.5 px-4 font-bold text-slate-900">Estimated GST / Campus Compliance Reserve</td>
+                  <td className="py-3.5 px-4 font-semibold text-slate-900">{formatINR(Math.round(platformMargin * 0.18))}</td>
+                  <td className="py-3.5 px-4 text-slate-400">—</td>
+                  <td className="py-3.5 px-4 text-xs font-bold text-slate-500">Statutory Tax Account</td>
                 </tr>
               </tbody>
             </table>
@@ -165,14 +167,14 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
         </div>
       )}
 
-      {/* Settlements Section */}
+      {/* Settlements Section (Light Themed) */}
       {activeTab === 'settlements' && (
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-bold text-white mb-4">Partner Settlement Disbursal Ledger</h2>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-base font-bold text-slate-900 mb-4">Partner Settlement Disbursal Ledger</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold text-xs uppercase">
+                <tr className="border-b border-slate-200 bg-slate-50 text-slate-600 font-semibold text-xs uppercase tracking-wider">
                   <th className="py-3 px-4">Partner Kitchen</th>
                   <th className="py-3 px-4">Amount</th>
                   <th className="py-3 px-4">Bank Ref ID</th>
@@ -180,7 +182,7 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
                   <th className="py-3 px-4">Transfer Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-slate-100 text-slate-700">
                 {(settlements?.history && settlements.history.length > 0 ? settlements.history : [
                   {
                     id: 'set-1',
@@ -207,17 +209,17 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
                     status: 'SCHEDULED',
                   },
                 ]).map((record: any) => (
-                  <tr key={record.id} className="hover:bg-slate-850/60 transition-colors">
-                    <td className="py-3 px-4 font-bold text-white">{record.restaurantName}</td>
-                    <td className="py-3 px-4 font-semibold text-emerald-400">{formatINR(record.amountInr)}</td>
-                    <td className="py-3 px-4 text-xs font-mono text-slate-400">{record.bankReferenceId || 'Processing batch'}</td>
-                    <td className="py-3 px-4 text-xs text-slate-400">{record.payoutDate}</td>
-                    <td className="py-3 px-4">
+                  <tr key={record.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-slate-900">{record.restaurantName}</td>
+                    <td className="py-3.5 px-4 font-semibold text-emerald-700">{formatINR(record.amountInr)}</td>
+                    <td className="py-3.5 px-4 text-xs font-mono text-slate-600">{record.bankReferenceId || 'Processing batch'}</td>
+                    <td className="py-3.5 px-4 text-xs text-slate-500">{record.payoutDate}</td>
+                    <td className="py-3.5 px-4">
                       <span
-                        className={`text-xs font-bold px-2 py-0.5 rounded ${
+                        className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
                           record.status === 'COMPLETED'
-                            ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800'
-                            : 'bg-amber-950/80 text-amber-400 border border-amber-800'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}
                       >
                         {record.status}
@@ -231,14 +233,14 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
         </div>
       )}
 
-      {/* Audit Logs Section */}
+      {/* Audit Logs Section (Light Themed) */}
       {activeTab === 'audit' && (
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-bold text-white mb-4">Chronological Security & Administrative Events</h2>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-base font-bold text-slate-900 mb-4">Chronological Security & Administrative Events</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold text-xs uppercase">
+                <tr className="border-b border-slate-200 bg-slate-50 text-slate-600 font-semibold text-xs uppercase tracking-wider">
                   <th className="py-3 px-4">Timestamp</th>
                   <th className="py-3 px-4">Administrator</th>
                   <th className="py-3 px-4">Action</th>
@@ -246,7 +248,7 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
                   <th className="py-3 px-4">Audit Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-slate-100 text-slate-700">
                 {auditLogs.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-slate-500 text-xs">
@@ -255,16 +257,16 @@ export const SuperAdminReportsPage: React.FC<SuperAdminReportsPageProps> = ({ on
                   </tr>
                 ) : (
                   auditLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-850/60 transition-colors">
-                      <td className="py-3 px-4 text-xs text-slate-400 whitespace-nowrap">
+                    <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
                         {new Date(log.createdAt).toLocaleString()}
                       </td>
-                      <td className="py-3 px-4 font-mono text-xs text-purple-400">{log.actorEmail}</td>
-                      <td className="py-3 px-4">
-                        <span className="text-xs font-bold text-white uppercase">{log.action}</span>
+                      <td className="py-3.5 px-4 font-mono text-xs text-purple-700 font-semibold">{log.actorEmail}</td>
+                      <td className="py-3.5 px-4">
+                        <span className="text-xs font-bold text-slate-900 uppercase">{log.action}</span>
                       </td>
-                      <td className="py-3 px-4 text-xs font-mono text-slate-400">{log.targetId || 'N/A'}</td>
-                      <td className="py-3 px-4 text-xs text-slate-300">{log.details || 'System event'}</td>
+                      <td className="py-3.5 px-4 text-xs font-mono text-slate-600">{log.targetId || 'N/A'}</td>
+                      <td className="py-3.5 px-4 text-xs text-slate-600">{log.details || 'System event'}</td>
                     </tr>
                   ))
                 )}

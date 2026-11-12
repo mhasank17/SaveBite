@@ -213,12 +213,33 @@ export const AdminVendorsPage: React.FC<AdminVendorsPageProps> = ({ onShowToast 
                       <span className="material-symbols-outlined text-[15px] text-emerald-600">verified</span>
                       <span>FSSAI: {vendor.licenseNumber}</span>
                     </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-sans font-bold">
+                      <span className="material-symbols-outlined text-[13px] text-emerald-600">psychology</span>
+                      98% AI Pre-Check Match
+                    </span>
                     {vendor.phone && (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 font-sans">
                         <span className="material-symbols-outlined text-[15px]">call</span>
                         <span>{vendor.phone}</span>
                       </span>
                     )}
+                  </div>
+
+                  {/* Submitted Documents Row matching admin_vendor_kyc.jpg */}
+                  <div className="flex flex-wrap items-center gap-2 mt-3 pt-2 border-t border-slate-100 text-xs">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Docs:</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
+                      <span className="material-symbols-outlined text-[13px]">description</span>
+                      Health Inspection PDF
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
+                      <span className="material-symbols-outlined text-[13px]">home_work</span>
+                      Kitchen Lease
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
+                      <span className="material-symbols-outlined text-[13px]">badge</span>
+                      Owner ID
+                    </span>
                   </div>
                 </div>
               </div>

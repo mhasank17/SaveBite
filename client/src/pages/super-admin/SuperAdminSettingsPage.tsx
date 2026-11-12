@@ -30,68 +30,70 @@ export const SuperAdminSettingsPage: React.FC<SuperAdminSettingsPageProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-12 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="flex flex-col gap-6 pb-16 max-w-4xl mx-auto">
+      {/* Header (Light Themed) */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="material-symbols-outlined text-purple-400 text-3xl">settings_suggest</span>
-            <h1 className="text-2xl font-bold text-white">SuperAdmin Master Governance Settings</h1>
+            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold shrink-0">
+              <span className="material-symbols-outlined text-[24px]">settings_suggest</span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">SuperAdmin Master Governance Settings</h1>
           </div>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-600 text-sm mt-1">
             Root infrastructure parameters, emergency overrides, database limits, and payment gateway bindings.
           </p>
         </div>
 
-        <div className="px-3.5 py-1.5 rounded-xl bg-purple-950/70 border border-purple-800/80 text-purple-300 text-xs font-bold flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+        <div className="px-3.5 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse" />
           <span>Root Access Granted</span>
         </div>
       </div>
 
       <form onSubmit={handleSave} className="flex flex-col gap-6">
         {/* Master Identity */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-purple-400">shield_person</span>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-purple-700">shield_person</span>
             Root SuperAdmin Credentials
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Root Identifier</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Root Identifier</label>
               <input
                 type="text"
                 disabled
                 value={currentUser?.fullName || 'Master Platform SuperAdmin'}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-sm font-medium cursor-not-allowed"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm font-medium cursor-not-allowed"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Root Clearance Email</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Root Clearance Email</label>
               <input
                 type="email"
                 disabled
                 value={currentUser?.email || 'admin@savebite.in'}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-sm font-medium cursor-not-allowed"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm font-medium cursor-not-allowed"
               />
             </div>
           </div>
         </div>
 
         {/* Global Operational Overrides */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-amber-400">warning</span>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-amber-500">warning</span>
             Emergency & Maintenance Controls
           </h2>
 
-          <div className="flex flex-col divide-y divide-slate-800/80">
-            <div className="py-3 flex items-center justify-between">
+          <div className="flex flex-col divide-y divide-slate-100">
+            <div className="py-3.5 flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-white">Scheduled Maintenance Mode</p>
-                <p className="text-xs text-slate-400">
+                <p className="text-sm font-bold text-slate-900">Scheduled Maintenance Mode</p>
+                <p className="text-xs text-slate-500 mt-0.5">
                   When enabled, only administrators can access the system. Customers & partners will see a maintenance notice.
                 </p>
               </div>
@@ -103,10 +105,10 @@ export const SuperAdminSettingsPage: React.FC<SuperAdminSettingsPageProps> = ({
               />
             </div>
 
-            <div className="py-3 flex items-center justify-between">
+            <div className="py-3.5 flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-red-400">Emergency Marketplace Lockdown</p>
-                <p className="text-xs text-slate-400">
+                <p className="text-sm font-bold text-rose-700">Emergency Marketplace Lockdown</p>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Immediately suspends order processing, disables all active listings, and pauses partner payouts.
                 </p>
               </div>
@@ -114,22 +116,22 @@ export const SuperAdminSettingsPage: React.FC<SuperAdminSettingsPageProps> = ({
                 type="checkbox"
                 checked={emergencyLockdown}
                 onChange={(e) => setEmergencyLockdown(e.target.checked)}
-                className="w-5 h-5 rounded text-red-600 focus:ring-red-500 cursor-pointer"
+                className="w-5 h-5 rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
               />
             </div>
           </div>
         </div>
 
         {/* Database & Gateway Configuration */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-blue-400">database</span>
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-blue-600">database</span>
             Backend Infrastructure & Payments
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-400 mb-1">
+              <label className="block text-xs font-bold text-slate-600 mb-1">
                 PostgreSQL Max Connection Pool
               </label>
               <input
@@ -138,12 +140,12 @@ export const SuperAdminSettingsPage: React.FC<SuperAdminSettingsPageProps> = ({
                 max="100"
                 value={databasePoolSize}
                 onChange={(e) => setDatabasePoolSize(Number(e.target.value))}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-purple-600"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-400 mb-1">
+              <label className="block text-xs font-bold text-slate-600 mb-1">
                 Admin Session Auto-Timeout (Minutes)
               </label>
               <input
@@ -152,19 +154,19 @@ export const SuperAdminSettingsPage: React.FC<SuperAdminSettingsPageProps> = ({
                 max="480"
                 value={sessionTimeoutMinutes}
                 onChange={(e) => setSessionTimeoutMinutes(Number(e.target.value))}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:border-purple-600"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-slate-400 mb-1">
+              <label className="block text-xs font-bold text-slate-600 mb-1">
                 Razorpay Webhook Signature Secret
               </label>
               <input
                 type="password"
                 value={webhookSecretMasked}
                 onChange={(e) => setWebhookSecretMasked(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-sm font-mono"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-mono focus:outline-none focus:border-purple-600"
               />
             </div>
           </div>
@@ -176,7 +178,7 @@ export const SuperAdminSettingsPage: React.FC<SuperAdminSettingsPageProps> = ({
             <button
               type="button"
               onClick={onLogout}
-              className="text-xs font-bold text-red-400 hover:text-red-300 flex items-center gap-1"
+              className="text-xs font-bold text-rose-700 hover:text-rose-800 flex items-center gap-1"
             >
               <span className="material-symbols-outlined text-[16px]">logout</span>
               Terminate SuperAdmin Session
